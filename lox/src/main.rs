@@ -12,7 +12,7 @@ fn main() {
         println!("Usage: jlox [script]");
         process::exit(64);
     } else if args_len == 1 {
-        run_file(&args[0]);
+        run_file(&args[0]).expect("Unable to parse file");
     } else {
         run_prompt();
     }
@@ -32,7 +32,7 @@ fn run_file(filename: &str) -> Result<(), String> {
 }
 
 fn run_prompt() {
-    while true {
+    loop {
         let mut input = String::new();
         print!("> ");
         stdin().read_line(&mut input).expect("execution error");
@@ -40,6 +40,6 @@ fn run_prompt() {
     }
 }
 
-fn run(source: &str) {
+fn run(_source: &str) {
 
 }
