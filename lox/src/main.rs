@@ -15,7 +15,7 @@ fn main() {
         println!("Usage: jlox [script]");
         process::exit(64);
     } else if args_len == 2 {
-        run_file(&args[0]).expect("Unable to parse file");
+        run_file(&args[1]).expect("Unable to parse file");
     } else {
         run_prompt();
     }
