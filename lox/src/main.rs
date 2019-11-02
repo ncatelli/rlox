@@ -1,7 +1,7 @@
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::stdin;
+use std::io::{stdin, stdout};
 use std::process;
 
 #[cfg(test)]
@@ -38,6 +38,8 @@ fn run_prompt() {
     loop {
         let mut input = String::new();
         print!("> ");
+        let _=stdout().flush();
+
         stdin().read_line(&mut input).expect("execution error");
         run(input);
     }
