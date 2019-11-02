@@ -4,6 +4,9 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::stdin;
 
+#[cfg(test)]
+mod tests;
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let args_len = args.len();
