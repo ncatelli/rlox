@@ -1,11 +1,16 @@
+mod errors;
+
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{stdin, stdout};
 use std::process;
+use errors::ParseError;
 
 #[cfg(test)]
 mod tests;
+
+type ParseResult<T> = Result<T, ParseError>;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -45,8 +50,10 @@ fn run_prompt() {
     }
 }
 
-fn run(source: String) {
+fn run(source: String) -> ParseResult<usize> {
     for c in source.chars() {
         print!("{}", c);
     }
+
+    Ok(source.chars().count())
 }
