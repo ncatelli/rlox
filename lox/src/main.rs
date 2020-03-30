@@ -32,7 +32,7 @@ fn run_file(filename: &str) -> Result<(), String> {
     let mut contents = String::new();
     match f.read_to_string(&mut contents) {
         Ok(_) => {
-            run(contents);
+            run(contents).unwrap();
             Ok(())
         }
         Err(error) => Err(format!("error: {}", error)),
@@ -43,10 +43,10 @@ fn run_prompt() {
     loop {
         let mut input = String::new();
         print!("> ");
-        let _=stdout().flush();
+        stdout().flush().unwrap();
 
         stdin().read_line(&mut input).expect("execution error");
-        run(input);
+        run(input).unwrap();
     }
 }
 
