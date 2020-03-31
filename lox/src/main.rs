@@ -7,6 +7,8 @@ use std::io::{stdin, stdout};
 use std::process;
 use errors::ParseError;
 
+mod scanner;
+
 #[cfg(test)]
 mod tests;
 
@@ -51,9 +53,8 @@ fn run_prompt() {
 }
 
 fn run(source: String) -> ParseResult<usize> {
-    for c in source.chars() {
-        print!("{}", c);
-    }
+    let mut s = scanner::Scanner::new(source);
 
-    Ok(source.chars().count())
+    s.scan_tokens();
+    Ok(0)
 }

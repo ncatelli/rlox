@@ -1,26 +1,26 @@
 pub enum TokenType {
     // Single-character tokens
-    Left_Paren,
-    Right_Paren,
-    Left_Brace,
-    Right_Brace,
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
     Comma,
     Dot,
     Minus,
     Plus,
     Semicolon,
     Slash,
-    Star
+    Star,
 
     // One or two character tokens
     Bang,
-    Bang_Equal,
+    BangEqual,
     Equal,
-    Equal_Equal,
+    EqualEqual,
     Greater,
-    Greater_Equal,
+    GreaterEqual,
     Less,
-    Less_Equal,
+    LessEqual,
 
     // Literals
     Identifier,
@@ -57,7 +57,7 @@ pub struct Token {
 impl Token {
     pub fn new(token_type: TokenType, lexeme: String, line: u64) -> Token {
         Token {
-            TokenType: token_type,
+            token_type: token_type,
             lexeme: lexeme.clone(),
             line: line
         }
@@ -65,7 +65,7 @@ impl Token {
 }
 
 impl ToString for Token {
-    pub fn to_string(&self) -> String {
-        format!("{} {} {}\n", self.token_type, self.lexeme, self.line)
+    fn to_string(&self) -> String {
+        format!("{} {}\n", self.lexeme, self.line)
     }    
 }
