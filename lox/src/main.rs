@@ -1,11 +1,11 @@
 mod errors;
 
+use errors::ParseError;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{stdin, stdout};
 use std::process;
-use errors::ParseError;
 
 mod scanner;
 
@@ -55,6 +55,11 @@ fn run_prompt() {
 fn run(source: String) -> ParseResult<usize> {
     let mut s = scanner::Scanner::new(source);
 
-    s.scan_tokens();
+    let i = s.scan_tokens().into_iter();
+
+    for tok in i {
+        println!("{}", tok)
+    }
+
     Ok(0)
 }

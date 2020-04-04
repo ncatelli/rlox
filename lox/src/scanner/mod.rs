@@ -1,89 +1,127 @@
+use std::iter::Iterator;
+use std::option::Option::{None, Some};
+
 pub mod tokens;
 
+use tokens::ordinal::Ordinal;
 use tokens::{Token, TokenType};
 
+#[derive(Clone, Copy)]
 struct PreToken {
     literal: char,
-    column: u64,
-    line: u64,
+    ordinal: Ordinal,
 }
 
 impl PreToken {
-    pub fn new(literal: char, column: u64, line: u64) -> PreToken {
+    pub fn new(literal: char, ordinal: Ordinal) -> PreToken {
         PreToken {
             literal: literal,
-            column: column,
-            line: line,
+            ordinal: ordinal,
         }
     }
 }
 
 pub struct Scanner {
-    source: String,
-    start: u64,
-    end: usize,
+    source: Vec<PreToken>,
 }
 
 impl Scanner {
     pub fn new(source: String) -> Scanner {
-        let end = source.len();
-
         Scanner {
-            source: source,
-            start: 0,
-            end: end,
+            source: Scanner::preparse_tokens(source),
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Vec<Token> {
-        let mut tokens: Vec<Token> = Vec::new();
-        let pt = self.preparse_tokens();
-        let mut pti = pt.into_iter(); 
-
-        while let Some(c) = pti.next() {}
-
-        tokens.push(Token::new(TokenType::EOF, "".to_string(), 0));
-        tokens
-    }
-
-    fn scan_token(&self, c: PreToken) -> Token {
-        let token_type = match c.literal {
-            '(' => TokenType::LeftParen,
-            ')' => TokenType::RightParen,
-            '{' => TokenType::LeftBrace,
-            '}' => TokenType::RightBrace,
-            ',' => TokenType::Comma,
-            '.' => TokenType::Dot,
-            '-' => TokenType::Minus,
-            '+' => TokenType::Plus,
-            ';' => TokenType::Semicolon,
-            '*' => TokenType::Star,
-            _ => TokenType::String,
-        };
-
-        Token::new(token_type, c.literal.to_string(), 0)
-    }
-
-    fn preparse_tokens(&self) -> Vec<PreToken> {
+    fn preparse_tokens(source: String) -> Vec<PreToken> {
         let mut line = 0;
         let mut column = 0;
 
-        self.source.chars().map(|c| {
-            let pt = PreToken {
-                literal: c,
-                line: line,
-                column: column,
+        source
+            .chars()
+            .map(|c| {
+                let pt = PreToken {
+                    literal: c,
+                    ordinal: Ordinal(line, column),
+                };
+
+                match c {
+                    '\n' => {
+                        column = 0;
+                        line += 1;
+                    }
+                    _ => column += 1,
+                }
+
+                pt
+            })
+            .collect()
+    }
+
+    pub fn scan_tokens(&mut self) -> Vec<Token> {
+        let mut iter = self.source.iter().peekable();
+        let mut tokens: Vec<Token> = Vec::new();
+
+        for pt in iter {
+            let token = match pt.literal {
+                '(' => Some(Token::new(
+                    TokenType::LeftParen,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                ')' => Some(Token::new(
+                    TokenType::RightParen,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                '{' => Some(Token::new(
+                    TokenType::LeftBrace,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                '}' => Some(Token::new(
+                    TokenType::RightBrace,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                ',' => Some(Token::new(
+                    TokenType::Comma,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                '.' => Some(Token::new(
+                    TokenType::Dot,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                '-' => Some(Token::new(
+                    TokenType::Minus,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                '+' => Some(Token::new(
+                    TokenType::Plus,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                ';' => Some(Token::new(
+                    TokenType::Semicolon,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                '*' => Some(Token::new(
+                    TokenType::Star,
+                    pt.literal.to_string(),
+                    pt.ordinal,
+                )),
+                _ => None,
             };
 
-            match c {
-                '\n' => {
-                    column = 0;
-                    line += 1;
-                },
-                _ => column += 1,
+            match token {
+                Some(t) => tokens.push(t),
+                None => tokens.push(Token::new(TokenType::EOF, "".to_string(), Ordinal(0,0))),
             }
+        }
 
-            pt
-        }).collect()
+        tokens
     }
 }
