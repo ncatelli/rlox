@@ -55,10 +55,13 @@ fn run_prompt() {
 fn run(source: String) -> ParseResult<usize> {
     let mut s = scanner::Scanner::new(source);
 
-    let i = s.scan_tokens().into_iter();
+    let tokens = s.scan_tokens().into_iter();
 
-    for tok in i {
-        println!("{}", tok)
+    for token_result in tokens {
+        match token_result {
+            Ok(token) => println!("{}", token),
+            Err(e) => println!("{}", e),
+        }
     }
 
     Ok(0)
