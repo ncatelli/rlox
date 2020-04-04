@@ -1,19 +1,16 @@
-use super::ordinal::Ordinal;
 use super::token_type::TokenType;
 use std::fmt;
 
 pub struct Token {
     token_type: TokenType,
     lexeme: String,
-    ordinal: Ordinal,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, lexeme: String, ordinal: Ordinal) -> Token {
+    pub fn new(token_type: TokenType, lexeme: String) -> Token {
         Token {
             token_type: token_type,
             lexeme: lexeme.clone(),
-            ordinal: ordinal,
         }
     }
 }
