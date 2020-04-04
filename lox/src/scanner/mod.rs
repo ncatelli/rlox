@@ -1,3 +1,6 @@
+use std::option::Option;
+use std::option::Option::{Some, None};
+
 pub mod tokens;
 use tokens::{Token, TokenType};
 
@@ -54,6 +57,22 @@ impl Scanner {
             '+' => Ok(self.substring_into_token(TokenType::Plus)),
             ';' => Ok(self.substring_into_token(TokenType::Semicolon)),
             '*' => Ok(self.substring_into_token(TokenType::Star)),
+/*
+            // Operators
+            '!' => {
+
+            },
+            '=' => {
+
+            },
+            '<' => {
+
+            },
+            '>' => {
+
+            },
+*/
+            // Unknown lexemes
             _ => {
                 self.had_errors = true;
                 Err(format!(
@@ -78,5 +97,12 @@ impl Scanner {
     fn advance(&mut self) -> char {
         self.current += 1;
         self.source[self.current - 1]
+    }
+
+    fn peek(&mut self) -> Option<char> {
+        match self.is_at_end() {
+            true => None,
+            false => Some(self.source[self.current]),
+        }
     }
 }
