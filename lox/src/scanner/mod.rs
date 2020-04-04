@@ -1,5 +1,5 @@
 use std::option::Option;
-use std::option::Option::{Some, None};
+use std::option::Option::{None, Some};
 
 pub mod tokens;
 use tokens::{Token, TokenType};
@@ -47,6 +47,7 @@ impl Scanner {
         let c = self.advance();
 
         match c {
+            // Single character lexemes
             '(' => Ok(self.substring_into_token(TokenType::LeftParen)),
             ')' => Ok(self.substring_into_token(TokenType::RightParen)),
             '{' => Ok(self.substring_into_token(TokenType::LeftBrace)),
@@ -57,21 +58,41 @@ impl Scanner {
             '+' => Ok(self.substring_into_token(TokenType::Plus)),
             ';' => Ok(self.substring_into_token(TokenType::Semicolon)),
             '*' => Ok(self.substring_into_token(TokenType::Star)),
-/*
-            // Operators
-            '!' => {
 
+            // Operators lexemes with optional additional characters
+            '!' => match self.peek() {
+                Some('=') => {
+                    self.start = self.current - 1;
+                    self.current += 1;
+                    Ok(self.substring_into_token(TokenType::BangEqual))
+                }
+                _ => Ok(self.substring_into_token(TokenType::Bang)),
             },
-            '=' => {
+            '=' => match self.peek() {
+                Some('=') => {
+                    self.start = self.current - 1;
+                    self.current += 1;
+                    Ok(self.substring_into_token(TokenType::EqualEqual))
+                }
+                _ => Ok(self.substring_into_token(TokenType::Equal)),
+            },
+            '<' => match self.peek() {
+                Some('=') => {
+                    self.start = self.current - 1;
+                    self.current += 1;
+                    Ok(self.substring_into_token(TokenType::LessEqual))
+                }
+                _ => Ok(self.substring_into_token(TokenType::Less)),
+            },
+            '>' => match self.peek() {
+                Some('=') => {
+                    self.start = self.current - 1;
+                    self.current += 1;
+                    Ok(self.substring_into_token(TokenType::GreaterEqual))
+                }
+                _ => Ok(self.substring_into_token(TokenType::Greater)),
+            },
 
-            },
-            '<' => {
-
-            },
-            '>' => {
-
-            },
-*/
             // Unknown lexemes
             _ => {
                 self.had_errors = true;
