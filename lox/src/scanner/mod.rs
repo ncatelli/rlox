@@ -136,9 +136,21 @@ impl Scanner {
                     }
                 }
                 Err(format!(
-                    "Unclosed at line: {}, position: {}.",
+                    "Unclosed string string line: {}, position: {}.",
                     start_line, self.start
                 ))
+            },
+
+            // Numbers
+            '0'..='9' => {
+                while let Some(next) = self.peek() {
+                    match next {
+                        '0'..='9' | '.' => self.current += 1,
+                        _ => return Ok(self.substring_into_token(TokenType::Number)),
+                    }
+                }
+
+                Ok(self.substring_into_token(TokenType::Number))
             }
 
             // Unknown lexemes
