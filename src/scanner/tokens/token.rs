@@ -1,5 +1,25 @@
 use super::token_type::TokenType;
 use std::fmt;
+use std::option::Option::{None, Some};
+
+const RESERVED_KEYWORDS: &'static [(&'static str, TokenType)] = &[
+    ("and", TokenType::And),
+    ("or", TokenType::Or),
+    ("print", TokenType::Print),
+    ("return", TokenType::Return),
+    ("super", TokenType::Super),
+    ("class", TokenType::Class),
+    ("this", TokenType::This),
+    ("nil", TokenType::Nil),
+    ("true", TokenType::True),
+    ("false", TokenType::False),
+    ("var", TokenType::Var),
+    ("fun", TokenType::Fun),
+    ("while", TokenType::While),
+    ("for", TokenType::For),
+    ("if", TokenType::If),
+    ("else", TokenType::Else),
+];
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
@@ -12,6 +32,21 @@ impl Token {
         Token {
             token_type: token_type,
             lexeme: lexeme.clone(),
+        }
+    }
+
+    pub fn is_reserved_keyword(&self) -> Option<TokenType> {
+        match self.token_type {
+            TokenType::Identifier => {
+                for kw in RESERVED_KEYWORDS.iter() {
+                    if *kw.0 == self.lexeme {
+                        return Some(kw.1);
+                    }
+                }
+
+                None
+            }
+            _ => None,
         }
     }
 }
