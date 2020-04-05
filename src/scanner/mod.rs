@@ -176,6 +176,19 @@ impl Scanner {
                 Ok(self.substring_into_token(TokenType::Number))
             }
 
+            // Identifiers
+            'a'..='z' | 'A'..='Z' => {
+                while let Some(next) = self.peek() {
+                    match next {
+                        'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => self.current += 1,
+                        _ => {
+                            return Ok(self.substring_into_token(TokenType::Identifier));
+                        }
+                    }
+                }
+                Ok(self.substring_into_token(TokenType::Identifier))
+            }
+
             // Unknown lexemes
             _ => {
                 self.had_errors = true;
