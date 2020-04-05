@@ -24,9 +24,9 @@ pub enum TokenType {
     LessEqual,
 
     // Literals
-    Identifier(String),
-    Str(String),
-    Number(i64),
+    Identifier,
+    Str,
+    Number,
 
     // Keywords
     And,
@@ -45,6 +45,10 @@ pub enum TokenType {
     True,
     Var,
     While,
+
+    // Whitespace
+    Whitespace,
+    Newline,
 
     EOF,
 }

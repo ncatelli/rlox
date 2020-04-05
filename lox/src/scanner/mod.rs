@@ -93,6 +93,54 @@ impl Scanner {
                 _ => Ok(self.substring_into_token(TokenType::Greater)),
             },
 
+            // Slash
+            '/' => match self.peek() {
+                Some('/') => {
+                    while let Some(next) = self.peek() {
+                        match next {
+                            '\n' => {
+                                self.current += 1;
+                                return Ok(self.substring_into_token(TokenType::Newline));
+                            }
+                            _ => self.current += 1,
+                        }
+                    }
+
+                    Ok(Token::new(TokenType::EOF, "".to_string()))
+                }
+                _ => Ok(self.substring_into_token(TokenType::Slash)),
+            },
+
+            // Whitespace
+            ' ' => Ok(self.substring_into_token(TokenType::Whitespace)),
+            '\r' => Ok(self.substring_into_token(TokenType::Whitespace)),
+            '\t' => Ok(self.substring_into_token(TokenType::Whitespace)),
+            '\n' => {
+                self.line += 1;
+                Ok(self.substring_into_token(TokenType::Newline))
+            }
+
+            // Literals
+            // Strings
+            '"' => {
+                self.start += 1;
+                let start_line = self.line;
+                while let Some(next) = self.peek() {
+                    match next {
+                        '"' => {
+                            let token_str = self.substring_into_token(TokenType::Str);
+                            self.current += 1;
+                            return Ok(token_str);
+                        }
+                        _ => self.current += 1,
+                    }
+                }
+                Err(format!(
+                    "Unclosed at line: {}, position: {}.",
+                    start_line, self.start
+                ))
+            }
+
             // Unknown lexemes
             _ => {
                 self.had_errors = true;
@@ -108,8 +156,12 @@ impl Scanner {
         self.current >= self.end
     }
 
+    fn substring(&self, start: usize, end: usize) -> &[char] {
+        &self.source[start..end]
+    }
+
     fn substring_into_token(&self, token_type: TokenType) -> Token {
-        let token_range = &self.source[self.start..self.current];
+        let token_range = &self.substring(self.start, self.current);
         let literal: String = token_range.iter().collect();
 
         Token::new(token_type, literal)
