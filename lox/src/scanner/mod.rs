@@ -136,16 +136,36 @@ impl Scanner {
                     }
                 }
                 Err(format!(
-                    "Unclosed string string line: {}, position: {}.",
+                    "Unclosed string at line: {}, position: {}",
                     start_line, self.start
                 ))
-            },
+            }
 
             // Numbers
             '0'..='9' => {
                 while let Some(next) = self.peek() {
                     match next {
-                        '0'..='9' | '.' => self.current += 1,
+                        '0'..='9' => self.current += 1,
+                        '.' => {
+                            self.current += 1;
+                            match self.peek() {
+                                Some(next_after_dot) => match next_after_dot {
+                                    '0'..='9' => self.current += 1,
+                                    _ => {
+                                        return Err(format!(
+                                            "Invalid number at line: {}, position: {}",
+                                            self.line, self.current
+                                        ))
+                                    }
+                                },
+                                None => {
+                                    return Err(format!(
+                                        "Invalid number at line: {}, position: {}",
+                                        self.line, self.current
+                                    ))
+                                }
+                            }
+                        }
                         _ => return Ok(self.substring_into_token(TokenType::Number)),
                     }
                 }
