@@ -192,7 +192,14 @@ impl Scanner {
                         }
                     }
                 }
-                Ok(self.substring_into_token(TokenType::Identifier))
+
+                let t = self.substring_into_token(TokenType::Identifier);
+                let reserved_keyword = t.is_reserved_keyword();
+                if let Some(token_type) = reserved_keyword {
+                    return Ok(self.substring_into_token(token_type));
+                }
+
+                return Ok(t);
             }
 
             // Unknown lexemes
