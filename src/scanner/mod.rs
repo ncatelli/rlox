@@ -1,6 +1,8 @@
 use std::option::Option;
 use std::option::Option::{None, Some};
 
+use std::iter::Iterator;
+
 pub mod tokens;
 use tokens::{Token, TokenType};
 
@@ -36,6 +38,7 @@ impl Scanner {
         let mut tokens: Vec<LexResult> = Vec::new();
 
         while !self.is_at_end() {
+            self.start = self.current;
             let t = self.scan_token();
             tokens.push(t);
         }
@@ -173,6 +176,32 @@ impl Scanner {
                 Ok(self.substring_into_token(TokenType::Number))
             }
 
+            // Identifiers
+            'a'..='z' | 'A'..='Z' => {
+                while let Some(next) = self.peek() {
+                    match next {
+                        'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => self.current += 1,
+                        _ => {
+                            let t = self.substring_into_token(TokenType::Identifier);
+                            let reserved_keyword = t.is_reserved_keyword();
+                            if let Some(token_type) = reserved_keyword {
+                                return Ok(self.substring_into_token(token_type));
+                            }
+
+                            return Ok(t);
+                        }
+                    }
+                }
+
+                let t = self.substring_into_token(TokenType::Identifier);
+                let reserved_keyword = t.is_reserved_keyword();
+                if let Some(token_type) = reserved_keyword {
+                    return Ok(self.substring_into_token(token_type));
+                }
+
+                return Ok(t);
+            }
+
             // Unknown lexemes
             _ => {
                 self.had_errors = true;
@@ -209,5 +238,41 @@ impl Scanner {
             true => None,
             false => Some(self.source[self.current]),
         }
+    }
+}
+
+impl IntoIterator for Scanner {
+    type Item = LexResult;
+    type IntoIter = ScannerIntoIterator;
+
+    fn into_iter(mut self) -> Self::IntoIter {
+        let tokens = self.scan_tokens();
+        let token_length = tokens.len();
+
+        ScannerIntoIterator {
+            tokens: tokens,
+            index: 0,
+            end: token_length,
+        }
+    }
+}
+
+pub struct ScannerIntoIterator {
+    tokens: Vec<LexResult>,
+    index: usize,
+    end: usize,
+}
+
+impl Iterator for ScannerIntoIterator {
+    type Item = LexResult;
+
+    fn next(&mut self) -> Option<LexResult> {
+        let result = match self.index < self.end {
+            true => Some(self.tokens[self.index].clone()),
+            false => None,
+        };
+
+        self.index += 1;
+        result
     }
 }

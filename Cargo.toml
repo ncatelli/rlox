@@ -1,5 +1,5 @@
 [package]
-name = "lox"
+name = "rlox"
 version = "0.1.0"
 authors = ["Nate Catelli <ncatelli@packetfire.org>"]
 edition = "2018"
