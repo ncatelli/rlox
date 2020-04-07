@@ -33,7 +33,8 @@ fn scan_tokens_should_lex_multiple_character_operator_lexemes() {
 
 #[test]
 fn scan_tokens_should_lex_comments() {
-    compare_single_token_source_helper(">=", TokenType::GreaterEqual);
+    compare_single_token_source_helper("// this is a test comment\n", TokenType::Newline);
+    compare_single_token_source_helper("/* this is a test comment */", TokenType::Newline);
 }
 
 #[test]
