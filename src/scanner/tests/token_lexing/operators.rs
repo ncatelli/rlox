@@ -1,7 +1,9 @@
 use crate::scanner::tokens::TokenType;
 use crate::scanner::*;
 
-use super::helpers::compare_single_token_source_helper;
+use super::helpers::{
+    compare_single_token_source_helper, compare_single_token_source_returns_none_helper,
+};
 
 #[test]
 fn scan_tokens_should_lex_single_character_lexemes() {
@@ -33,25 +35,20 @@ fn scan_tokens_should_lex_multiple_character_operator_lexemes() {
 
 #[test]
 fn scan_tokens_should_lex_comments() {
-    compare_single_token_source_helper("// this is a test comment\n", TokenType::Newline);
-    compare_single_token_source_helper("/* this is a test comment */", TokenType::Newline);
+    compare_single_token_source_returns_none_helper("// this is a test comment\n");
+    compare_single_token_source_returns_none_helper("/* this is a test comment */");
 }
 
 #[test]
 fn scan_tokens_should_lex_whitespace() {
-    compare_single_token_source_helper(" ", TokenType::Whitespace);
-    compare_single_token_source_helper("\r", TokenType::Whitespace);
-    compare_single_token_source_helper("\t", TokenType::Whitespace);
+    compare_single_token_source_returns_none_helper(" ");
+    compare_single_token_source_returns_none_helper("\r");
+    compare_single_token_source_returns_none_helper("\t");
 }
 
 #[test]
 fn scan_tokens_should_lex_newlines() {
-    compare_single_token_source_helper("\n", TokenType::Newline);
-}
-
-#[test]
-fn scan_tokens_should_drop_everything_but_newline_when_encountering_comments() {
-    compare_single_token_source_helper("// this is a comment\n", TokenType::Newline);
+    compare_single_token_source_returns_none_helper("\n");
 }
 
 #[test]

@@ -39,66 +39,76 @@ impl Scanner {
 
         while !self.is_at_end() {
             self.start = self.current;
-            let t = self.scan_token();
+            let t = match self.scan_token() {
+                Some(tok) => tok,
+                None => continue,
+            };
+
             tokens.push(t);
         }
 
         tokens
     }
 
-    fn scan_token(&mut self) -> Result<Token, String> {
+    fn scan_token(&mut self) -> Option<LexResult> {
         let c = self.advance();
 
         match c {
             // Single character lexemes
-            '(' => Ok(self.substring_into_token(TokenType::LeftParen)),
-            ')' => Ok(self.substring_into_token(TokenType::RightParen)),
-            '{' => Ok(self.substring_into_token(TokenType::LeftBrace)),
-            '}' => Ok(self.substring_into_token(TokenType::RightBrace)),
-            ',' => Ok(self.substring_into_token(TokenType::Comma)),
-            '.' => Ok(self.substring_into_token(TokenType::Dot)),
-            '-' => Ok(self.substring_into_token(TokenType::Minus)),
-            '+' => Ok(self.substring_into_token(TokenType::Plus)),
-            ';' => Ok(self.substring_into_token(TokenType::Semicolon)),
-            '*' => Ok(self.substring_into_token(TokenType::Star)),
+            '(' => Some(Ok(self.substring_into_token(TokenType::LeftParen))),
+            ')' => Some(Ok(self.substring_into_token(TokenType::RightParen))),
+            '{' => Some(Ok(self.substring_into_token(TokenType::LeftBrace))),
+            '}' => Some(Ok(self.substring_into_token(TokenType::RightBrace))),
+            ',' => Some(Ok(self.substring_into_token(TokenType::Comma))),
+            '.' => Some(Ok(self.substring_into_token(TokenType::Dot))),
+            '-' => Some(Ok(self.substring_into_token(TokenType::Minus))),
+            '+' => Some(Ok(self.substring_into_token(TokenType::Plus))),
+            ';' => Some(Ok(self.substring_into_token(TokenType::Semicolon))),
+            '*' => Some(Ok(self.substring_into_token(TokenType::Star))),
 
             // Operators lexemes with optional additional characters
-            '!' => self.match_next_or('=', TokenType::BangEqual, TokenType::Bang),
-            '=' => self.match_next_or('=', TokenType::EqualEqual, TokenType::Equal),
-            '<' => self.match_next_or('=', TokenType::LessEqual, TokenType::Less),
-            '>' => self.match_next_or('=', TokenType::GreaterEqual, TokenType::Greater),
+            '!' => Some(self.match_next_or('=', TokenType::BangEqual, TokenType::Bang)),
+            '=' => Some(self.match_next_or('=', TokenType::EqualEqual, TokenType::Equal)),
+            '<' => Some(self.match_next_or('=', TokenType::LessEqual, TokenType::Less)),
+            '>' => Some(self.match_next_or('=', TokenType::GreaterEqual, TokenType::Greater)),
 
             // Slash, potentially either comments or a plain slash
             '/' => match self.peek() {
-                Some('/') => self.match_simple_comment(),
-                Some('*') => self.match_c_comment(),
-                _ => Ok(self.substring_into_token(TokenType::Slash)),
+                Some('/') => match self.match_simple_comment() {
+                    Ok(_) => None,
+                    Err(e) => Some(Err(e)),
+                },
+                Some('*') => match self.match_c_comment() {
+                    Ok(_) => None,
+                    Err(e) => Some(Err(e)),
+                },
+                _ => Some(Ok(self.substring_into_token(TokenType::Slash))),
             },
 
             // Whitespace
-            ' ' => Ok(self.substring_into_token(TokenType::Whitespace)),
-            '\r' => Ok(self.substring_into_token(TokenType::Whitespace)),
-            '\t' => Ok(self.substring_into_token(TokenType::Whitespace)),
+            ' ' => None,
+            '\r' => None,
+            '\t' => None,
             '\n' => {
                 self.line += 1;
-                Ok(self.substring_into_token(TokenType::Newline))
+                None
             }
 
             // Literals
             // Strings
-            '"' => self.match_string(),
+            '"' => Some(self.match_string()),
             // Numbers
-            '0'..='9' => self.match_number(),
+            '0'..='9' => Some(self.match_number()),
             // Identifiers
-            'a'..='z' | 'A'..='Z' => self.is_identifier(),
+            'a'..='z' | 'A'..='Z' => Some(self.is_identifier()),
 
             // Unknown lexemes
             _ => {
                 self.had_errors = true;
-                Err(format!(
+                Some(Err(format!(
                     "Lex error at line: {}, position: {}.",
                     self.line, self.current
-                ))
+                )))
             }
         }
     }
@@ -124,7 +134,7 @@ impl Scanner {
             match next {
                 '\n' => {
                     self.current += 1;
-                    return Ok(self.substring_into_token(TokenType::Newline));
+                    return Ok(Token::new(TokenType::Comment, "".to_string()));
                 }
                 _ => self.current += 1,
             }
@@ -143,7 +153,7 @@ impl Scanner {
                     match self.peek() {
                         Some('/') => {
                             self.current += 1;
-                            return Ok(self.substring_into_token(TokenType::Newline));
+                            return Ok(Token::new(TokenType::Comment, "".to_string()));
                         }
                         _ => {
                             self.had_errors = true;
