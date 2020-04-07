@@ -56,6 +56,7 @@ fn run(source: String) -> ParseResult<usize> {
     let mut s = scanner::Scanner::new(source);
 
     let tokens = s.scan_tokens().into_iter();
+    let token_count = tokens.len();
 
     for token_result in tokens {
         match token_result {
@@ -64,5 +65,5 @@ fn run(source: String) -> ParseResult<usize> {
         }
     }
 
-    Ok(0)
+    Ok(token_count)
 }
