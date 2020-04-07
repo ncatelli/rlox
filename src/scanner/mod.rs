@@ -68,9 +68,10 @@ impl Scanner {
             '<' => self.match_next_or('=', TokenType::LessEqual, TokenType::Less),
             '>' => self.match_next_or('=', TokenType::GreaterEqual, TokenType::Greater),
 
-            // Slash
+            // Slash, potentially either comments or a plain slash
             '/' => match self.peek() {
                 Some('/') => self.match_simple_comment(),
+                Some('*') => self.match_c_comment(),
                 _ => Ok(self.substring_into_token(TokenType::Slash)),
             },
 
@@ -124,6 +125,34 @@ impl Scanner {
                 '\n' => {
                     self.current += 1;
                     return Ok(self.substring_into_token(TokenType::Newline));
+                }
+                _ => self.current += 1,
+            }
+        }
+
+        Ok(Token::new(TokenType::EOF, "".to_string()))
+    }
+
+    fn match_c_comment(&mut self) -> LexResult {
+        self.current += 1;
+
+        while let Some(next) = self.peek() {
+            match next {
+                '*' => {
+                    self.current += 1;
+                    match self.peek() {
+                        Some('/') => {
+                            self.current += 1;
+                            return Ok(self.substring_into_token(TokenType::Newline));
+                        }
+                        _ => {
+                            self.had_errors = true;
+                            return Err(format!(
+                                "Invalid comment at line: {}, position: {}.",
+                                self.line, self.current
+                            ));
+                        }
+                    }
                 }
                 _ => self.current += 1,
             }
