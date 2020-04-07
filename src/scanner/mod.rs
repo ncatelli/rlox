@@ -63,54 +63,14 @@ impl Scanner {
             '*' => Ok(self.substring_into_token(TokenType::Star)),
 
             // Operators lexemes with optional additional characters
-            '!' => match self.peek() {
-                Some('=') => {
-                    self.start = self.current - 1;
-                    self.current += 1;
-                    Ok(self.substring_into_token(TokenType::BangEqual))
-                }
-                _ => Ok(self.substring_into_token(TokenType::Bang)),
-            },
-            '=' => match self.peek() {
-                Some('=') => {
-                    self.start = self.current - 1;
-                    self.current += 1;
-                    Ok(self.substring_into_token(TokenType::EqualEqual))
-                }
-                _ => Ok(self.substring_into_token(TokenType::Equal)),
-            },
-            '<' => match self.peek() {
-                Some('=') => {
-                    self.start = self.current - 1;
-                    self.current += 1;
-                    Ok(self.substring_into_token(TokenType::LessEqual))
-                }
-                _ => Ok(self.substring_into_token(TokenType::Less)),
-            },
-            '>' => match self.peek() {
-                Some('=') => {
-                    self.start = self.current - 1;
-                    self.current += 1;
-                    Ok(self.substring_into_token(TokenType::GreaterEqual))
-                }
-                _ => Ok(self.substring_into_token(TokenType::Greater)),
-            },
+            '!' => self.match_next_or('=', TokenType::BangEqual, TokenType::Bang),
+            '=' => self.match_next_or('=', TokenType::EqualEqual, TokenType::Equal),
+            '<' => self.match_next_or('=', TokenType::LessEqual, TokenType::Less),
+            '>' => self.match_next_or('=', TokenType::GreaterEqual, TokenType::Greater),
 
             // Slash
             '/' => match self.peek() {
-                Some('/') => {
-                    while let Some(next) = self.peek() {
-                        match next {
-                            '\n' => {
-                                self.current += 1;
-                                return Ok(self.substring_into_token(TokenType::Newline));
-                            }
-                            _ => self.current += 1,
-                        }
-                    }
-
-                    Ok(Token::new(TokenType::EOF, "".to_string()))
-                }
+                Some('/') => self.match_simple_comment(),
                 _ => Ok(self.substring_into_token(TokenType::Slash)),
             },
 
@@ -125,82 +85,11 @@ impl Scanner {
 
             // Literals
             // Strings
-            '"' => {
-                self.start += 1;
-                let start_line = self.line;
-                while let Some(next) = self.peek() {
-                    match next {
-                        '"' => {
-                            let token_str = self.substring_into_token(TokenType::Str);
-                            self.current += 1;
-                            return Ok(token_str);
-                        }
-                        _ => self.current += 1,
-                    }
-                }
-                Err(format!(
-                    "Unclosed string at line: {}, position: {}",
-                    start_line, self.start
-                ))
-            }
-
+            '"' => self.match_string(),
             // Numbers
-            '0'..='9' => {
-                while let Some(next) = self.peek() {
-                    match next {
-                        '0'..='9' => self.current += 1,
-                        '.' => {
-                            self.current += 1;
-                            match self.peek() {
-                                Some(next_after_dot) => match next_after_dot {
-                                    '0'..='9' => self.current += 1,
-                                    _ => {
-                                        return Err(format!(
-                                            "Invalid number at line: {}, position: {}",
-                                            self.line, self.current
-                                        ))
-                                    }
-                                },
-                                None => {
-                                    return Err(format!(
-                                        "Invalid number at line: {}, position: {}",
-                                        self.line, self.current
-                                    ))
-                                }
-                            }
-                        }
-                        _ => return Ok(self.substring_into_token(TokenType::Number)),
-                    }
-                }
-
-                Ok(self.substring_into_token(TokenType::Number))
-            }
-
+            '0'..='9' => self.match_number(),
             // Identifiers
-            'a'..='z' | 'A'..='Z' => {
-                while let Some(next) = self.peek() {
-                    match next {
-                        'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => self.current += 1,
-                        _ => {
-                            let t = self.substring_into_token(TokenType::Identifier);
-                            let reserved_keyword = t.is_reserved_keyword();
-                            if let Some(token_type) = reserved_keyword {
-                                return Ok(self.substring_into_token(token_type));
-                            }
-
-                            return Ok(t);
-                        }
-                    }
-                }
-
-                let t = self.substring_into_token(TokenType::Identifier);
-                let reserved_keyword = t.is_reserved_keyword();
-                if let Some(token_type) = reserved_keyword {
-                    return Ok(self.substring_into_token(token_type));
-                }
-
-                return Ok(t);
-            }
+            'a'..='z' | 'A'..='Z' => self.is_identifier(),
 
             // Unknown lexemes
             _ => {
@@ -211,6 +100,112 @@ impl Scanner {
                 ))
             }
         }
+    }
+
+    fn match_next_or(
+        &mut self,
+        _expected_next: char,
+        if_matches: TokenType,
+        if_no_match: TokenType,
+    ) -> LexResult {
+        match self.peek() {
+            Some(_expected_next) => {
+                self.start = self.current - 1;
+                self.current += 1;
+                Ok(self.substring_into_token(if_matches))
+            }
+            _ => Ok(self.substring_into_token(if_no_match)),
+        }
+    }
+
+    fn match_simple_comment(&mut self) -> LexResult {
+        while let Some(next) = self.peek() {
+            match next {
+                '\n' => {
+                    self.current += 1;
+                    return Ok(self.substring_into_token(TokenType::Newline));
+                }
+                _ => self.current += 1,
+            }
+        }
+
+        Ok(Token::new(TokenType::EOF, "".to_string()))
+    }
+
+    fn match_string(&mut self) -> LexResult {
+        self.start += 1;
+        let start_line = self.line;
+
+        while let Some(next) = self.peek() {
+            match next {
+                '"' => {
+                    let token_str = self.substring_into_token(TokenType::Str);
+                    self.current += 1;
+                    return Ok(token_str);
+                }
+                _ => self.current += 1,
+            }
+        }
+        Err(format!(
+            "Unclosed string at line: {}, position: {}",
+            start_line, self.start
+        ))
+    }
+
+    fn match_number(&mut self) -> LexResult {
+        while let Some(next) = self.peek() {
+            match next {
+                '0'..='9' => self.current += 1,
+                '.' => {
+                    self.current += 1;
+                    match self.peek() {
+                        Some(next_after_dot) => match next_after_dot {
+                            '0'..='9' => self.current += 1,
+                            _ => {
+                                return Err(format!(
+                                    "Invalid number at line: {}, position: {}",
+                                    self.line, self.current
+                                ))
+                            }
+                        },
+                        None => {
+                            return Err(format!(
+                                "Invalid number at line: {}, position: {}",
+                                self.line, self.current
+                            ))
+                        }
+                    }
+                }
+                _ => return Ok(self.substring_into_token(TokenType::Number)),
+            }
+        }
+
+        Ok(self.substring_into_token(TokenType::Number))
+    }
+
+    fn is_identifier(&mut self) -> LexResult {
+        while let Some(next) = self.peek() {
+            match next {
+                'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => self.current += 1,
+                _ => {
+                    let t = self.substring_into_token(TokenType::Identifier);
+                    let reserved_keyword = t.is_reserved_keyword();
+                    if let Some(token_type) = reserved_keyword {
+                        return Ok(self.substring_into_token(token_type));
+                    }
+
+                    return Ok(t);
+                }
+            }
+        }
+
+        let t = self.substring_into_token(TokenType::Identifier);
+        let reserved_keyword = t.is_reserved_keyword();
+        if let Some(token_type) = reserved_keyword {
+            return Ok(self.substring_into_token(token_type));
+        }
+
+        return Ok(t);
     }
 
     fn is_at_end(&self) -> bool {
