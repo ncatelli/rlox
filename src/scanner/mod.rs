@@ -35,6 +35,14 @@ impl Cursor {
         }
     }
 
+    pub fn reverse(cursor: Cursor) -> Cursor {
+        Cursor {
+            index: cursor.index - 1,
+            col: cursor.col - 1,
+            line: cursor.line,
+        }
+    }
+
     pub fn newline(cursor: Cursor) -> Cursor {
         Cursor {
             index: cursor.index,
@@ -69,7 +77,7 @@ impl Scanner {
             let (t, next_cursor) = match self.scan_token(cursor) {
                 (Some(tok), nc) => (tok, nc),
                 (None, nc) => {
-                    cursor = nc;
+                    cursor = Cursor::advance(nc);
                     continue;
                 }
             };
@@ -84,7 +92,7 @@ impl Scanner {
 
     fn scan_token(&mut self, cursor: Cursor) -> (Option<LexResult>, Cursor) {
         let start = cursor;
-        let current = self.char_at(cursor).unwrap();
+        let current = self.char_at(start).unwrap();
 
         match current {
             // Single character lexemes
@@ -247,7 +255,7 @@ impl Scanner {
     }
 
     fn match_next_or(
-        &mut self,
+        &self,
         start: Cursor,
         _expected_next: char,
         if_matches: TokenType,
@@ -261,7 +269,7 @@ impl Scanner {
                 current,
             ),
             _ => (
-                Ok(self.substring_into_token(start, current, if_no_match)),
+                Ok(self.substring_into_token(start, start, if_no_match)),
                 start,
             ),
         }
@@ -319,7 +327,9 @@ impl Scanner {
             current = Cursor::advance(current);
             match self.char_at(current) {
                 Some('"') => {
-                    let token_str = self.substring_into_token(start, current, TokenType::Str);
+                    //reverse reader one step to negate quote
+                    let token_str =
+                        self.substring_into_token(start, Cursor::reverse(current), TokenType::Str);
                     return (Ok(token_str), Cursor::advance(current));
                 }
                 Some(_) => continue,
@@ -370,26 +380,38 @@ impl Scanner {
                 }
                 _ => {
                     return (
-                        Ok(self.substring_into_token(start, current, TokenType::Number)),
+                        Ok(self.substring_into_token(
+                            start,
+                            Cursor::reverse(current),
+                            TokenType::Number,
+                        )),
                         current,
-                    )
+                    );
                 }
             }
         }
     }
 
     fn match_identifier(&mut self, start: Cursor) -> (LexResult, Cursor) {
-        let mut current = start;
+        let mut current = start.clone();
         loop {
             current = Cursor::advance(current);
             match self.char_at(current) {
-                Some('a'..='z') | Some('A'..='Z') | Some('0'..='9') | Some('_') => (),
+                Some('a'..='z') | Some('A'..='Z') | Some('0'..='9') | Some('_') => continue,
                 _ => {
-                    let t = self.substring_into_token(start, current, TokenType::Identifier);
+                    let t = self.substring_into_token(
+                        start,
+                        Cursor::reverse(current),
+                        TokenType::Identifier,
+                    );
                     let reserved_keyword = t.is_reserved_keyword();
                     if let Some(token_type) = reserved_keyword {
                         return (
-                            Ok(self.substring_into_token(start, current, token_type)),
+                            Ok(self.substring_into_token(
+                                start,
+                                Cursor::reverse(current),
+                                token_type,
+                            )),
                             current,
                         );
                     }
@@ -405,7 +427,7 @@ impl Scanner {
     }
 
     fn substring(&self, start: Cursor, end: Cursor) -> &[char] {
-        self.source.get(start.index..end.line).unwrap()
+        self.source.get(start.index..=end.index).unwrap()
     }
 
     fn substring_into_token(&self, start: Cursor, current: Cursor, token_type: TokenType) -> Token {

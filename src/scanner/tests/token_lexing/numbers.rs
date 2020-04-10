@@ -22,6 +22,6 @@ fn scan_tokens_should_not_allow_trailing_decimal() {
     //assert_eq!(1, token_results.len());
     assert_eq!(
         token_results[0],
-        LexResult::Err("Invalid number at line: 1, position: 4".to_string())
+        LexResult::Err("Invalid number at line: 1, position: 3".to_string())
     );
 }
