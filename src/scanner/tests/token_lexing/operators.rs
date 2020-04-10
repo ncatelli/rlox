@@ -53,7 +53,7 @@ fn scan_tokens_should_lex_newlines() {
 
 #[test]
 fn lex_unknown_token_returns_error_result() {
-    let mut s = Scanner::new("%".to_string());
+    let s = Scanner::new("%".to_string());
     let token_results = s.scan_tokens();
 
     assert_eq!(2, token_results.len());

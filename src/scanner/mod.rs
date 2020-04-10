@@ -55,7 +55,6 @@ impl Cursor {
 pub struct Scanner {
     source: Vec<char>,
     end: usize,
-    had_errors: bool,
 }
 
 impl Scanner {
@@ -65,11 +64,10 @@ impl Scanner {
         Scanner {
             source: chars,
             end: end,
-            had_errors: false,
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Vec<LexResult> {
+    pub fn scan_tokens(&self) -> Vec<LexResult> {
         let mut tokens: Vec<LexResult> = Vec::new();
         let mut cursor = Cursor::new(0, 0, 1);
 
@@ -90,7 +88,7 @@ impl Scanner {
         tokens
     }
 
-    fn scan_token(&mut self, cursor: Cursor) -> (Option<LexResult>, Cursor) {
+    fn scan_token(&self, cursor: Cursor) -> (Option<LexResult>, Cursor) {
         let start = cursor;
         let current = self.char_at(start).unwrap();
 
@@ -241,16 +239,13 @@ impl Scanner {
                 (Some(lex_result), next_cursor)
             }
             // Unknown lexemes
-            _ => {
-                self.had_errors = true;
-                (
-                    Some(Err(format!(
-                        "Lex error at line: {}, position: {}.",
-                        cursor.line, cursor.col
-                    ))),
-                    cursor,
-                )
-            }
+            _ => (
+                Some(Err(format!(
+                    "Lex error at line: {}, position: {}.",
+                    cursor.line, cursor.col
+                ))),
+                cursor,
+            ),
         }
     }
 
@@ -275,7 +270,7 @@ impl Scanner {
         }
     }
 
-    fn match_simple_comment(&mut self, start: Cursor) -> (LexResult, Cursor) {
+    fn match_simple_comment(&self, start: Cursor) -> (LexResult, Cursor) {
         let mut current = start;
         loop {
             current = Cursor::advance(current);
@@ -291,7 +286,7 @@ impl Scanner {
         }
     }
 
-    fn match_c_comment(&mut self, start: Cursor) -> (LexResult, Cursor) {
+    fn match_c_comment(&self, start: Cursor) -> (LexResult, Cursor) {
         let mut current = start;
         loop {
             current = Cursor::advance(current);
@@ -303,7 +298,6 @@ impl Scanner {
                             return (Ok(Token::new(TokenType::Comment, "".to_string())), peek);
                         }
                         _ => {
-                            self.had_errors = true;
                             return (
                                 Err(format!(
                                     "Invalid comment at line: {}, position: {}.",
@@ -319,7 +313,7 @@ impl Scanner {
         }
     }
 
-    fn match_string(&mut self, start: Cursor) -> (LexResult, Cursor) {
+    fn match_string(&self, start: Cursor) -> (LexResult, Cursor) {
         let start = Cursor::advance(start);
         let mut current = start;
 
@@ -346,7 +340,7 @@ impl Scanner {
         }
     }
 
-    fn match_number(&mut self, start: Cursor) -> (LexResult, Cursor) {
+    fn match_number(&self, start: Cursor) -> (LexResult, Cursor) {
         let mut current = start;
         loop {
             current = Cursor::advance(current);
@@ -392,7 +386,7 @@ impl Scanner {
         }
     }
 
-    fn match_identifier(&mut self, start: Cursor) -> (LexResult, Cursor) {
+    fn match_identifier(&self, start: Cursor) -> (LexResult, Cursor) {
         let mut current = start.clone();
         loop {
             current = Cursor::advance(current);
@@ -451,7 +445,7 @@ impl IntoIterator for Scanner {
     type Item = LexResult;
     type IntoIter = ScannerIntoIterator;
 
-    fn into_iter(mut self) -> Self::IntoIter {
+    fn into_iter(self) -> Self::IntoIter {
         let tokens = self.scan_tokens();
         let token_length = tokens.len();
 
