@@ -423,14 +423,6 @@ impl Scanner {
             None => None,
         }
     }
-
-    fn peek(&mut self) -> Option<char> {
-        None
-    }
-
-    fn advance(&mut self) -> char {
-        'a'
-    }
 }
 
 impl IntoIterator for Scanner {

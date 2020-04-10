@@ -1,24 +1,30 @@
 use crate::scanner::tokens::{Token, TokenType};
-use crate::scanner::{LexResult, Scanner};
+use crate::scanner::{Cursor, LexResult, Scanner};
 
 use std::option::Option::{None, Some};
 
 #[test]
-fn validate_advance_returns_the_next_unread_char() {
-    let mut s = Scanner::new(";+-".to_string());
+fn validate_char_at_returns_the_next_unread_char() {
+    let s = Scanner::new(";+-".to_string());
+    let mut cursor = Cursor::new(0, 0, 1);
 
-    assert_eq!(s.advance(), ';');
-    assert_eq!(s.advance(), '+');
-    assert_eq!(s.advance(), '-');
+    assert_eq!(s.char_at(cursor), Some(';'));
+
+    cursor = Cursor::advance(cursor);
+    assert_eq!(s.char_at(cursor), Some('+'));
+
+    cursor = Cursor::advance(cursor);
+    assert_eq!(s.char_at(cursor), Some('-'));
 }
 
 #[test]
 fn assert_should_should_return_next_character_without_advancing_counter() {
-    let mut s = Scanner::new(";+-".to_string());
+    let s = Scanner::new(";+-".to_string());
+    let cursor = Cursor::new(0, 0, 1);
 
-    assert_eq!(s.peek(), Some(';'));
-    assert_eq!(s.peek(), Some(';'));
-    assert_eq!(s.peek(), Some(';'));
+    assert_eq!(s.char_at(Cursor::advance(cursor)), Some(';'));
+    assert_eq!(s.char_at(Cursor::advance(cursor)), Some(';'));
+    assert_eq!(s.char_at(Cursor::advance(cursor)), Some(';'));
 }
 
 #[test]
