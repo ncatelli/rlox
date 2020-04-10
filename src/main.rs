@@ -53,7 +53,7 @@ fn run_prompt() {
 }
 
 fn run(source: String) -> ParseResult<usize> {
-    let mut s = scanner::Scanner::new(source);
+    let s = scanner::Scanner::new(source);
 
     let tokens = s.scan_tokens().into_iter();
     let token_count = tokens.len();

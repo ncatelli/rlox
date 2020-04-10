@@ -53,12 +53,12 @@ fn scan_tokens_should_lex_newlines() {
 
 #[test]
 fn lex_unknown_token_returns_error_result() {
-    let mut s = Scanner::new("%".to_string());
+    let s = Scanner::new("%".to_string());
     let token_results = s.scan_tokens();
 
-    assert_eq!(1, token_results.len());
+    assert_eq!(2, token_results.len());
     assert_eq!(
         token_results[0],
-        LexResult::Err("Lex error at line: 1, position: 1.".to_string())
+        LexResult::Err("Lex error at line: 1, position: 0.".to_string())
     );
 }
