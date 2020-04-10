@@ -330,7 +330,7 @@ impl Scanner {
                     //reverse reader one step to negate quote
                     let token_str =
                         self.substring_into_token(start, Cursor::reverse(current), TokenType::Str);
-                    return (Ok(token_str), Cursor::advance(current));
+                    return (Ok(token_str), current);
                 }
                 Some(_) => continue,
                 None => {
