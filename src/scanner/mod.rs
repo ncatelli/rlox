@@ -11,11 +11,41 @@ mod tests;
 
 pub type LexResult = Result<Token, String>;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Cursor {
+    index: usize,
+    col: usize,
+    line: usize,
+}
+
+impl Cursor {
+    pub fn new(index: usize, col: usize, line: usize) -> Cursor {
+        Cursor {
+            index: index,
+            col: col,
+            line: line,
+        }
+    }
+
+    pub fn advance(cursor: Cursor) -> Cursor {
+        Cursor {
+            index: cursor.index + 1,
+            col: cursor.col + 1,
+            line: cursor.line,
+        }
+    }
+
+    pub fn newline(cursor: Cursor) -> Cursor {
+        Cursor {
+            index: cursor.index,
+            col: 0,
+            line: cursor.line + 1,
+        }
+    }
+}
+
 pub struct Scanner {
     source: Vec<char>,
-    start: usize,
-    current: usize,
-    line: usize,
     end: usize,
     had_errors: bool,
 }
@@ -26,9 +56,6 @@ impl Scanner {
         let end = chars.len();
         Scanner {
             source: chars,
-            start: 0,
-            current: 0,
-            line: 1,
             end: end,
             had_errors: false,
         }
@@ -36,242 +63,373 @@ impl Scanner {
 
     pub fn scan_tokens(&mut self) -> Vec<LexResult> {
         let mut tokens: Vec<LexResult> = Vec::new();
+        let mut cursor = Cursor::new(0, 0, 1);
 
-        while !self.is_at_end() {
-            self.start = self.current;
-            let t = match self.scan_token() {
-                Some(tok) => tok,
-                None => continue,
+        while !self.is_at_end(cursor) {
+            let (t, next_cursor) = match self.scan_token(cursor) {
+                (Some(tok), nc) => (tok, nc),
+                (None, nc) => {
+                    cursor = nc;
+                    continue;
+                }
             };
 
+            cursor = Cursor::advance(next_cursor);
             tokens.push(t);
         }
 
+        tokens.push(Ok(Token::new(TokenType::EOF, "".to_string())));
         tokens
     }
 
-    fn scan_token(&mut self) -> Option<LexResult> {
-        let c = self.advance();
+    fn scan_token(&mut self, cursor: Cursor) -> (Option<LexResult>, Cursor) {
+        let start = cursor;
+        let current = self.char_at(cursor).unwrap();
 
-        match c {
+        match current {
             // Single character lexemes
-            '(' => Some(Ok(self.substring_into_token(TokenType::LeftParen))),
-            ')' => Some(Ok(self.substring_into_token(TokenType::RightParen))),
-            '{' => Some(Ok(self.substring_into_token(TokenType::LeftBrace))),
-            '}' => Some(Ok(self.substring_into_token(TokenType::RightBrace))),
-            ',' => Some(Ok(self.substring_into_token(TokenType::Comma))),
-            '.' => Some(Ok(self.substring_into_token(TokenType::Dot))),
-            '-' => Some(Ok(self.substring_into_token(TokenType::Minus))),
-            '+' => Some(Ok(self.substring_into_token(TokenType::Plus))),
-            ';' => Some(Ok(self.substring_into_token(TokenType::Semicolon))),
-            '*' => Some(Ok(self.substring_into_token(TokenType::Star))),
+            '(' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::LeftParen,
+                ))),
+                cursor,
+            ),
+            ')' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::RightParen,
+                ))),
+                cursor,
+            ),
+            '{' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::LeftBrace,
+                ))),
+                cursor,
+            ),
+            '}' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::RightBrace,
+                ))),
+                cursor,
+            ),
+            ',' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::Comma,
+                ))),
+                cursor,
+            ),
+            '.' => (
+                Some(Ok(self.substring_into_token(start, cursor, TokenType::Dot))),
+                cursor,
+            ),
+            '-' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::Minus,
+                ))),
+                cursor,
+            ),
+            '+' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::Plus,
+                ))),
+                cursor,
+            ),
+            ';' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::Semicolon,
+                ))),
+                cursor,
+            ),
+            '*' => (
+                Some(Ok(self.substring_into_token(
+                    start,
+                    cursor,
+                    TokenType::Star,
+                ))),
+                cursor,
+            ),
 
             // Operators lexemes with optional additional characters
-            '!' => Some(self.match_next_or('=', TokenType::BangEqual, TokenType::Bang)),
-            '=' => Some(self.match_next_or('=', TokenType::EqualEqual, TokenType::Equal)),
-            '<' => Some(self.match_next_or('=', TokenType::LessEqual, TokenType::Less)),
-            '>' => Some(self.match_next_or('=', TokenType::GreaterEqual, TokenType::Greater)),
+            '!' => {
+                let (lex_result, next_cursor) =
+                    self.match_next_or(cursor, '=', TokenType::BangEqual, TokenType::Bang);
+                (Some(lex_result), next_cursor)
+            }
+            '=' => {
+                let (lex_result, next_cursor) =
+                    self.match_next_or(cursor, '=', TokenType::EqualEqual, TokenType::Equal);
+                (Some(lex_result), next_cursor)
+            }
+            '<' => {
+                let (lex_result, next_cursor) =
+                    self.match_next_or(cursor, '=', TokenType::LessEqual, TokenType::Less);
+                (Some(lex_result), next_cursor)
+            }
+            '>' => {
+                let (lex_result, next_cursor) =
+                    self.match_next_or(cursor, '=', TokenType::GreaterEqual, TokenType::Greater);
+                (Some(lex_result), next_cursor)
+            }
 
             // Slash, potentially either comments or a plain slash
-            '/' => match self.peek() {
-                Some('/') => match self.match_simple_comment() {
-                    Ok(_) => None,
-                    Err(e) => Some(Err(e)),
-                },
-                Some('*') => match self.match_c_comment() {
-                    Ok(_) => None,
-                    Err(e) => Some(Err(e)),
-                },
-                _ => Some(Ok(self.substring_into_token(TokenType::Slash))),
-            },
+            '/' => {
+                let peek = Cursor::advance(cursor);
+                match self.char_at(peek) {
+                    Some('/') => match self.match_simple_comment(peek) {
+                        (Ok(_), next_cursor) => (None, next_cursor),
+                        (Err(e), next_cursor) => (Some(Err(e)), next_cursor),
+                    },
+                    Some('*') => match self.match_c_comment(peek) {
+                        (Ok(_), next_cursor) => (None, next_cursor),
+                        (Err(e), next_cursor) => (Some(Err(e)), next_cursor),
+                    },
+                    _ => (
+                        Some(Ok(self.substring_into_token(
+                            start,
+                            cursor,
+                            TokenType::Slash,
+                        ))),
+                        cursor,
+                    ),
+                }
+            }
 
             // Whitespace
-            ' ' => None,
-            '\r' => None,
-            '\t' => None,
-            '\n' => {
-                self.line += 1;
-                None
-            }
+            ' ' => (None, cursor),
+            '\r' => (None, cursor),
+            '\t' => (None, cursor),
+            '\n' => (None, Cursor::newline(cursor)),
 
             // Literals
             // Strings
-            '"' => Some(self.match_string()),
+            '"' => {
+                let (lex_result, next_cursor) = self.match_string(cursor);
+                (Some(lex_result), next_cursor)
+            }
             // Numbers
-            '0'..='9' => Some(self.match_number()),
+            '0'..='9' => {
+                let (lex_result, next_cursor) = self.match_number(cursor);
+                (Some(lex_result), next_cursor)
+            }
             // Identifiers
-            'a'..='z' | 'A'..='Z' => Some(self.is_identifier()),
-
+            'a'..='z' | 'A'..='Z' => {
+                let (lex_result, next_cursor) = self.match_identifier(cursor);
+                (Some(lex_result), next_cursor)
+            }
             // Unknown lexemes
             _ => {
                 self.had_errors = true;
-                Some(Err(format!(
-                    "Lex error at line: {}, position: {}.",
-                    self.line, self.current
-                )))
+                (
+                    Some(Err(format!(
+                        "Lex error at line: {}, position: {}.",
+                        cursor.line, cursor.col
+                    ))),
+                    cursor,
+                )
             }
         }
     }
 
     fn match_next_or(
         &mut self,
+        start: Cursor,
         _expected_next: char,
         if_matches: TokenType,
         if_no_match: TokenType,
-    ) -> LexResult {
-        match self.peek() {
-            Some(_expected_next) => {
-                self.start = self.current - 1;
-                self.current += 1;
-                Ok(self.substring_into_token(if_matches))
-            }
-            _ => Ok(self.substring_into_token(if_no_match)),
+    ) -> (LexResult, Cursor) {
+        let current = Cursor::advance(start);
+
+        match self.char_at(current) {
+            Some(_expected_next) => (
+                Ok(self.substring_into_token(start, current, if_matches)),
+                current,
+            ),
+            _ => (
+                Ok(self.substring_into_token(start, current, if_no_match)),
+                start,
+            ),
         }
     }
 
-    fn match_simple_comment(&mut self) -> LexResult {
-        while let Some(next) = self.peek() {
-            match next {
-                '\n' => {
-                    self.current += 1;
-                    return Ok(Token::new(TokenType::Comment, "".to_string()));
+    fn match_simple_comment(&mut self, start: Cursor) -> (LexResult, Cursor) {
+        let mut current = start;
+        loop {
+            current = Cursor::advance(current);
+            match self.char_at(current) {
+                Some('\n') => {
+                    return (
+                        Ok(Token::new(TokenType::Comment, "".to_string())),
+                        Cursor::newline(current),
+                    );
                 }
-                _ => self.current += 1,
+                _ => (),
             }
         }
-
-        Ok(Token::new(TokenType::EOF, "".to_string()))
     }
 
-    fn match_c_comment(&mut self) -> LexResult {
-        self.current += 1;
-
-        while let Some(next) = self.peek() {
-            match next {
-                '*' => {
-                    self.current += 1;
-                    match self.peek() {
+    fn match_c_comment(&mut self, start: Cursor) -> (LexResult, Cursor) {
+        let mut current = start;
+        loop {
+            current = Cursor::advance(current);
+            match self.char_at(current) {
+                Some('*') => {
+                    let peek = Cursor::advance(current);
+                    match self.char_at(peek) {
                         Some('/') => {
-                            self.current += 1;
-                            return Ok(Token::new(TokenType::Comment, "".to_string()));
+                            return (Ok(Token::new(TokenType::Comment, "".to_string())), peek);
                         }
                         _ => {
                             self.had_errors = true;
-                            return Err(format!(
-                                "Invalid comment at line: {}, position: {}.",
-                                self.line, self.current
-                            ));
+                            return (
+                                Err(format!(
+                                    "Invalid comment at line: {}, position: {}.",
+                                    peek.line, peek.col
+                                )),
+                                peek,
+                            );
                         }
                     }
                 }
-                _ => self.current += 1,
+                _ => (),
             }
         }
-
-        Ok(Token::new(TokenType::EOF, "".to_string()))
     }
 
-    fn match_string(&mut self) -> LexResult {
-        self.start += 1;
-        let start_line = self.line;
+    fn match_string(&mut self, start: Cursor) -> (LexResult, Cursor) {
+        let start = Cursor::advance(start);
+        let mut current = start;
 
-        while let Some(next) = self.peek() {
-            match next {
-                '"' => {
-                    let token_str = self.substring_into_token(TokenType::Str);
-                    self.current += 1;
-                    return Ok(token_str);
+        loop {
+            current = Cursor::advance(current);
+            match self.char_at(current) {
+                Some('"') => {
+                    let token_str = self.substring_into_token(start, current, TokenType::Str);
+                    return (Ok(token_str), Cursor::advance(current));
                 }
-                _ => self.current += 1,
+                Some(_) => continue,
+                None => {
+                    return (
+                        Err(format!(
+                            "Unclosed string at line: {}, position: {}",
+                            current.line, current.col
+                        )),
+                        current,
+                    )
+                }
             }
         }
-        Err(format!(
-            "Unclosed string at line: {}, position: {}",
-            start_line, self.start
-        ))
     }
 
-    fn match_number(&mut self) -> LexResult {
-        while let Some(next) = self.peek() {
-            match next {
-                '0'..='9' => self.current += 1,
-                '.' => {
-                    self.current += 1;
-                    match self.peek() {
+    fn match_number(&mut self, start: Cursor) -> (LexResult, Cursor) {
+        let mut current = start;
+        loop {
+            current = Cursor::advance(current);
+            match self.char_at(current) {
+                Some('0'..='9') => (),
+                Some('.') => {
+                    let peek = Cursor::advance(current);
+                    match self.char_at(peek) {
                         Some(next_after_dot) => match next_after_dot {
-                            '0'..='9' => self.current += 1,
+                            '0'..='9' => (),
                             _ => {
-                                return Err(format!(
-                                    "Invalid number at line: {}, position: {}",
-                                    self.line, self.current
-                                ))
+                                return (
+                                    Err(format!(
+                                        "Invalid number at line: {}, position: {}",
+                                        current.line, current.col
+                                    )),
+                                    current,
+                                )
                             }
                         },
                         None => {
-                            return Err(format!(
-                                "Invalid number at line: {}, position: {}",
-                                self.line, self.current
-                            ))
+                            return (
+                                Err(format!(
+                                    "Invalid number at line: {}, position: {}",
+                                    current.line, current.col
+                                )),
+                                current,
+                            )
                         }
                     }
                 }
-                _ => return Ok(self.substring_into_token(TokenType::Number)),
-            }
-        }
-
-        Ok(self.substring_into_token(TokenType::Number))
-    }
-
-    fn is_identifier(&mut self) -> LexResult {
-        while let Some(next) = self.peek() {
-            match next {
-                'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => self.current += 1,
                 _ => {
-                    let t = self.substring_into_token(TokenType::Identifier);
-                    let reserved_keyword = t.is_reserved_keyword();
-                    if let Some(token_type) = reserved_keyword {
-                        return Ok(self.substring_into_token(token_type));
-                    }
-
-                    return Ok(t);
+                    return (
+                        Ok(self.substring_into_token(start, current, TokenType::Number)),
+                        current,
+                    )
                 }
             }
         }
+    }
 
-        let t = self.substring_into_token(TokenType::Identifier);
-        let reserved_keyword = t.is_reserved_keyword();
-        if let Some(token_type) = reserved_keyword {
-            return Ok(self.substring_into_token(token_type));
+    fn match_identifier(&mut self, start: Cursor) -> (LexResult, Cursor) {
+        let mut current = start;
+        loop {
+            current = Cursor::advance(current);
+            match self.char_at(current) {
+                Some('a'..='z') | Some('A'..='Z') | Some('0'..='9') | Some('_') => (),
+                _ => {
+                    let t = self.substring_into_token(start, current, TokenType::Identifier);
+                    let reserved_keyword = t.is_reserved_keyword();
+                    if let Some(token_type) = reserved_keyword {
+                        return (
+                            Ok(self.substring_into_token(start, current, token_type)),
+                            current,
+                        );
+                    }
+
+                    return (Ok(t), current);
+                }
+            }
         }
-
-        return Ok(t);
     }
 
-    fn is_at_end(&self) -> bool {
-        self.current >= self.end
+    fn is_at_end(&self, cursor: Cursor) -> bool {
+        cursor.index >= self.end
     }
 
-    fn substring(&self, start: usize, end: usize) -> &[char] {
-        &self.source[start..end]
+    fn substring(&self, start: Cursor, end: Cursor) -> &[char] {
+        self.source.get(start.index..end.line).unwrap()
     }
 
-    fn substring_into_token(&self, token_type: TokenType) -> Token {
-        let token_range = &self.substring(self.start, self.current);
+    fn substring_into_token(&self, start: Cursor, current: Cursor, token_type: TokenType) -> Token {
+        let token_range = &self.substring(start, current);
         let literal: String = token_range.iter().collect();
 
         Token::new(token_type, literal)
     }
 
-    fn advance(&mut self) -> char {
-        self.current += 1;
-        self.source[self.current - 1]
+    fn char_at(&self, cursor: Cursor) -> Option<char> {
+        let index = cursor.index;
+
+        match self.source.get(index) {
+            Some(c) => Some(*c),
+            None => None,
+        }
     }
 
     fn peek(&mut self) -> Option<char> {
-        match self.is_at_end() {
-            true => None,
-            false => Some(self.source[self.current]),
-        }
+        None
+    }
+
+    fn advance(&mut self) -> char {
+        'a'
     }
 }
 
