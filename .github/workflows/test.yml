@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Run tests
-      run: cargo test --verbose --all
+      run: cargo test --all
   benchmark:
     runs-on: ubuntu-latest
     steps:
