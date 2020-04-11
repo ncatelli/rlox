@@ -1,16 +1,12 @@
-mod errors;
-
-use errors::ParseError;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{stdin, stdout};
 use std::process;
 
-mod scanner;
-
-#[cfg(test)]
-mod tests;
+extern crate librlox;
+use librlox::errors::ParseError;
+use librlox::scanner;
 
 type ParseResult<T> = Result<T, ParseError>;
 

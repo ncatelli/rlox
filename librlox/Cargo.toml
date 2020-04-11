@@ -1,0 +1,7 @@
+[package]
+name = "librlox"
+version = "0.1.0"
+authors = ["Nate Catelli <ncatelli@packetfire.org>"]
+edition = "2018"
+
+[dependencies]

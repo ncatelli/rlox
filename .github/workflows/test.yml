@@ -3,12 +3,15 @@ name: Test
 on: [push]
 
 jobs:
-  build:
-
+  unit_test:
     runs-on: ubuntu-latest
-
     steps:
-
     - uses: actions/checkout@v1
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --all
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run tests
+      run: cargo bench
