@@ -24,7 +24,7 @@ equality       = comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     = addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       = multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication = unary ( ( "/" | "*" ) unary )* ;
-unary          = ( "!" | "-" ) unary ;
-literal        = NUMBER | STRING | "true" | "false" | "nil"
+unary          = ( "!" | "-" ) unary | primary ;
+primary        = NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 ```
