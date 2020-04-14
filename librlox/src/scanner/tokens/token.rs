@@ -1,5 +1,6 @@
 use super::token_type::TokenType;
 use std::fmt;
+use std::option::Option;
 use std::option::Option::{None, Some};
 
 const RESERVED_KEYWORDS: &'static [(&'static str, TokenType)] = &[
@@ -22,30 +23,49 @@ const RESERVED_KEYWORDS: &'static [(&'static str, TokenType)] = &[
 ];
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum Literal {
+    Identifier(String),
+    Str(String),
+    Number(f64),
+}
+
+impl fmt::Display for Literal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Literal::Identifier(s) => write!(f, "{}", &s),
+            Literal::Str(s) => write!(f, "{}", &s),
+            Literal::Number(n) => write!(f, "{}", n),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub token_type: TokenType,
-    pub lexeme: String,
+    pub literal: Option<Literal>,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, lexeme: String) -> Token {
+    pub fn new(token_type: TokenType, literal: Option<Literal>) -> Token {
         Token {
             token_type: token_type,
-            lexeme: lexeme.clone(),
+            literal: literal,
         }
     }
 
     pub fn is_reserved_keyword(&self) -> Option<TokenType> {
         match self.token_type {
-            TokenType::Identifier => {
-                for kw in RESERVED_KEYWORDS.iter() {
-                    if *kw.0 == self.lexeme {
-                        return Some(kw.1);
+            TokenType::Identifier => match self.literal {
+                Some(Literal::Identifier(ref id)) => {
+                    for kw in RESERVED_KEYWORDS.iter() {
+                        if kw.0 == id {
+                            return Some(kw.1);
+                        }
                     }
+                    None
                 }
-
-                None
-            }
+                _ => None,
+            },
             _ => None,
         }
     }
@@ -53,6 +73,9 @@ impl Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.lexeme)
+        match self.literal.as_ref() {
+            Some(lit) => write!(f, "{}", lit),
+            None => write!(f, "{:?}", self.token_type),
+        }
     }
 }
