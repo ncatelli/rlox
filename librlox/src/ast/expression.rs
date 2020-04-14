@@ -62,14 +62,12 @@ impl fmt::Display for UnaryExpr {
 }
 
 pub struct LiteralExpr {
-    literal: Box<tokens::Token>,
+    literal: tokens::Token,
 }
 
 impl LiteralExpr {
     pub fn new(literal: tokens::Token) -> LiteralExpr {
-        LiteralExpr {
-            literal: Box::new(literal),
-        }
+        LiteralExpr { literal: literal }
     }
 }
 
