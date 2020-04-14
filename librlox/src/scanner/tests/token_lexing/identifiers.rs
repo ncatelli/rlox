@@ -1,4 +1,4 @@
-use crate::scanner::tokens::TokenType;
+use crate::scanner::tokens::{Literal, TokenType};
 
 use super::helpers::{
     compare_single_token_source_helper, compare_single_token_source_with_literal_helper,
@@ -9,7 +9,7 @@ fn scan_tokens_should_lex_identifiers() {
     let identifier = "test_identifier_1_alpha";
     compare_single_token_source_with_literal_helper(
         identifier,
-        identifier.to_string(),
+        Literal::Identifier(identifier.to_string()),
         TokenType::Identifier,
     )
 }
@@ -19,13 +19,13 @@ fn scan_tokens_should_separate_identifier_on_non_alpha() {
     let identifier = "test_identifier_1_alpha\n";
     compare_single_token_source_with_literal_helper(
         identifier,
-        identifier.trim().to_string(),
+        Literal::Identifier(identifier.trim().to_string()),
         TokenType::Identifier,
     )
 }
 
 #[test]
-fn scan_tokens_should_lex_single_character_lexemes() {
+fn scan_tokens_should_lex_reserved_keywords() {
     compare_single_token_source_helper("and", TokenType::And);
     compare_single_token_source_helper("or", TokenType::Or);
     compare_single_token_source_helper("print", TokenType::Print);
