@@ -75,7 +75,7 @@ impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.literal.as_ref() {
             Some(lit) => write!(f, "{}", lit),
-            None => write!(f, "{:?}", self.token_type),
+            None => write!(f, "{}", self.token_type),
         }
     }
 }
