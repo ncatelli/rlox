@@ -27,17 +27,28 @@ impl fmt::Display for Expr {
 ///
 /// # Examples
 /// ```
-/// let unary = Expr::BinaryExpr::new(
-///     tokens::Token::new(TokenType::Minus, None),
-///     Box::new(
-///         Expr::LiteralExpr(
-///             Token::new(TokenType::Number, Literal::Number(10.0))
-///         )
-///     ),
-///     Box::new(
-///         Expr::LiteralExpr(
-///             Token::new(TokenType::Number, Literal::Number(5.0))
-///         )
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::ast::expression::*;
+/// use std::option::Option::Some;
+///
+/// let unary = Expr::Binary(
+///     BinaryExpr::new(
+///         Token::new(TokenType::Minus, None),
+///         Box::new(
+///             Expr::Literal(
+///                 LiteralExpr::new(
+///                     Token::new(TokenType::Number, Some(Literal::Number(10.0)))
+///                 )
+///             )
+///         ),
+///         Box::new(
+///             Expr::Literal(
+///                 LiteralExpr::new(
+///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                 )
+///             )
+///         ),
 ///     )
 /// );
 /// ```
@@ -68,12 +79,21 @@ impl fmt::Display for BinaryExpr {
 ///
 /// # Examples
 /// ```
-/// let unary = Expr::UnaryExpr::new(
-///     tokens::Token::new(TokenType::Minus, None),
-///     Box::new(
-///         Expr::LiteralExpr(
-///             Token::new(TokenType::Number, Literal::Number(5.0))
-///         )
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::ast::expression::*;
+/// use std::option::Option::Some;
+///
+/// let unary = Expr::Unary(
+///     UnaryExpr::new(
+///         Token::new(TokenType::Minus, None),
+///         Box::new(
+///             Expr::Literal(
+///                 LiteralExpr::new(
+///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                 )
+///             )
+///         ),
 ///     )
 /// );
 /// ```
@@ -101,9 +121,14 @@ impl fmt::Display for UnaryExpr {
 ///
 /// # Examples
 /// ```
-/// let literal = Expr::LiteralExpr::new(
-///     Expr::LiteralExpr(
-///         Token::new(TokenType::Number, Literal::Number(5.0))
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::ast::expression::*;
+/// use std::option::Option::Some;
+///
+/// let literal = Expr::Literal(
+///     LiteralExpr::new(
+///         Token::new(TokenType::Number, Some(Literal::Number(5.0)))
 ///     )
 /// );
 /// ```
@@ -128,10 +153,21 @@ impl fmt::Display for LiteralExpr {
 ///
 /// # Examples
 /// ```
-/// let grouping = Expr::GroupingExpr::(
-///     Box::new(Expr::LiteralExpr(
-///         Token::new(TokenType::Number, Literal::Number(5.0))
-///     ))
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::ast::expression::*;
+/// use std::option::Option::Some;
+///
+/// let grouping = Expr::Grouping(
+///     GroupingExpr::new(
+///         Box::new(
+///             Expr::Literal(
+///                 LiteralExpr::new(
+///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                 )
+///             )
+///         ),
+///     )
 /// );
 /// ```
 pub struct GroupingExpr {
