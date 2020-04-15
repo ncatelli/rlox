@@ -1,6 +1,9 @@
 use crate::scanner::tokens;
 use std::fmt;
 
+/// Represents, and encapsulates one of the four types of expressions possible in
+/// lox currently. Further information can be found on each sub-type.
+///
 pub enum Expr {
     Binary(BinaryExpr),
     Unary(UnaryExpr),
@@ -19,6 +22,25 @@ impl fmt::Display for Expr {
     }
 }
 
+/// Represents Binary Lox expressions and stores an operation token, along with
+/// Boxed left and right hand expressions.
+///
+/// # Examples
+/// ```
+/// let unary = Expr::BinaryExpr::new(
+///     tokens::Token::new(TokenType::Minus, None),
+///     Box::new(
+///         Expr::LiteralExpr(
+///             Token::new(TokenType::Number, Literal::Number(10.0))
+///         )
+///     ),
+///     Box::new(
+///         Expr::LiteralExpr(
+///             Token::new(TokenType::Number, Literal::Number(5.0))
+///         )
+///     )
+/// );
+/// ```
 pub struct BinaryExpr {
     operation: tokens::Token,
     lhe: Box<Expr>,
@@ -41,6 +63,20 @@ impl fmt::Display for BinaryExpr {
     }
 }
 
+/// Represents Unary Lox expressions and stores an operation token, along with
+/// a single, right hand, expression.
+///
+/// # Examples
+/// ```
+/// let unary = Expr::UnaryExpr::new(
+///     tokens::Token::new(TokenType::Minus, None),
+///     Box::new(
+///         Expr::LiteralExpr(
+///             Token::new(TokenType::Number, Literal::Number(5.0))
+///         )
+///     )
+/// );
+/// ```
 pub struct UnaryExpr {
     operation: tokens::Token,
     expr: Box<Expr>,
@@ -61,6 +97,16 @@ impl fmt::Display for UnaryExpr {
     }
 }
 
+/// Represents Literal Lox expressions and stores a single literal token value.
+///
+/// # Examples
+/// ```
+/// let literal = Expr::LiteralExpr::new(
+///     Expr::LiteralExpr(
+///         Token::new(TokenType::Number, Literal::Number(5.0))
+///     )
+/// );
+/// ```
 pub struct LiteralExpr {
     literal: tokens::Token,
 }
@@ -77,6 +123,17 @@ impl fmt::Display for LiteralExpr {
     }
 }
 
+/// Acts as a logical grouping for sub-expressions taking a single boxed
+/// expression.
+///
+/// # Examples
+/// ```
+/// let grouping = Expr::GroupingExpr::(
+///     Box::new(Expr::LiteralExpr(
+///         Token::new(TokenType::Number, Literal::Number(5.0))
+///     ))
+/// );
+/// ```
 pub struct GroupingExpr {
     expr: Box<Expr>,
 }
