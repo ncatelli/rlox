@@ -5,17 +5,22 @@ use std::iter::Iterator;
 
 use super::tokens::{Literal, Token, TokenType};
 
+/// LexResult is an alias that represents the result of an attempt to lex a
+/// single character token. Returning either the Token or a string containing
+/// positional data for the error.
 pub type LexResult = Result<Token, String>;
 
+/// Cursor stores positional data for the scanner. Actively tracking index into
+/// the source Vector, the current column and line of the token being parsed.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Cursor {
+struct Cursor {
     index: usize,
     col: usize,
     line: usize,
 }
 
 impl Cursor {
-    pub fn new(index: usize, col: usize, line: usize) -> Cursor {
+    fn new(index: usize, col: usize, line: usize) -> Cursor {
         Cursor {
             index: index,
             col: col,
@@ -23,7 +28,7 @@ impl Cursor {
         }
     }
 
-    pub fn advance(cursor: Cursor) -> Cursor {
+    fn advance(cursor: Cursor) -> Cursor {
         Cursor {
             index: cursor.index + 1,
             col: cursor.col + 1,
@@ -31,7 +36,7 @@ impl Cursor {
         }
     }
 
-    pub fn reverse(cursor: Cursor) -> Cursor {
+    fn reverse(cursor: Cursor) -> Cursor {
         Cursor {
             index: cursor.index - 1,
             col: cursor.col - 1,
@@ -39,7 +44,7 @@ impl Cursor {
         }
     }
 
-    pub fn newline(cursor: Cursor) -> Cursor {
+    fn newline(cursor: Cursor) -> Cursor {
         Cursor {
             index: cursor.index,
             col: 0,
@@ -48,6 +53,18 @@ impl Cursor {
     }
 }
 
+/// Scanner takes a string representing lox source and attempts to convert the
+/// source into a vector of either Tokens or lexical errors.
+///
+/// # Examples
+/// ```
+/// extern crate librlox;
+/// use librlox::scanner;
+/// let source = "* ; - \"hello world\" 1234.5".to_string();
+/// let s = scanner::Scanner::new(source);
+///
+/// let _tokens = s.scan_tokens().into_iter();
+/// ```
 pub struct Scanner {
     source: Vec<char>,
     end: usize,
