@@ -3,7 +3,7 @@ use std::fmt;
 use std::option::Option;
 use std::option::Option::{None, Some};
 
-const RESERVED_KEYWORDS: &'static [(&'static str, TokenType)] = &[
+const RESERVED_KEYWORDS: &[(&str, TokenType)] = &[
     ("and", TokenType::And),
     ("or", TokenType::Or),
     ("print", TokenType::Print),
@@ -22,6 +22,8 @@ const RESERVED_KEYWORDS: &'static [(&'static str, TokenType)] = &[
     ("else", TokenType::Else),
 ];
 
+/// Literal functions to encapsulate literal values to be embedded in their
+/// corresponding Token type.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     Identifier(String),
@@ -48,8 +50,8 @@ pub struct Token {
 impl Token {
     pub fn new(token_type: TokenType, literal: Option<Literal>) -> Token {
         Token {
-            token_type: token_type,
-            literal: literal,
+            token_type,
+            literal,
         }
     }
 

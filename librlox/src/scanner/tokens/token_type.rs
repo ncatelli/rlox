@@ -1,5 +1,7 @@
 use std::fmt;
 
+/// TokenType represents any possible token that can be lexed by the lox
+/// scanner.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenType {
     // Single-character tokens
@@ -78,7 +80,7 @@ impl fmt::Display for TokenType {
                 TokenType::GreaterEqual => ">=".to_string(),
                 TokenType::Less => "<".to_string(),
                 TokenType::LessEqual => "<=".to_string(),
-                _ => format!("{:?}", self).to_string(),
+                _ => format!("{:?}", self),
             }
         )
     }

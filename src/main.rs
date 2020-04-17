@@ -14,13 +14,13 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let args_len = args.len();
 
-    if args_len > 2 {
-        println!("Usage: jlox [script]");
-        process::exit(64);
-    } else if args_len == 2 {
-        run_file(&args[1]).expect("Unable to parse file");
-    } else {
-        run_prompt();
+    match args_len {
+        al if al > 2 => {
+            println!("Usage: jlox [script]");
+            process::exit(64);
+        }
+        2 => run_file(&args[1]).expect("Unable to parse file"),
+        _ => run_prompt(),
     }
 }
 

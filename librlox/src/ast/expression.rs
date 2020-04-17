@@ -1,6 +1,9 @@
 use crate::scanner::tokens;
 use std::fmt;
 
+/// Represents, and encapsulates one of the four types of expressions possible in
+/// lox currently. Further information can be found on each sub-type.
+///
 pub enum Expr {
     Binary(BinaryExpr),
     Unary(UnaryExpr),
@@ -19,6 +22,36 @@ impl fmt::Display for Expr {
     }
 }
 
+/// Represents Binary Lox expressions and stores an operation token, along with
+/// Boxed left and right hand expressions.
+///
+/// # Examples
+/// ```
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::ast::expression::*;
+/// use std::option::Option::Some;
+///
+/// let unary = Expr::Binary(
+///     BinaryExpr::new(
+///         Token::new(TokenType::Minus, None),
+///         Box::new(
+///             Expr::Literal(
+///                 LiteralExpr::new(
+///                     Token::new(TokenType::Number, Some(Literal::Number(10.0)))
+///                 )
+///             )
+///         ),
+///         Box::new(
+///             Expr::Literal(
+///                 LiteralExpr::new(
+///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                 )
+///             )
+///         ),
+///     )
+/// );
+/// ```
 pub struct BinaryExpr {
     operation: tokens::Token,
     lhe: Box<Expr>,
@@ -29,8 +62,8 @@ impl BinaryExpr {
     pub fn new(op: tokens::Token, lhe: Box<Expr>, rhe: Box<Expr>) -> BinaryExpr {
         BinaryExpr {
             operation: op,
-            lhe: lhe,
-            rhe: rhe,
+            lhe,
+            rhe,
         }
     }
 }
@@ -41,6 +74,29 @@ impl fmt::Display for BinaryExpr {
     }
 }
 
+/// Represents Unary Lox expressions and stores an operation token, along with
+/// a single, right hand, expression.
+///
+/// # Examples
+/// ```
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::ast::expression::*;
+/// use std::option::Option::Some;
+///
+/// let unary = Expr::Unary(
+///     UnaryExpr::new(
+///         Token::new(TokenType::Minus, None),
+///         Box::new(
+///             Expr::Literal(
+///                 LiteralExpr::new(
+///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                 )
+///             )
+///         ),
+///     )
+/// );
+/// ```
 pub struct UnaryExpr {
     operation: tokens::Token,
     expr: Box<Expr>,
@@ -50,7 +106,7 @@ impl UnaryExpr {
     pub fn new(op: tokens::Token, expr: Box<Expr>) -> UnaryExpr {
         UnaryExpr {
             operation: op,
-            expr: expr,
+            expr,
         }
     }
 }
@@ -61,13 +117,28 @@ impl fmt::Display for UnaryExpr {
     }
 }
 
+/// Represents Literal Lox expressions and stores a single literal token value.
+///
+/// # Examples
+/// ```
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::ast::expression::*;
+/// use std::option::Option::Some;
+///
+/// let literal = Expr::Literal(
+///     LiteralExpr::new(
+///         Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///     )
+/// );
+/// ```
 pub struct LiteralExpr {
     literal: tokens::Token,
 }
 
 impl LiteralExpr {
     pub fn new(literal: tokens::Token) -> LiteralExpr {
-        LiteralExpr { literal: literal }
+        LiteralExpr { literal }
     }
 }
 
@@ -77,13 +148,35 @@ impl fmt::Display for LiteralExpr {
     }
 }
 
+/// Acts as a logical grouping for sub-expressions taking a single boxed
+/// expression.
+///
+/// # Examples
+/// ```
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::ast::expression::*;
+/// use std::option::Option::Some;
+///
+/// let grouping = Expr::Grouping(
+///     GroupingExpr::new(
+///         Box::new(
+///             Expr::Literal(
+///                 LiteralExpr::new(
+///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                 )
+///             )
+///         ),
+///     )
+/// );
+/// ```
 pub struct GroupingExpr {
     expr: Box<Expr>,
 }
 
 impl GroupingExpr {
     pub fn new(expr: Box<Expr>) -> GroupingExpr {
-        GroupingExpr { expr: expr }
+        GroupingExpr { expr }
     }
 }
 
