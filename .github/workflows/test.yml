@@ -3,6 +3,12 @@ name: Test
 on: [push]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Lint source
+      run: cargo clippy --all
   unit_test:
     runs-on: ubuntu-latest
     steps:
