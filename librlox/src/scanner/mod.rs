@@ -1,7 +1,7 @@
-pub mod scanner;
+pub mod source_scanner;
 pub mod tokens;
 
-pub use scanner::{LexResult, Scanner};
+pub use source_scanner::{LexResult, Scanner};
 pub use tokens::{Literal, Token, TokenType};
 
 #[cfg(test)]

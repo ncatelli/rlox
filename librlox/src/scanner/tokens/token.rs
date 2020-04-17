@@ -3,7 +3,7 @@ use std::fmt;
 use std::option::Option;
 use std::option::Option::{None, Some};
 
-const RESERVED_KEYWORDS: &'static [(&'static str, TokenType)] = &[
+const RESERVED_KEYWORDS: &[(&str, TokenType)] = &[
     ("and", TokenType::And),
     ("or", TokenType::Or),
     ("print", TokenType::Print),
@@ -48,8 +48,8 @@ pub struct Token {
 impl Token {
     pub fn new(token_type: TokenType, literal: Option<Literal>) -> Token {
         Token {
-            token_type: token_type,
-            literal: literal,
+            token_type,
+            literal,
         }
     }
 

@@ -62,8 +62,8 @@ impl BinaryExpr {
     pub fn new(op: tokens::Token, lhe: Box<Expr>, rhe: Box<Expr>) -> BinaryExpr {
         BinaryExpr {
             operation: op,
-            lhe: lhe,
-            rhe: rhe,
+            lhe,
+            rhe,
         }
     }
 }
@@ -106,7 +106,7 @@ impl UnaryExpr {
     pub fn new(op: tokens::Token, expr: Box<Expr>) -> UnaryExpr {
         UnaryExpr {
             operation: op,
-            expr: expr,
+            expr,
         }
     }
 }
@@ -138,7 +138,7 @@ pub struct LiteralExpr {
 
 impl LiteralExpr {
     pub fn new(literal: tokens::Token) -> LiteralExpr {
-        LiteralExpr { literal: literal }
+        LiteralExpr { literal }
     }
 }
 
@@ -176,7 +176,7 @@ pub struct GroupingExpr {
 
 impl GroupingExpr {
     pub fn new(expr: Box<Expr>) -> GroupingExpr {
-        GroupingExpr { expr: expr }
+        GroupingExpr { expr }
     }
 }
 

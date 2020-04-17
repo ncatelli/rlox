@@ -21,11 +21,7 @@ struct Cursor {
 
 impl Cursor {
     fn new(index: usize, col: usize, line: usize) -> Cursor {
-        Cursor {
-            index: index,
-            col: col,
-            line: line,
-        }
+        Cursor { index, col, line }
     }
 
     fn advance(cursor: Cursor) -> Cursor {
@@ -74,10 +70,7 @@ impl Scanner {
     pub fn new(source: String) -> Scanner {
         let chars: Vec<char> = source.chars().collect();
         let end = chars.len();
-        Scanner {
-            source: chars,
-            end: end,
-        }
+        Scanner { source: chars, end }
     }
 
     pub fn scan_tokens(&self) -> Vec<LexResult> {
@@ -258,7 +251,7 @@ impl Scanner {
                     //reverse reader one step to negate quote
                     let literal_str = self
                         .substring(start, Cursor::reverse(current))
-                        .into_iter()
+                        .iter()
                         .collect();
                     return (
                         Ok(Token::new(TokenType::Str, Some(Literal::Str(literal_str)))),
@@ -315,7 +308,7 @@ impl Scanner {
                     //reverse reader one step to negate quote
                     let literal_str: String = self
                         .substring(start, Cursor::reverse(current))
-                        .into_iter()
+                        .iter()
                         .collect();
 
                     return match literal_str.parse() {
@@ -337,7 +330,7 @@ impl Scanner {
     }
 
     fn match_identifier(&self, start: Cursor) -> (LexResult, Cursor) {
-        let mut current = start.clone();
+        let mut current = start;
         loop {
             current = Cursor::advance(current);
             match self.char_at(current) {
@@ -345,7 +338,7 @@ impl Scanner {
                 _ => {
                     let literal_str: String = self
                         .substring(start, Cursor::reverse(current))
-                        .into_iter()
+                        .iter()
                         .collect();
                     let t = Token::new(
                         TokenType::Identifier,
@@ -388,7 +381,7 @@ impl IntoIterator for Scanner {
         let token_length = tokens.len();
 
         ScannerIntoIterator {
-            tokens: tokens,
+            tokens,
             index: 0,
             end: token_length,
         }
@@ -405,12 +398,11 @@ impl Iterator for ScannerIntoIterator {
     type Item = LexResult;
 
     fn next(&mut self) -> Option<LexResult> {
-        let result = match self.index < self.end {
-            true => Some(self.tokens[self.index].clone()),
-            false => None,
-        };
-
-        self.index += 1;
-        result
+        if self.index < self.end {
+            self.index += 1;
+            Some(self.tokens[self.index - 1].clone())
+        } else {
+            None
+        }
     }
 }
