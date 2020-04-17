@@ -1,4 +1,4 @@
-use crate::scanner::scanner::{LexResult, Scanner};
+use crate::scanner::source_scanner::{LexResult, Scanner};
 use crate::scanner::tokens::{Token, TokenType};
 
 use std::option::Option::{None, Some};

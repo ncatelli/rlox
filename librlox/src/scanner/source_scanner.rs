@@ -201,14 +201,11 @@ impl Scanner {
         let mut current = start;
         loop {
             current = Cursor::advance(current);
-            match self.char_at(current) {
-                Some('\n') => {
-                    return (
-                        Ok(Token::new(TokenType::Comment, None)),
-                        Cursor::newline(current),
-                    );
-                }
-                _ => (),
+            if let Some('\n') = self.char_at(current) {
+                return (
+                    Ok(Token::new(TokenType::Comment, None)),
+                    Cursor::newline(current),
+                );
             }
         }
     }
@@ -217,25 +214,22 @@ impl Scanner {
         let mut current = start;
         loop {
             current = Cursor::advance(current);
-            match self.char_at(current) {
-                Some('*') => {
-                    let peek = Cursor::advance(current);
-                    match self.char_at(peek) {
-                        Some('/') => {
-                            return (Ok(Token::new(TokenType::Comment, None)), peek);
-                        }
-                        _ => {
-                            return (
-                                Err(format!(
-                                    "Invalid comment at line: {}, position: {}.",
-                                    peek.line, peek.col
-                                )),
-                                peek,
-                            );
-                        }
+            if let Some('*') = self.char_at(current) {
+                let peek = Cursor::advance(current);
+                match self.char_at(peek) {
+                    Some('/') => {
+                        return (Ok(Token::new(TokenType::Comment, None)), peek);
+                    }
+                    _ => {
+                        return (
+                            Err(format!(
+                                "Invalid comment at line: {}, position: {}.",
+                                peek.line, peek.col
+                            )),
+                            peek,
+                        );
                     }
                 }
-                _ => (),
             }
         }
     }
