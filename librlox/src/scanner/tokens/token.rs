@@ -22,6 +22,8 @@ const RESERVED_KEYWORDS: &[(&str, TokenType)] = &[
     ("else", TokenType::Else),
 ];
 
+/// Literal functions to encapsulate literal values to be embedded in their
+/// corresponding Token type.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     Identifier(String),
