@@ -4,6 +4,7 @@ use std::fmt;
 /// Represents, and encapsulates one of the four types of expressions possible in
 /// lox currently. Further information can be found on each sub-type.
 ///
+#[derive(Debug, PartialEq)]
 pub enum Expr {
     Binary(BinaryExpr),
     Unary(UnaryExpr),
@@ -29,7 +30,7 @@ impl fmt::Display for Expr {
 /// ```
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
-/// use librlox::ast::expression::*;
+/// use librlox::parser::expression::*;
 /// use std::option::Option::Some;
 ///
 /// let unary = Expr::Binary(
@@ -52,6 +53,7 @@ impl fmt::Display for Expr {
 ///     )
 /// );
 /// ```
+#[derive(Debug, PartialEq)]
 pub struct BinaryExpr {
     operation: tokens::Token,
     lhe: Box<Expr>,
@@ -81,7 +83,7 @@ impl fmt::Display for BinaryExpr {
 /// ```
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
-/// use librlox::ast::expression::*;
+/// use librlox::parser::expression::*;
 /// use std::option::Option::Some;
 ///
 /// let unary = Expr::Unary(
@@ -97,23 +99,21 @@ impl fmt::Display for BinaryExpr {
 ///     )
 /// );
 /// ```
+#[derive(Debug, PartialEq)]
 pub struct UnaryExpr {
     operation: tokens::Token,
-    expr: Box<Expr>,
+    rhe: Box<Expr>,
 }
 
 impl UnaryExpr {
-    pub fn new(op: tokens::Token, expr: Box<Expr>) -> UnaryExpr {
-        UnaryExpr {
-            operation: op,
-            expr,
-        }
+    pub fn new(operation: tokens::Token, rhe: Box<Expr>) -> UnaryExpr {
+        UnaryExpr { operation, rhe }
     }
 }
 
 impl fmt::Display for UnaryExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({} {})", self.operation, self.expr)
+        write!(f, "({} {})", self.operation, self.rhe)
     }
 }
 
@@ -123,7 +123,7 @@ impl fmt::Display for UnaryExpr {
 /// ```
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
-/// use librlox::ast::expression::*;
+/// use librlox::parser::expression::*;
 /// use std::option::Option::Some;
 ///
 /// let literal = Expr::Literal(
@@ -132,6 +132,7 @@ impl fmt::Display for UnaryExpr {
 ///     )
 /// );
 /// ```
+#[derive(Debug, PartialEq)]
 pub struct LiteralExpr {
     literal: tokens::Token,
 }
@@ -155,7 +156,7 @@ impl fmt::Display for LiteralExpr {
 /// ```
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
-/// use librlox::ast::expression::*;
+/// use librlox::parser::expression::*;
 /// use std::option::Option::Some;
 ///
 /// let grouping = Expr::Grouping(
@@ -170,6 +171,7 @@ impl fmt::Display for LiteralExpr {
 ///     )
 /// );
 /// ```
+#[derive(Debug, PartialEq)]
 pub struct GroupingExpr {
     expr: Box<Expr>,
 }
