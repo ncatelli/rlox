@@ -33,23 +33,7 @@ impl TokenParser {
     }
 }
 
-pub fn first<'a, P, A>(parsers: &'a [P]) -> impl Parser<'a, A>
-where
-    P: Parser<'a, A>,
-{
-    move |input| {
-        for parser in parsers {
-            match parser.parse(input) {
-                ok @ Ok(_) => return ok,
-                Err(_) => continue,
-            };
-        }
-
-        Err(input)
-    }
-}
-
-pub fn either<'a, P1, P2, A>(parser1: P1, parser2: P2) -> impl Parser<'a, A>
+fn either<'a, P1, P2, A>(parser1: P1, parser2: P2) -> impl Parser<'a, A>
 where
     P1: Parser<'a, A>,
     P2: Parser<'a, A>,
@@ -60,7 +44,7 @@ where
     }
 }
 
-pub fn map<'a, P, F, A, B>(parser: P, map_fn: F) -> impl Parser<'a, B>
+fn map<'a, P, F, A, B>(parser: P, map_fn: F) -> impl Parser<'a, B>
 where
     P: Parser<'a, A>,
     F: Fn(A) -> B,
@@ -72,7 +56,7 @@ where
     }
 }
 
-pub fn pair<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, (R1, R2)>
+fn join<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, (R1, R2)>
 where
     P1: Parser<'a, R1>,
     P2: Parser<'a, R2>,
@@ -91,7 +75,7 @@ where
     P1: Parser<'a, R1>,
     P2: Parser<'a, R2>,
 {
-    map(pair(parser1, parser2), |(left, _right)| left)
+    map(join(parser1, parser2), |(left, _right)| left)
 }
 
 pub fn right<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, R2>
@@ -99,7 +83,7 @@ where
     P1: Parser<'a, R1>,
     P2: Parser<'a, R2>,
 {
-    map(pair(parser1, parser2), |(_left, right)| right)
+    map(join(parser1, parser2), |(_left, right)| right)
 }
 
 pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
@@ -111,7 +95,7 @@ pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
 
 pub fn unary<'a>() -> impl Parser<'a, Expr> {
     map(
-        pair(
+        join(
             either(token_type(TokenType::Bang), token_type(TokenType::Minus)),
             primary(),
         ),
