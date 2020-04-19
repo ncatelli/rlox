@@ -68,6 +68,24 @@ impl<'a, Output> Parser<'a, Output> for BoxedParser<'a, Output> {
     }
 }
 
+fn zero_or_more<'a, P, A>(parser: P) -> impl Parser<'a, Vec<A>>
+where
+    P: Parser<'a, A>,
+{
+    move |mut input| {
+        let result = {
+            let mut result = Vec::new();
+            while let Ok((next_input, next_item)) = parser.parse(input) {
+                input = next_input;
+                result.push(next_item);
+            }
+            result
+        };
+
+        Ok((input, result))
+    }
+}
+
 fn either<'a, P1, P2, A>(parser1: P1, parser2: impl Fn() -> P2) -> impl Parser<'a, A>
 where
     P1: Parser<'a, A>,
@@ -173,7 +191,7 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
 
 fn addition<'a>() -> impl Parser<'a, Expr> {
     join(
-        unary(),
+        multiplication(),
         join(
             token_type(TokenType::Plus).or(|| token_type(TokenType::Minus)),
             multiplication(),
