@@ -140,8 +140,6 @@ pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
     }
 }
 
-/// **TODO**
-/// This is just a copy of unary for now for testing purposes.
 pub fn expression<'a>() -> impl Parser<'a, Expr> {
     equality()
 }
