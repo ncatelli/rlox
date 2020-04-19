@@ -28,7 +28,7 @@ pub trait Parser<'a, Output> {
         BoxedParser::new(and_then(self, f))
     }
 
-    fn or<P>(self, parser: P) -> BoxedParser<'a, Output>
+    fn or<P>(self, parser: impl Fn() -> P + 'a) -> BoxedParser<'a, Output>
     where
         Self: Sized + 'a,
         Output: 'a,
@@ -68,14 +68,14 @@ impl<'a, Output> Parser<'a, Output> for BoxedParser<'a, Output> {
     }
 }
 
-fn either<'a, P1, P2, A>(parser1: P1, parser2: P2) -> impl Parser<'a, A>
+fn either<'a, P1, P2, A>(parser1: P1, parser2: impl Fn() -> P2) -> impl Parser<'a, A>
 where
     P1: Parser<'a, A>,
     P2: Parser<'a, A>,
 {
     move |input| match parser1.parse(input) {
         ok @ Ok(_) => ok,
-        Err(_) => parser2.parse(input),
+        Err(_) => parser2().parse(input),
     }
 }
 
@@ -148,12 +148,12 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
     join(
         unary(),
         join(
-            token_type(TokenType::EqualEqual).or(token_type(TokenType::BangEqual)),
+            token_type(TokenType::EqualEqual).or(|| token_type(TokenType::BangEqual)),
             comparison(),
         ),
     )
     .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
-    .or(comparison())
+    .or(|| comparison())
 }
 
 fn comparison<'a>() -> impl Parser<'a, Expr> {
@@ -161,61 +161,59 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
         unary(),
         join(
             token_type(TokenType::Greater)
-                .or(token_type(TokenType::GreaterEqual))
-                .or(token_type(TokenType::Less))
-                .or(token_type(TokenType::LessEqual)),
+                .or(|| token_type(TokenType::GreaterEqual))
+                .or(|| token_type(TokenType::Less))
+                .or(|| token_type(TokenType::LessEqual)),
             addition(),
         ),
     )
     .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
-    .or(addition())
+    .or(|| addition())
 }
 
 fn addition<'a>() -> impl Parser<'a, Expr> {
     join(
         unary(),
         join(
-            token_type(TokenType::Plus).or(token_type(TokenType::Minus)),
+            token_type(TokenType::Plus).or(|| token_type(TokenType::Minus)),
             multiplication(),
         ),
     )
     .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
-    .or(multiplication())
+    .or(|| multiplication())
 }
 
 fn multiplication<'a>() -> impl Parser<'a, Expr> {
     join(
         unary(),
         join(
-            token_type(TokenType::Star).or(token_type(TokenType::Slash)),
+            token_type(TokenType::Star).or(|| token_type(TokenType::Slash)),
             unary(),
         ),
     )
     .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
-    .or(unary())
+    .or(|| unary())
 }
 
 fn unary<'a>() -> impl Parser<'a, Expr> {
     join(
-        token_type(TokenType::Bang).or(token_type(TokenType::Minus)),
+        token_type(TokenType::Bang).or(|| token_type(TokenType::Minus)),
         primary(),
     )
     .map(|(token, lit)| Expr::Unary(UnaryExpr::new(token, Box::new(lit))))
-    .or(primary())
+    .or(|| primary())
 }
 
 fn primary<'a>() -> impl Parser<'a, Expr> {
     token_type(TokenType::True)
-        .or(token_type(TokenType::False))
-        .or(token_type(TokenType::Nil))
-        .or(token_type(TokenType::Number))
-        .or(token_type(TokenType::Str))
+        .or(|| token_type(TokenType::False))
+        .or(|| token_type(TokenType::Nil))
+        .or(|| token_type(TokenType::Number))
+        .or(|| token_type(TokenType::Str))
         .map(|token| Expr::Literal(LiteralExpr::new(token)))
-    /*
-    .or(right(
-        token_type(TokenType::LeftParen),
-        left(expression(), token_type(TokenType::RightParen)),
-    )
-    .map(|expr| Expr::Grouping(GroupingExpr::new(Box::new(expr)))))
-    */
+        .or(||  right(
+            token_type(TokenType::LeftParen),
+            left(expression(), token_type(TokenType::RightParen)),
+        )
+        .map(|expr| Expr::Grouping(GroupingExpr::new(Box::new(expr)))))
 }
