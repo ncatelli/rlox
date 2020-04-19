@@ -1,4 +1,4 @@
-use crate::parser::expression::{BinaryExpr, Expr, LiteralExpr, UnaryExpr};
+use crate::parser::expression::{BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr};
 use crate::parser::expression_parser::*;
 use crate::scanner::tokens::{Literal, Token, TokenType};
 
@@ -80,4 +80,24 @@ fn validate_parser_should_parse_primary_expression() {
         TokenType::Number,
         Option::Some(Literal::Number(1.0)),
     ))
+}
+
+#[test]
+fn validate_parser_should_parse_grouping_expression() {
+    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let seed_vec = vec![
+        Token::new(TokenType::LeftParen, Option::None),
+        literal_token.clone(),
+        Token::new(TokenType::RightParen, Option::None),
+    ];
+
+    assert_eq!(
+        Ok((
+            &seed_vec[3..],
+            Expr::Grouping(GroupingExpr::new(Box::new(Expr::Literal(
+                LiteralExpr::new(literal_token)
+            ))))
+        )),
+        expression().parse(&seed_vec)
+    );
 }

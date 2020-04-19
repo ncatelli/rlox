@@ -211,9 +211,11 @@ fn primary<'a>() -> impl Parser<'a, Expr> {
         .or(|| token_type(TokenType::Number))
         .or(|| token_type(TokenType::Str))
         .map(|token| Expr::Literal(LiteralExpr::new(token)))
-        .or(||  right(
-            token_type(TokenType::LeftParen),
-            left(expression(), token_type(TokenType::RightParen)),
-        )
-        .map(|expr| Expr::Grouping(GroupingExpr::new(Box::new(expr)))))
+        .or(|| {
+            right(
+                token_type(TokenType::LeftParen),
+                left(expression(), token_type(TokenType::RightParen)),
+            )
+            .map(|expr| Expr::Grouping(GroupingExpr::new(Box::new(expr))))
+        })
 }
