@@ -6,6 +6,36 @@ pub type ParseResult<'a, Output> = Result<(&'a [Token], Output), &'a [Token]>;
 
 pub trait Parser<'a, Output> {
     fn parse(&self, input: &'a [Token]) -> ParseResult<'a, Output>;
+
+    fn map<F, NewOutput>(self, map_fn: F) -> BoxedParser<'a, NewOutput>
+    where
+        Self: Sized + 'a,
+        Output: 'a,
+        NewOutput: 'a,
+        F: Fn(Output) -> NewOutput + 'a,
+    {
+        BoxedParser::new(map(self, map_fn))
+    }
+
+    fn and_then<F, NextParser, NewOutput>(self, f: F) -> BoxedParser<'a, NewOutput>
+    where
+        Self: Sized + 'a,
+        Output: 'a,
+        NewOutput: 'a,
+        NextParser: Parser<'a, NewOutput> + 'a,
+        F: Fn(Output) -> NextParser + 'a,
+    {
+        BoxedParser::new(and_then(self, f))
+    }
+
+    fn or<P>(self, parser: P) -> BoxedParser<'a, Output>
+    where
+        Self: Sized + 'a,
+        Output: 'a,
+        P: Parser<'a, Output> + 'a,
+    {
+        BoxedParser::new(either(self, parser))
+    }
 }
 
 impl<'a, F, Output> Parser<'a, Output> for F
@@ -17,19 +47,24 @@ where
     }
 }
 
-/// Parser wraps the functionality of converting the tokens from the scanner
-/// into a corresponding AST.
-pub struct TokenParser {
-    tokens: Vec<Token>,
+pub struct BoxedParser<'a, Output> {
+    parser: Box<dyn Parser<'a, Output> + 'a>,
 }
 
-impl TokenParser {
-    pub fn new(tokens: Vec<Token>) -> TokenParser {
-        TokenParser { tokens }
+impl<'a, Output> BoxedParser<'a, Output> {
+    fn new<P>(parser: P) -> Self
+    where
+        P: Parser<'a, Output> + 'a,
+    {
+        BoxedParser {
+            parser: Box::new(parser),
+        }
     }
+}
 
-    pub fn parse(&self) -> Result<Expr, String> {
-        Err("Placeholder".to_string())
+impl<'a, Output> Parser<'a, Output> for BoxedParser<'a, Output> {
+    fn parse(&self, input: &'a [Token]) -> ParseResult<'a, Output> {
+        self.parser.parse(input)
     }
 }
 
@@ -44,15 +79,27 @@ where
     }
 }
 
-fn map<'a, P, F, A, B>(parser: P, map_fn: F) -> impl Parser<'a, B>
+pub fn map<'a, P, F, A, B>(parser: P, map_fn: F) -> impl Parser<'a, B>
 where
     P: Parser<'a, A>,
-    F: Fn(A) -> B,
+    F: Fn(A) -> B + 'a,
 {
     move |input| {
         parser
             .parse(input)
             .map(|(next_input, result)| (next_input, map_fn(result)))
+    }
+}
+
+pub fn and_then<'a, P, F, A, B, NextP>(parser: P, f: F) -> impl Parser<'a, B>
+where
+    P: Parser<'a, A>,
+    NextP: Parser<'a, B>,
+    F: Fn(A) -> NextP,
+{
+    move |input| match parser.parse(input) {
+        Ok((next_input, result)) => f(result).parse(next_input),
+        Err(err) => Err(err),
     }
 }
 
@@ -70,20 +117,20 @@ where
     }
 }
 
-pub fn left<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, R1>
+fn left<'a, P1: 'a, P2: 'a, R1: 'a, R2: 'a>(parser1: P1, parser2: P2) -> impl Parser<'a, R1>
 where
     P1: Parser<'a, R1>,
     P2: Parser<'a, R2>,
 {
-    map(join(parser1, parser2), |(left, _right)| left)
+    join(parser1, parser2).map(|(left, _right)| left)
 }
 
-pub fn right<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, R2>
+fn right<'a, P1: 'a, P2: 'a, R1: 'a, R2: 'a>(parser1: P1, parser2: P2) -> impl Parser<'a, R2>
 where
     P1: Parser<'a, R1>,
     P2: Parser<'a, R2>,
 {
-    map(join(parser1, parser2), |(_left, right)| right)
+    join(parser1, parser2).map(|(_left, right)| right)
 }
 
 pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
@@ -93,28 +140,84 @@ pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
     }
 }
 
-pub fn unary<'a>() -> impl Parser<'a, Expr> {
-    map(
-        join(
-            either(token_type(TokenType::Bang), token_type(TokenType::Minus)),
-            primary(),
-        ),
-        |(token, lit)| Expr::Unary(UnaryExpr::new(token, Box::new(lit))),
-    )
+/// **TODO**
+/// This is just a copy of unary for now for testing purposes.
+pub fn expression<'a>() -> impl Parser<'a, Expr> {
+    equality()
 }
 
-pub fn primary<'a>() -> impl Parser<'a, Expr> {
-    map(
-        either(
-            token_type(TokenType::True),
-            either(
-                token_type(TokenType::False),
-                either(
-                    token_type(TokenType::Nil),
-                    either(token_type(TokenType::Number), token_type(TokenType::Str)),
-                ),
-            ),
+fn equality<'a>() -> impl Parser<'a, Expr> {
+    join(
+        unary(),
+        join(
+            token_type(TokenType::EqualEqual).or(token_type(TokenType::BangEqual)),
+            comparison(),
         ),
-        |token| Expr::Literal(LiteralExpr::new(token)),
     )
+    .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
+    .or(comparison())
+}
+
+fn comparison<'a>() -> impl Parser<'a, Expr> {
+    join(
+        unary(),
+        join(
+            token_type(TokenType::Greater)
+                .or(token_type(TokenType::GreaterEqual))
+                .or(token_type(TokenType::Less))
+                .or(token_type(TokenType::LessEqual)),
+            addition(),
+        ),
+    )
+    .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
+    .or(addition())
+}
+
+fn addition<'a>() -> impl Parser<'a, Expr> {
+    join(
+        unary(),
+        join(
+            token_type(TokenType::Plus).or(token_type(TokenType::Minus)),
+            multiplication(),
+        ),
+    )
+    .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
+    .or(multiplication())
+}
+
+fn multiplication<'a>() -> impl Parser<'a, Expr> {
+    join(
+        unary(),
+        join(
+            token_type(TokenType::Star).or(token_type(TokenType::Slash)),
+            unary(),
+        ),
+    )
+    .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
+    .or(unary())
+}
+
+fn unary<'a>() -> impl Parser<'a, Expr> {
+    join(
+        token_type(TokenType::Bang).or(token_type(TokenType::Minus)),
+        primary(),
+    )
+    .map(|(token, lit)| Expr::Unary(UnaryExpr::new(token, Box::new(lit))))
+    .or(primary())
+}
+
+fn primary<'a>() -> impl Parser<'a, Expr> {
+    token_type(TokenType::True)
+        .or(token_type(TokenType::False))
+        .or(token_type(TokenType::Nil))
+        .or(token_type(TokenType::Number))
+        .or(token_type(TokenType::Str))
+        .map(|token| Expr::Literal(LiteralExpr::new(token)))
+    /*
+    .or(right(
+        token_type(TokenType::LeftParen),
+        left(unary(), token_type(TokenType::RightParen)),
+    )
+    .map(|expr| Expr::Grouping(GroupingExpr::new(Box::new(expr)))))
+    */
 }
