@@ -28,13 +28,13 @@ pub trait Parser<'a, Output> {
         BoxedParser::new(and_then(self, f))
     }
 
-    fn or<P>(self, parser: impl Fn() -> P + 'a) -> BoxedParser<'a, Output>
+    fn or<P>(self, thunk_to_parser: impl Fn() -> P + 'a) -> BoxedParser<'a, Output>
     where
         Self: Sized + 'a,
         Output: 'a,
         P: Parser<'a, Output> + 'a,
     {
-        BoxedParser::new(either(self, parser))
+        BoxedParser::new(either(self, thunk_to_parser))
     }
 }
 
@@ -68,36 +68,18 @@ impl<'a, Output> Parser<'a, Output> for BoxedParser<'a, Output> {
     }
 }
 
-fn zero_or_more<'a, P, A>(parser: P) -> impl Parser<'a, Vec<A>>
-where
-    P: Parser<'a, A>,
-{
-    move |mut input| {
-        let result = {
-            let mut result = Vec::new();
-            while let Ok((next_input, next_item)) = parser.parse(input) {
-                input = next_input;
-                result.push(next_item);
-            }
-            result
-        };
-
-        Ok((input, result))
-    }
-}
-
-fn either<'a, P1, P2, A>(parser1: P1, parser2: impl Fn() -> P2) -> impl Parser<'a, A>
+fn either<'a, P1, P2, A>(parser1: P1, thunk_to_parser: impl Fn() -> P2) -> impl Parser<'a, A>
 where
     P1: Parser<'a, A>,
     P2: Parser<'a, A>,
 {
     move |input| match parser1.parse(input) {
         ok @ Ok(_) => ok,
-        Err(_) => parser2().parse(input),
+        Err(_) => thunk_to_parser().parse(input),
     }
 }
 
-pub fn map<'a, P, F, A, B>(parser: P, map_fn: F) -> impl Parser<'a, B>
+fn map<'a, P, F, A, B>(parser: P, map_fn: F) -> impl Parser<'a, B>
 where
     P: Parser<'a, A>,
     F: Fn(A) -> B + 'a,
@@ -109,7 +91,7 @@ where
     }
 }
 
-pub fn and_then<'a, P, F, A, B, NextP>(parser: P, f: F) -> impl Parser<'a, B>
+fn and_then<'a, P, F, A, B, NextP>(parser: P, f: F) -> impl Parser<'a, B>
 where
     P: Parser<'a, A>,
     NextP: Parser<'a, B>,
