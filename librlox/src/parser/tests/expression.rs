@@ -1,20 +1,21 @@
-use crate::parser::expression::{BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr};
+use crate::parser::expression::{Expr, GroupingExpr, PrimaryExpr, UnaryExpr};
+use crate::parser::expression::{MultiplicationExpr, MultiplicationExprOperator};
 use crate::scanner::tokens::{Literal, Token, TokenType};
 use std::option::Option;
 
 #[test]
 fn test_expression_formatter_should_pretty_print_an_ast() {
-    let expr = Expr::Binary(BinaryExpr::new(
-        Token::new(TokenType::Star, None),
+    let expr = Expr::Multiplication(MultiplicationExpr::new(
+        MultiplicationExprOperator::Multiply,
         Box::new(Expr::Unary(UnaryExpr::new(
             Token::new(TokenType::Minus, Option::None),
-            Box::new(Expr::Literal(LiteralExpr::new(Token::new(
+            Box::new(Expr::Primary(PrimaryExpr::new(Token::new(
                 TokenType::Number,
                 Option::Some(Literal::Number(123.0)),
             )))),
         ))),
-        Box::new(Expr::Grouping(GroupingExpr::new(Box::new(Expr::Literal(
-            LiteralExpr::new(Token::new(
+        Box::new(Expr::Grouping(GroupingExpr::new(Box::new(Expr::Primary(
+            PrimaryExpr::new(Token::new(
                 TokenType::Number,
                 Option::Some(Literal::Number(45.7)),
             )),

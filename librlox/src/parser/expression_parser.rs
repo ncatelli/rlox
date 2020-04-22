@@ -152,7 +152,13 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
             comparison(),
         ),
     )
-    .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
+    .map(|(lhe, (token, rhe))| {
+        let eeo = match EqualityExprOperator::from_token(token) {
+            Ok(eeo) => eeo,
+            Err(e) => panic!(e),
+        };
+        Expr::Equality(EqualityExpr::new(eeo, Box::new(lhe), Box::new(rhe)))
+    })
     .or(|| comparison())
 }
 
@@ -167,7 +173,13 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
             addition(),
         ),
     )
-    .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
+    .map(|(lhe, (token, rhe))| {
+        let ceo = match ComparisonExprOperator::from_token(token) {
+            Ok(ceo) => ceo,
+            Err(e) => panic!(e),
+        };
+        Expr::Comparison(ComparisonExpr::new(ceo, Box::new(lhe), Box::new(rhe)))
+    })
     .or(|| addition())
 }
 
@@ -179,7 +191,13 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
             multiplication(),
         ),
     )
-    .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
+    .map(|(lhe, (token, rhe))| {
+        let aeo = match AdditionExprOperator::from_token(token) {
+            Ok(aeo) => aeo,
+            Err(e) => panic!(e),
+        };
+        Expr::Addition(AdditionExpr::new(aeo, Box::new(lhe), Box::new(rhe)))
+    })
     .or(|| multiplication())
 }
 
@@ -191,7 +209,13 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
             unary(),
         ),
     )
-    .map(|(lhe, (token, rhe))| Expr::Binary(BinaryExpr::new(token, Box::new(lhe), Box::new(rhe))))
+    .map(|(lhe, (token, rhe))| {
+        let meo = match MultiplicationExprOperator::from_token(token) {
+            Ok(meo) => meo,
+            Err(e) => panic!(e),
+        };
+        Expr::Multiplication(MultiplicationExpr::new(meo, Box::new(lhe), Box::new(rhe)))
+    })
     .or(|| unary())
 }
 
@@ -210,7 +234,7 @@ fn primary<'a>() -> impl Parser<'a, Expr> {
         .or(|| token_type(TokenType::Nil))
         .or(|| token_type(TokenType::Number))
         .or(|| token_type(TokenType::Str))
-        .map(|token| Expr::Literal(LiteralExpr::new(token)))
+        .map(|token| Expr::Primary(PrimaryExpr::new(token)))
         .or(|| {
             right(
                 token_type(TokenType::LeftParen),
