@@ -103,6 +103,26 @@ where
     }
 }
 
+fn take_while<'a, P, A>(parser: P) -> impl Parser<'a, Vec<A>>
+where
+    P: Parser<'a, A>,
+{
+    move |mut input| {
+        let mut result_acc: Vec<A> = Vec::new();
+        loop {
+            match parser.parse(input) {
+                Ok((next_input, result)) => {
+                    input = next_input;
+                    result_acc.push(result);
+                }
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok((input, result_acc))
+    }
+}
+
 fn join<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, (R1, R2)>
 where
     P1: Parser<'a, R1>,
