@@ -43,7 +43,7 @@ pub enum EqualityExprOperator {
 impl EqualityExprOperator {
     pub fn from_token(token: tokens::Token) -> Result<EqualityExprOperator, String> {
         match token.token_type {
-            tokens::TokenType::Equal => Ok(EqualityExprOperator::Equal),
+            tokens::TokenType::EqualEqual => Ok(EqualityExprOperator::Equal),
             tokens::TokenType::BangEqual => Ok(EqualityExprOperator::NotEqual),
             _ => Err(format!(
                 "Unable to convert from {} to EqualityExprOperator",
