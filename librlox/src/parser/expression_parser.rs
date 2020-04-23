@@ -115,7 +115,7 @@ where
                     input = next_input;
                     result_acc.push(result);
                 }
-                Err(e) => return Err(e),
+                Err(_) => break,
             }
         }
 
@@ -173,11 +173,14 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
         ),
     )
     .map(|(lhe, (token, rhe))| {
-        let eeo = match EqualityExprOperator::from_token(token) {
-            Ok(eeo) => eeo,
-            Err(e) => panic!(e),
-        };
-        Expr::Equality(EqualityExpr::new(eeo, Box::new(lhe), Box::new(rhe)))
+        Expr::Equality(EqualityExpr::new(
+            match EqualityExprOperator::from_token(token) {
+                Ok(eeo) => eeo,
+                Err(e) => panic!(e),
+            },
+            Box::new(lhe),
+            Box::new(rhe),
+        ))
     })
     .or(|| comparison())
 }
@@ -194,11 +197,14 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
         ),
     )
     .map(|(lhe, (token, rhe))| {
-        let ceo = match ComparisonExprOperator::from_token(token) {
-            Ok(ceo) => ceo,
-            Err(e) => panic!(e),
-        };
-        Expr::Comparison(ComparisonExpr::new(ceo, Box::new(lhe), Box::new(rhe)))
+        Expr::Comparison(ComparisonExpr::new(
+            match ComparisonExprOperator::from_token(token) {
+                Ok(ceo) => ceo,
+                Err(e) => panic!(e),
+            },
+            Box::new(lhe),
+            Box::new(rhe),
+        ))
     })
     .or(|| addition())
 }
@@ -212,11 +218,14 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
         ),
     )
     .map(|(lhe, (token, rhe))| {
-        let aeo = match AdditionExprOperator::from_token(token) {
-            Ok(aeo) => aeo,
-            Err(e) => panic!(e),
-        };
-        Expr::Addition(AdditionExpr::new(aeo, Box::new(lhe), Box::new(rhe)))
+        Expr::Addition(AdditionExpr::new(
+            match AdditionExprOperator::from_token(token) {
+                Ok(aeo) => aeo,
+                Err(e) => panic!(e),
+            },
+            Box::new(lhe),
+            Box::new(rhe),
+        ))
     })
     .or(|| multiplication())
 }
@@ -230,11 +239,14 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
         ),
     )
     .map(|(lhe, (token, rhe))| {
-        let meo = match MultiplicationExprOperator::from_token(token) {
-            Ok(meo) => meo,
-            Err(e) => panic!(e),
-        };
-        Expr::Multiplication(MultiplicationExpr::new(meo, Box::new(lhe), Box::new(rhe)))
+        Expr::Multiplication(MultiplicationExpr::new(
+            match MultiplicationExprOperator::from_token(token) {
+                Ok(meo) => meo,
+                Err(e) => panic!(e),
+            },
+            Box::new(lhe),
+            Box::new(rhe),
+        ))
     })
     .or(|| unary())
 }
