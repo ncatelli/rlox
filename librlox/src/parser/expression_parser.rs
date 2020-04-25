@@ -109,14 +109,9 @@ where
 {
     move |mut input| {
         let mut result_acc: Vec<A> = Vec::new();
-        loop {
-            match parser.parse(input) {
-                Ok((next_input, result)) => {
-                    input = next_input;
-                    result_acc.push(result);
-                }
-                Err(_) => break,
-            }
+        while let Ok((next_input, result)) = parser.parse(input) {
+            input = next_input;
+            result_acc.push(result);
         }
 
         Ok((input, result_acc))
