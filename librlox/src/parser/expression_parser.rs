@@ -161,21 +161,39 @@ pub fn expression<'a>() -> impl Parser<'a, Expr> {
 
 fn equality<'a>() -> impl Parser<'a, Expr> {
     join(
-        unary(),
-        join(
+        comparison(),
+        take_while(join(
             token_type(TokenType::EqualEqual).or(|| token_type(TokenType::BangEqual)),
             comparison(),
-        ),
+        )),
     )
-    .map(|(lhe, (token, rhe))| {
-        Expr::Equality(EqualityExpr::new(
-            match EqualityExprOperator::from_token(token) {
-                Ok(eeo) => eeo,
-                Err(e) => panic!(e),
-            },
-            Box::new(lhe),
-            Box::new(rhe),
-        ))
+    .map(|(lhe, token_rhe_tup)| {
+        let mut operators: Vec<Token> = vec![];
+        let mut operands: Vec<Expr> = vec![lhe];
+        token_rhe_tup.into_iter().for_each(|(op, operand)| {
+            operands.push(operand);
+            operators.push(op);
+        });
+        (operands, operators)
+    })
+    .map(|(operands, operators)| {
+        let mut operands_iter = operands.into_iter().rev();
+        let mut operators_iter = operators.into_iter().rev();
+        let mut last: Expr = operands_iter.next().unwrap();
+
+        while let Some(op) = operators_iter.next() {
+            // this is fairly safe due to the parser guaranteeing enough args.
+            let left = operands_iter.next().unwrap();
+            last = Expr::Equality(EqualityExpr::new(
+                match EqualityExprOperator::from_token(op) {
+                    Ok(eeo) => eeo,
+                    Err(e) => panic!(e),
+                },
+                Box::new(left),
+                Box::new(last),
+            ))
+        }
+        last
     })
     .or(|| comparison())
 }
