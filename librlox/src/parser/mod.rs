@@ -1,5 +1,5 @@
 pub mod expression;
-//mod parser;
+pub mod expression_parser;
 
 #[cfg(test)]
 mod tests;
