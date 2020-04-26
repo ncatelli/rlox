@@ -182,24 +182,42 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
 
 fn comparison<'a>() -> impl Parser<'a, Expr> {
     join(
-        unary(),
-        join(
+        addition(),
+        take_while(join(
             token_type(TokenType::Greater)
                 .or(|| token_type(TokenType::GreaterEqual))
                 .or(|| token_type(TokenType::Less))
                 .or(|| token_type(TokenType::LessEqual)),
             addition(),
-        ),
+        )),
     )
-    .map(|(lhe, (token, rhe))| {
-        Expr::Comparison(ComparisonExpr::new(
-            match ComparisonExprOperator::from_token(token) {
-                Ok(ceo) => ceo,
-                Err(e) => panic!(e),
-            },
-            Box::new(lhe),
-            Box::new(rhe),
-        ))
+    .map(|(lhe, token_rhe_tup)| {
+        let mut operators: Vec<Token> = vec![];
+        let mut operands: Vec<Expr> = vec![lhe];
+        token_rhe_tup.into_iter().for_each(|(op, operand)| {
+            operands.push(operand);
+            operators.push(op);
+        });
+        (operands, operators)
+    })
+    .map(|(operands, operators)| {
+        let mut operands_iter = operands.into_iter().rev();
+        let mut operators_iter = operators.into_iter().rev();
+        let mut last: Expr = operands_iter.next().unwrap();
+
+        while let Some(op) = operators_iter.next() {
+            // this is fairly safe due to the parser guaranteeing enough args.
+            let left = operands_iter.next().unwrap();
+            last = Expr::Comparison(ComparisonExpr::new(
+                match ComparisonExprOperator::from_token(op) {
+                    Ok(ceo) => ceo,
+                    Err(e) => panic!(e),
+                },
+                Box::new(left),
+                Box::new(last),
+            ))
+        }
+        last
     })
     .or(|| addition())
 }

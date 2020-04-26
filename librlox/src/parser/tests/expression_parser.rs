@@ -62,6 +62,35 @@ fn validate_parser_should_parse_comparison_expression() {
 }
 
 #[test]
+fn validate_parser_should_parse_many_comparison_expression() {
+    let op_token = Token::new(TokenType::GreaterEqual, Option::None);
+    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let seed_vec = vec![
+        literal_token.clone(),
+        op_token.clone(),
+        literal_token.clone(),
+        op_token.clone(),
+        literal_token.clone(),
+    ];
+
+    assert_eq!(
+        Ok((
+            &seed_vec[5..],
+            Expr::Comparison(ComparisonExpr::new(
+                ComparisonExprOperator::GreaterEqual,
+                Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone()))),
+                Box::new(Expr::Comparison(ComparisonExpr::new(
+                    ComparisonExprOperator::GreaterEqual,
+                    Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone()))),
+                    Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
+                )))
+            ))
+        )),
+        expression().parse(&seed_vec)
+    );
+}
+
+#[test]
 fn validate_parser_should_parse_addition_expression() {
     let op_token = Token::new(TokenType::Plus, Option::None);
     let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
