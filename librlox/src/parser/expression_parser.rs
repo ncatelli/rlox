@@ -155,6 +155,36 @@ pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
     }
 }
 
+/// Represents the entrypoint for expression parsing within the lox parser and
+/// yields an Expr object after recursively descending through the expression
+/// grammar
+///
+/// # Examples
+/// ```
+/// extern crate librlox;
+/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::parser::expression::*;
+/// use librlox::parser::expression_parser::*;
+/// use std::option::Option;
+///
+///
+/// let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+/// let seed_vec = vec![
+///     literal_token.clone(),
+/// ];
+///
+/// assert_eq!(
+///     Ok((
+///         &seed_vec[1..],
+///         Expr::Primary(
+///             PrimaryExpr::new(
+///                 literal_token.clone()
+///             )
+///         )
+///     )),
+///     expression().parse(&seed_vec)
+/// );
+/// ```
 pub fn expression<'a>() -> impl Parser<'a, Expr> {
     equality()
 }
