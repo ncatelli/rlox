@@ -108,6 +108,35 @@ fn validate_parser_should_parse_multiplication_expression() {
 }
 
 #[test]
+fn validate_parser_should_parse_many_multiplication_expression() {
+    let op_token = Token::new(TokenType::Star, Option::None);
+    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let seed_vec = vec![
+        literal_token.clone(),
+        op_token.clone(),
+        literal_token.clone(),
+        op_token.clone(),
+        literal_token.clone(),
+    ];
+
+    assert_eq!(
+        Ok((
+            &seed_vec[5..],
+            Expr::Multiplication(MultiplicationExpr::new(
+                MultiplicationExprOperator::Multiply,
+                Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone()))),
+                Box::new(Expr::Multiplication(MultiplicationExpr::new(
+                    MultiplicationExprOperator::Multiply,
+                    Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone()))),
+                    Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
+                )))
+            ))
+        )),
+        expression().parse(&seed_vec)
+    );
+}
+
+#[test]
 fn validate_parser_should_parse_unary_expression() {
     let op_token = Token::new(TokenType::Bang, Option::None);
     let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));

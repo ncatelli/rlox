@@ -228,20 +228,38 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
 fn multiplication<'a>() -> impl Parser<'a, Expr> {
     join(
         unary(),
-        join(
+        take_while(join(
             token_type(TokenType::Star).or(|| token_type(TokenType::Slash)),
             unary(),
-        ),
+        )),
     )
-    .map(|(lhe, (token, rhe))| {
-        Expr::Multiplication(MultiplicationExpr::new(
-            match MultiplicationExprOperator::from_token(token) {
-                Ok(meo) => meo,
-                Err(e) => panic!(e),
-            },
-            Box::new(lhe),
-            Box::new(rhe),
-        ))
+    .map(|(lhe, token_rhe_tup)| {
+        let mut operators: Vec<Token> = vec![];
+        let mut operands: Vec<Expr> = vec![lhe];
+        token_rhe_tup.into_iter().for_each(|(op, operand)| {
+            operands.push(operand);
+            operators.push(op);
+        });
+        (operands, operators)
+    })
+    .map(|(operands, operators)| {
+        let mut operands_iter = operands.into_iter().rev();
+        let mut operators_iter = operators.into_iter().rev();
+        let mut last: Expr = operands_iter.next().unwrap();
+
+        while let Some(op) = operators_iter.next() {
+            // this is fairly safe due to the parser guaranteeing enough args.
+            let left = operands_iter.next().unwrap();
+            last = Expr::Multiplication(MultiplicationExpr::new(
+                match MultiplicationExprOperator::from_token(op) {
+                    Ok(meo) => meo,
+                    Err(e) => panic!(e),
+                },
+                Box::new(left),
+                Box::new(last),
+            ))
+        }
+        last
     })
     .or(|| unary())
 }
