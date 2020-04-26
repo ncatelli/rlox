@@ -159,6 +159,7 @@ pub fn expression<'a>() -> impl Parser<'a, Expr> {
     equality()
 }
 
+#[allow(clippy::redundant_closure)]
 fn equality<'a>() -> impl Parser<'a, Expr> {
     join(
         comparison(),
@@ -178,10 +179,10 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
     })
     .map(|(operands, operators)| {
         let mut operands_iter = operands.into_iter().rev();
-        let mut operators_iter = operators.into_iter().rev();
+        let operators_iter = operators.into_iter().rev();
         let mut last: Expr = operands_iter.next().unwrap();
 
-        while let Some(op) = operators_iter.next() {
+        for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Equality(EqualityExpr::new(
@@ -198,6 +199,7 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
     .or(|| comparison())
 }
 
+#[allow(clippy::redundant_closure)]
 fn comparison<'a>() -> impl Parser<'a, Expr> {
     join(
         addition(),
@@ -220,10 +222,10 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
     })
     .map(|(operands, operators)| {
         let mut operands_iter = operands.into_iter().rev();
-        let mut operators_iter = operators.into_iter().rev();
+        let operators_iter = operators.into_iter().rev();
         let mut last: Expr = operands_iter.next().unwrap();
 
-        while let Some(op) = operators_iter.next() {
+        for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Comparison(ComparisonExpr::new(
@@ -240,6 +242,7 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
     .or(|| addition())
 }
 
+#[allow(clippy::redundant_closure)]
 fn addition<'a>() -> impl Parser<'a, Expr> {
     join(
         multiplication(),
@@ -259,10 +262,10 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
     })
     .map(|(operands, operators)| {
         let mut operands_iter = operands.into_iter().rev();
-        let mut operators_iter = operators.into_iter().rev();
+        let operators_iter = operators.into_iter().rev();
         let mut last: Expr = operands_iter.next().unwrap();
 
-        while let Some(op) = operators_iter.next() {
+        for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Addition(AdditionExpr::new(
@@ -279,6 +282,7 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
     .or(|| multiplication())
 }
 
+#[allow(clippy::redundant_closure)]
 fn multiplication<'a>() -> impl Parser<'a, Expr> {
     join(
         unary(),
@@ -298,10 +302,10 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
     })
     .map(|(operands, operators)| {
         let mut operands_iter = operands.into_iter().rev();
-        let mut operators_iter = operators.into_iter().rev();
+        let operators_iter = operators.into_iter().rev();
         let mut last: Expr = operands_iter.next().unwrap();
 
-        while let Some(op) = operators_iter.next() {
+        for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Multiplication(MultiplicationExpr::new(
@@ -318,6 +322,7 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
     .or(|| unary())
 }
 
+#[allow(clippy::redundant_closure)]
 fn unary<'a>() -> impl Parser<'a, Expr> {
     join(
         token_type(TokenType::Bang).or(|| token_type(TokenType::Minus)),
