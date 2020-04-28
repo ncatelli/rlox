@@ -222,10 +222,7 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Equality(EqualityExpr::new(
-                match EqualityExprOperator::from_token(op) {
-                    Ok(eeo) => eeo,
-                    Err(e) => panic!(e),
-                },
+                EqualityExprOperator::from_token(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -261,10 +258,7 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Comparison(ComparisonExpr::new(
-                match ComparisonExprOperator::from_token(op) {
-                    Ok(ceo) => ceo,
-                    Err(e) => panic!(e),
-                },
+                ComparisonExprOperator::from_token(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -297,10 +291,7 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Addition(AdditionExpr::new(
-                match AdditionExprOperator::from_token(op) {
-                    Ok(aeo) => aeo,
-                    Err(e) => panic!(e),
-                },
+                AdditionExprOperator::from_token(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -333,10 +324,7 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Multiplication(MultiplicationExpr::new(
-                match MultiplicationExprOperator::from_token(op) {
-                    Ok(meo) => meo,
-                    Err(e) => panic!(e),
-                },
+                MultiplicationExprOperator::from_token(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
