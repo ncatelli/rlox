@@ -148,6 +148,16 @@ where
     join(parser1, parser2).map(|(_left, right)| right)
 }
 
+fn unzip<'a, A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
+    let mut left_vec: Vec<A> = vec![];
+    let mut right_vec: Vec<B> = vec![];
+    pair.into_iter().for_each(|(left, right)| {
+        left_vec.push(left);
+        right_vec.push(right);
+    });
+    (left_vec, right_vec)
+}
+
 pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
     move |input: &'a [Token]| match input.get(0) {
         Some(next) if next.token_type == expected => Ok((&input[1..], next.clone())),
@@ -199,12 +209,8 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
         )),
     )
     .map(|(lhe, token_rhe_tup)| {
-        let mut operators: Vec<Token> = vec![];
-        let mut operands: Vec<Expr> = vec![lhe];
-        token_rhe_tup.into_iter().for_each(|(op, operand)| {
-            operands.push(operand);
-            operators.push(op);
-        });
+        let (operators, mut operands) = unzip(token_rhe_tup);
+        operands.insert(0, lhe);
         (operands, operators)
     })
     .map(|(operands, operators)| {
@@ -242,12 +248,8 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
         )),
     )
     .map(|(lhe, token_rhe_tup)| {
-        let mut operators: Vec<Token> = vec![];
-        let mut operands: Vec<Expr> = vec![lhe];
-        token_rhe_tup.into_iter().for_each(|(op, operand)| {
-            operands.push(operand);
-            operators.push(op);
-        });
+        let (operators, mut operands) = unzip(token_rhe_tup);
+        operands.insert(0, lhe);
         (operands, operators)
     })
     .map(|(operands, operators)| {
@@ -282,12 +284,8 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
         )),
     )
     .map(|(lhe, token_rhe_tup)| {
-        let mut operators: Vec<Token> = vec![];
-        let mut operands: Vec<Expr> = vec![lhe];
-        token_rhe_tup.into_iter().for_each(|(op, operand)| {
-            operands.push(operand);
-            operators.push(op);
-        });
+        let (operators, mut operands) = unzip(token_rhe_tup);
+        operands.insert(0, lhe);
         (operands, operators)
     })
     .map(|(operands, operators)| {
@@ -322,12 +320,8 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
         )),
     )
     .map(|(lhe, token_rhe_tup)| {
-        let mut operators: Vec<Token> = vec![];
-        let mut operands: Vec<Expr> = vec![lhe];
-        token_rhe_tup.into_iter().for_each(|(op, operand)| {
-            operands.push(operand);
-            operators.push(op);
-        });
+        let (operators, mut operands) = unzip(token_rhe_tup);
+        operands.insert(0, lhe);
         (operands, operators)
     })
     .map(|(operands, operators)| {
