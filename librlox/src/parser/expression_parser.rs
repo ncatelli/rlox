@@ -148,7 +148,17 @@ where
     join(parser1, parser2).map(|(_left, right)| right)
 }
 
-pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
+fn unzip<'a, A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
+    let mut left_vec: Vec<A> = vec![];
+    let mut right_vec: Vec<B> = vec![];
+    pair.into_iter().for_each(|(left, right)| {
+        left_vec.push(left);
+        right_vec.push(right);
+    });
+    (left_vec, right_vec)
+}
+
+fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
     move |input: &'a [Token]| match input.get(0) {
         Some(next) if next.token_type == expected => Ok((&input[1..], next.clone())),
         _ => Err(input),
@@ -199,12 +209,8 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
         )),
     )
     .map(|(lhe, token_rhe_tup)| {
-        let mut operators: Vec<Token> = vec![];
-        let mut operands: Vec<Expr> = vec![lhe];
-        token_rhe_tup.into_iter().for_each(|(op, operand)| {
-            operands.push(operand);
-            operators.push(op);
-        });
+        let (operators, mut operands) = unzip(token_rhe_tup);
+        operands.insert(0, lhe);
         (operands, operators)
     })
     .map(|(operands, operators)| {
@@ -216,10 +222,7 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Equality(EqualityExpr::new(
-                match EqualityExprOperator::from_token(op) {
-                    Ok(eeo) => eeo,
-                    Err(e) => panic!(e),
-                },
+                EqualityExprOperator::from_token(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -242,12 +245,8 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
         )),
     )
     .map(|(lhe, token_rhe_tup)| {
-        let mut operators: Vec<Token> = vec![];
-        let mut operands: Vec<Expr> = vec![lhe];
-        token_rhe_tup.into_iter().for_each(|(op, operand)| {
-            operands.push(operand);
-            operators.push(op);
-        });
+        let (operators, mut operands) = unzip(token_rhe_tup);
+        operands.insert(0, lhe);
         (operands, operators)
     })
     .map(|(operands, operators)| {
@@ -259,10 +258,7 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Comparison(ComparisonExpr::new(
-                match ComparisonExprOperator::from_token(op) {
-                    Ok(ceo) => ceo,
-                    Err(e) => panic!(e),
-                },
+                ComparisonExprOperator::from_token(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -282,12 +278,8 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
         )),
     )
     .map(|(lhe, token_rhe_tup)| {
-        let mut operators: Vec<Token> = vec![];
-        let mut operands: Vec<Expr> = vec![lhe];
-        token_rhe_tup.into_iter().for_each(|(op, operand)| {
-            operands.push(operand);
-            operators.push(op);
-        });
+        let (operators, mut operands) = unzip(token_rhe_tup);
+        operands.insert(0, lhe);
         (operands, operators)
     })
     .map(|(operands, operators)| {
@@ -299,10 +291,7 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Addition(AdditionExpr::new(
-                match AdditionExprOperator::from_token(op) {
-                    Ok(aeo) => aeo,
-                    Err(e) => panic!(e),
-                },
+                AdditionExprOperator::from_token(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -322,12 +311,8 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
         )),
     )
     .map(|(lhe, token_rhe_tup)| {
-        let mut operators: Vec<Token> = vec![];
-        let mut operands: Vec<Expr> = vec![lhe];
-        token_rhe_tup.into_iter().for_each(|(op, operand)| {
-            operands.push(operand);
-            operators.push(op);
-        });
+        let (operators, mut operands) = unzip(token_rhe_tup);
+        operands.insert(0, lhe);
         (operands, operators)
     })
     .map(|(operands, operators)| {
@@ -339,10 +324,7 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Multiplication(MultiplicationExpr::new(
-                match MultiplicationExprOperator::from_token(op) {
-                    Ok(meo) => meo,
-                    Err(e) => panic!(e),
-                },
+                MultiplicationExprOperator::from_token(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
