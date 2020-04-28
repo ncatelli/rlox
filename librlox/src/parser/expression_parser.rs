@@ -158,7 +158,7 @@ fn unzip<'a, A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
     (left_vec, right_vec)
 }
 
-pub fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
+fn token_type<'a>(expected: TokenType) -> impl Parser<'a, Token> {
     move |input: &'a [Token]| match input.get(0) {
         Some(next) if next.token_type == expected => Ok((&input[1..], next.clone())),
         _ => Err(input),
