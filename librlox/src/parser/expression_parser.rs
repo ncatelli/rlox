@@ -148,7 +148,7 @@ where
     join(parser1, parser2).map(|(_left, right)| right)
 }
 
-fn unzip<'a, A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
+fn unzip<A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
     let mut left_vec: Vec<A> = vec![];
     let mut right_vec: Vec<B> = vec![];
     pair.into_iter().for_each(|(left, right)| {
