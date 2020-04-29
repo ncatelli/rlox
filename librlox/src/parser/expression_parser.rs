@@ -206,10 +206,10 @@ fn equality<'a>() -> impl Parser<'a, Expr> {
         take_while(join(
             token_type(TokenType::EqualEqual).or(|| token_type(TokenType::BangEqual)),
             comparison(),
-        )),
+        ))
+        .map(unzip),
     )
-    .map(|(lhe, token_rhe_tup)| {
-        let (operators, mut operands) = unzip(token_rhe_tup);
+    .map(|(lhe, (operators, mut operands))| {
         operands.insert(0, lhe);
         (operands, operators)
     })
@@ -242,10 +242,10 @@ fn comparison<'a>() -> impl Parser<'a, Expr> {
                 .or(|| token_type(TokenType::Less))
                 .or(|| token_type(TokenType::LessEqual)),
             addition(),
-        )),
+        ))
+        .map(unzip),
     )
-    .map(|(lhe, token_rhe_tup)| {
-        let (operators, mut operands) = unzip(token_rhe_tup);
+    .map(|(lhe, (operators, mut operands))| {
         operands.insert(0, lhe);
         (operands, operators)
     })
@@ -275,10 +275,10 @@ fn addition<'a>() -> impl Parser<'a, Expr> {
         take_while(join(
             token_type(TokenType::Plus).or(|| token_type(TokenType::Minus)),
             multiplication(),
-        )),
+        ))
+        .map(unzip),
     )
-    .map(|(lhe, token_rhe_tup)| {
-        let (operators, mut operands) = unzip(token_rhe_tup);
+    .map(|(lhe, (operators, mut operands))| {
         operands.insert(0, lhe);
         (operands, operators)
     })
@@ -308,10 +308,10 @@ fn multiplication<'a>() -> impl Parser<'a, Expr> {
         take_while(join(
             token_type(TokenType::Star).or(|| token_type(TokenType::Slash)),
             unary(),
-        )),
+        ))
+        .map(unzip),
     )
-    .map(|(lhe, token_rhe_tup)| {
-        let (operators, mut operands) = unzip(token_rhe_tup);
+    .map(|(lhe, (operators, mut operands))| {
         operands.insert(0, lhe);
         (operands, operators)
     })
