@@ -5,10 +5,10 @@ use std::io::{stdin, stdout};
 use std::process;
 
 extern crate librlox;
-use librlox::errors::ParseError;
+use librlox::parser::expression_parser::{expression, Parser};
 use librlox::scanner;
 
-type ParseResult<T> = Result<T, ParseError>;
+type ParseResult<T> = Result<T, String>;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -50,16 +50,20 @@ fn run_prompt() {
 
 fn run(source: String) -> ParseResult<usize> {
     let s = scanner::Scanner::new(source);
+    let token_iter = s.scan_tokens().into_iter();
+    let token_count = token_iter.len();
 
-    let tokens = s.scan_tokens().into_iter();
-    let token_count = tokens.len();
+    let tokens: Vec<scanner::Token> = token_iter
+        .map(|tok| match tok {
+            Ok(tok) => tok,
+            Err(e) => panic!("{}", e),
+        })
+        .collect();
 
-    for token_result in tokens {
-        match token_result {
-            Ok(token) => println!("{}", token),
-            Err(e) => println!("{}", e),
-        }
-    }
+    match expression().parse(&tokens) {
+        Ok((_, expr)) => println!("{}", expr),
+        Err(e) => println!("{:?}", e),
+    };
 
     Ok(token_count)
 }
