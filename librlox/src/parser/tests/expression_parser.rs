@@ -268,3 +268,15 @@ fn validate_parser_should_parse_grouping_expression() {
         expression().parse(&seed_vec)
     );
 }
+
+#[test]
+fn validate_parser_should_throw_error_on_invalid_expression() {
+    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let seed_vec = vec![
+        Token::new(TokenType::LeftParen, Option::None),
+        literal_token.clone(),
+        Token::new(TokenType::Semicolon, Option::None),
+    ];
+
+    assert_eq!(Err(&seed_vec[2..]), expression().parse(&seed_vec));
+}
