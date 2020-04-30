@@ -10,7 +10,7 @@ edition = "2018"
 criterion = "0.3"
 
 [[bench]]
-name = "scanner_bench"
+name = "rlox_bench"
 harness = false
 
 [workspace]
