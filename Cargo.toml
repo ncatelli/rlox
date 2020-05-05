@@ -17,4 +17,5 @@ harness = false
 members = ["librlox"]
 
 [dependencies]
+parcel = { git = "https://github.com/ncatelli/parcel", branch = "master" }
 librlox = { path = "librlox" }

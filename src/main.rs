@@ -5,8 +5,10 @@ use std::io::{stdin, stdout};
 use std::process;
 
 extern crate librlox;
-use librlox::parser::expression_parser::{expression, Parser};
+extern crate parcel;
+use librlox::parser::expression_parser::expression;
 use librlox::scanner;
+use parcel::Parser;
 
 type ParseResult<T> = Result<T, String>;
 
@@ -61,7 +63,8 @@ fn run(source: String) -> ParseResult<usize> {
         .collect();
 
     match expression().parse(&tokens) {
-        Ok((_, expr)) => println!("{}", expr),
+        Ok(parcel::MatchStatus::Match((_, expr))) => println!("{}", expr),
+        Ok(parcel::MatchStatus::NoMatch(_)) => println!("No match found"),
         Err(e) => println!("{:?}", e),
     };
 
