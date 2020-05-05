@@ -1,16 +1,21 @@
+extern crate parcel;
 use crate::parser::expression::{
     AdditionExpr, AdditionExprOperator, ComparisonExpr, ComparisonExprOperator, EqualityExpr,
     EqualityExprOperator, Expr, GroupingExpr, MultiplicationExpr, MultiplicationExprOperator,
     PrimaryExpr, UnaryExpr,
 };
-use crate::parser::expression_parser::{expression, Parser};
+use crate::parser::expression_parser::expression;
 use crate::scanner::tokens::{Literal, Token, TokenType};
+use parcel::*;
 
 fn match_literal_helper(token: Token) {
     let seed_vec = vec![token.clone()];
 
     assert_eq!(
-        Ok((&seed_vec[1..], Expr::Primary(PrimaryExpr::new(token)))),
+        Ok(MatchStatus::Match((
+            &seed_vec[1..],
+            Expr::Primary(PrimaryExpr::new(token))
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -26,14 +31,14 @@ fn validate_parser_should_parse_equality_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Equality(EqualityExpr::new(
                 EqualityExprOperator::Equal,
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone()))),
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -51,7 +56,7 @@ fn validate_parser_should_parse_many_equality_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[5..],
             Expr::Equality(EqualityExpr::new(
                 EqualityExprOperator::Equal,
@@ -62,7 +67,7 @@ fn validate_parser_should_parse_many_equality_expression() {
                     Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
                 )))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -78,14 +83,14 @@ fn validate_parser_should_parse_comparison_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Comparison(ComparisonExpr::new(
                 ComparisonExprOperator::GreaterEqual,
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone()))),
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -103,7 +108,7 @@ fn validate_parser_should_parse_many_comparison_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[5..],
             Expr::Comparison(ComparisonExpr::new(
                 ComparisonExprOperator::GreaterEqual,
@@ -114,7 +119,7 @@ fn validate_parser_should_parse_many_comparison_expression() {
                     Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
                 )))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -130,14 +135,14 @@ fn validate_parser_should_parse_addition_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Addition(AdditionExpr::new(
                 AdditionExprOperator::Addition,
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone()))),
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -155,7 +160,7 @@ fn validate_parser_should_parse_many_addition_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[5..],
             Expr::Addition(AdditionExpr::new(
                 AdditionExprOperator::Addition,
@@ -166,7 +171,7 @@ fn validate_parser_should_parse_many_addition_expression() {
                     Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
                 )))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -182,14 +187,14 @@ fn validate_parser_should_parse_multiplication_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Multiplication(MultiplicationExpr::new(
                 MultiplicationExprOperator::Multiply,
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone()))),
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -207,7 +212,7 @@ fn validate_parser_should_parse_many_multiplication_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[5..],
             Expr::Multiplication(MultiplicationExpr::new(
                 MultiplicationExprOperator::Multiply,
@@ -218,7 +223,7 @@ fn validate_parser_should_parse_many_multiplication_expression() {
                     Box::new(Expr::Primary(PrimaryExpr::new(literal_token.clone())))
                 )))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -230,13 +235,13 @@ fn validate_parser_should_parse_unary_expression() {
     let seed_vec = vec![op_token.clone(), literal_token.clone()];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[2..],
             Expr::Unary(UnaryExpr::new(
                 op_token,
                 Box::new(Expr::Primary(PrimaryExpr::new(literal_token)))
             ))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -259,12 +264,12 @@ fn validate_parser_should_parse_grouping_expression() {
     ];
 
     assert_eq!(
-        Ok((
+        Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Grouping(GroupingExpr::new(Box::new(Expr::Primary(
                 PrimaryExpr::new(literal_token)
             ))))
-        )),
+        ))),
         expression().parse(&seed_vec)
     );
 }
@@ -278,5 +283,8 @@ fn validate_parser_should_throw_error_on_invalid_expression() {
         Token::new(TokenType::Semicolon, Option::None),
     ];
 
-    assert_eq!(Err(&seed_vec[2..]), expression().parse(&seed_vec));
+    assert_eq!(
+        Ok(MatchStatus::NoMatch(&seed_vec[..])),
+        expression().parse(&seed_vec)
+    );
 }
