@@ -2,6 +2,7 @@ extern crate parcel;
 use crate::parser::expression::*;
 use crate::scanner::tokens::{Token, TokenType};
 use parcel::{join, left, right, MatchStatus, Parser};
+use std::convert::TryFrom;
 use std::option::Option::Some;
 
 fn take_while<'a, P, A: 'a, B>(parser: P) -> impl Parser<'a, A, Vec<B>>
@@ -98,7 +99,7 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Equality(EqualityExpr::new(
-                EqualityExprOperator::from_token(op).unwrap(),
+                EqualityExprOperator::try_from(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -134,7 +135,7 @@ fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Comparison(ComparisonExpr::new(
-                ComparisonExprOperator::from_token(op).unwrap(),
+                ComparisonExprOperator::try_from(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -167,7 +168,7 @@ fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Addition(AdditionExpr::new(
-                AdditionExprOperator::from_token(op).unwrap(),
+                AdditionExprOperator::try_from(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))
@@ -200,7 +201,7 @@ fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
             last = Expr::Multiplication(MultiplicationExpr::new(
-                MultiplicationExprOperator::from_token(op).unwrap(),
+                MultiplicationExprOperator::try_from(op).unwrap(),
                 Box::new(left),
                 Box::new(last),
             ))

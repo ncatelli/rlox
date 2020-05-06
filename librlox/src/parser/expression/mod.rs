@@ -1,4 +1,5 @@
 use crate::scanner::tokens;
+use std::convert::TryFrom;
 use std::fmt;
 
 pub trait BinaryExpr {
@@ -40,23 +41,16 @@ pub enum EqualityExprOperator {
     NotEqual,
 }
 
-impl From<tokens::Token> for EqualityExprOperator {
-    fn from(item: tokens::Token) -> EqualityExprOperator {
-        match item.token_type {
-            tokens::TokenType::EqualEqual => EqualityExprOperator::Equal,
-            tokens::TokenType::BangEqual => EqualityExprOperator::NotEqual,
-        }
-    }
-}
+impl TryFrom<tokens::Token> for EqualityExprOperator {
+    type Error = String;
 
-impl EqualityExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<EqualityExprOperator, String> {
-        match token.token_type {
+    fn try_from(item: tokens::Token) -> Result<EqualityExprOperator, Self::Error> {
+        match item.token_type {
             tokens::TokenType::EqualEqual => Ok(EqualityExprOperator::Equal),
             tokens::TokenType::BangEqual => Ok(EqualityExprOperator::NotEqual),
             _ => Err(format!(
                 "Unable to convert from {} to EqualityExprOperator",
-                token.token_type
+                item.token_type
             )),
         }
     }
@@ -158,27 +152,18 @@ pub enum ComparisonExprOperator {
     LessEqual,
 }
 
-impl From<tokens::Token> for ComparisonExprOperator {
-    fn from(item: tokens::Token) -> ComparisonExprOperator {
-        match item.token_type {
-            tokens::TokenType::Greater => ComparisonExprOperator::Greater,
-            tokens::TokenType::GreaterEqual => ComparisonExprOperator::GreaterEqual,
-            tokens::TokenType::Less => ComparisonExprOperator::Less,
-            tokens::TokenType::LessEqual => ComparisonExprOperator::LessEqual,
-        }
-    }
-}
+impl TryFrom<tokens::Token> for ComparisonExprOperator {
+    type Error = String;
 
-impl ComparisonExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<ComparisonExprOperator, String> {
-        match token.token_type {
+    fn try_from(item: tokens::Token) -> Result<ComparisonExprOperator, Self::Error> {
+        match item.token_type {
             tokens::TokenType::Greater => Ok(ComparisonExprOperator::Greater),
             tokens::TokenType::GreaterEqual => Ok(ComparisonExprOperator::GreaterEqual),
             tokens::TokenType::Less => Ok(ComparisonExprOperator::Less),
             tokens::TokenType::LessEqual => Ok(ComparisonExprOperator::LessEqual),
             _ => Err(format!(
                 "Unable to convert from {} to ComparisonExprOperator",
-                token.token_type
+                item.token_type
             )),
         }
     }
@@ -288,23 +273,16 @@ pub enum AdditionExprOperator {
     Subraction,
 }
 
-impl From<tokens::Token> for AdditionExprOperator {
-    fn from(item: tokens::Token) -> AdditionExprOperator {
-        match item.token_type {
-            tokens::TokenType::Plus => AdditionExprOperator::Addition,
-            tokens::TokenType::Minus => AdditionExprOperator::Subraction,
-        }
-    }
-}
+impl TryFrom<tokens::Token> for AdditionExprOperator {
+    type Error = String;
 
-impl AdditionExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<AdditionExprOperator, String> {
-        match token.token_type {
+    fn try_from(item: tokens::Token) -> Result<AdditionExprOperator, Self::Error> {
+        match item.token_type {
             tokens::TokenType::Plus => Ok(AdditionExprOperator::Addition),
             tokens::TokenType::Minus => Ok(AdditionExprOperator::Subraction),
             _ => Err(format!(
                 "Unable to convert from {} to AdditionExprOperator",
-                token.token_type
+                item.token_type
             )),
         }
     }
@@ -404,23 +382,16 @@ pub enum MultiplicationExprOperator {
     Divide,
 }
 
-impl From<tokens::Token> for MultiplicationExprOperator {
-    fn from(item: tokens::Token) -> MultiplicationExprOperator {
-        match item.token_type {
-            tokens::TokenType::Star => MultiplicationExprOperator::Multiply,
-            tokens::TokenType::Slash => MultiplicationExprOperator::Divide,
-        }
-    }
-}
+impl TryFrom<tokens::Token> for MultiplicationExprOperator {
+    type Error = String;
 
-impl MultiplicationExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<MultiplicationExprOperator, String> {
-        match token.token_type {
+    fn try_from(item: tokens::Token) -> Result<MultiplicationExprOperator, Self::Error> {
+        match item.token_type {
             tokens::TokenType::Star => Ok(MultiplicationExprOperator::Multiply),
             tokens::TokenType::Slash => Ok(MultiplicationExprOperator::Divide),
             _ => Err(format!(
                 "Unable to convert from {} to MultiplicationExprOperator",
-                token.token_type
+                item.token_type
             )),
         }
     }
