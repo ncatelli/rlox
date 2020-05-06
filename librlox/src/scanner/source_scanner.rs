@@ -1,3 +1,4 @@
+extern crate parcel;
 use std::option::Option;
 use std::option::Option::{None, Some};
 
@@ -363,6 +364,16 @@ impl Scanner {
             Some(c) => Some(*c),
             None => None,
         }
+    }
+}
+
+fn match_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], Token> {
+    move |input: &'a [char]| match input.get(0) {
+        Some(next) if *next == expected => Ok(parcel::MatchStatus::Match((
+            &input[1..],
+            Token::from(*next),
+        ))),
+        _ => Ok(parcel::MatchStatus::NoMatch(input)),
     }
 }
 

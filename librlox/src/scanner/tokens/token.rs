@@ -73,6 +73,25 @@ impl Token {
     }
 }
 
+// TODO
+impl From<char> for Token {
+    fn from(item: char) -> Self {
+        match item {
+            '(' => Token::new(TokenType::LeftParen, None),
+            ')' => Token::new(TokenType::RightParen, None),
+            '{' => Token::new(TokenType::LeftBrace, None),
+            '}' => Token::new(TokenType::RightBrace, None),
+            ',' => Token::new(TokenType::Comma, None),
+            '.' => Token::new(TokenType::Dot, None),
+            '-' => Token::new(TokenType::Minus, None),
+            '+' => Token::new(TokenType::Plus, None),
+            ';' => Token::new(TokenType::Semicolon, None),
+            '*' => Token::new(TokenType::Star, None),
+            _ => Token::new(TokenType::EOF, None),
+        }
+    }
+}
+
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.literal.as_ref() {
