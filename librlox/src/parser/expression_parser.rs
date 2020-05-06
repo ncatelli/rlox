@@ -1,7 +1,7 @@
 extern crate parcel;
 use crate::parser::expression::*;
 use crate::scanner::tokens::{Token, TokenType};
-use parcel::*;
+use parcel::{join, left, right, MatchStatus, Parser};
 use std::option::Option::Some;
 
 fn take_while<'a, P, A: 'a, B>(parser: P) -> impl Parser<'a, A, Vec<B>>
