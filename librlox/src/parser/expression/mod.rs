@@ -40,6 +40,15 @@ pub enum EqualityExprOperator {
     NotEqual,
 }
 
+impl From<tokens::Token> for EqualityExprOperator {
+    fn from(item: tokens::Token) -> EqualityExprOperator {
+        match item.token_type {
+            tokens::TokenType::EqualEqual => EqualityExprOperator::Equal,
+            tokens::TokenType::BangEqual => EqualityExprOperator::NotEqual,
+        }
+    }
+}
+
 impl EqualityExprOperator {
     pub fn from_token(token: tokens::Token) -> Result<EqualityExprOperator, String> {
         match token.token_type {
@@ -147,6 +156,17 @@ pub enum ComparisonExprOperator {
     GreaterEqual,
     Less,
     LessEqual,
+}
+
+impl From<tokens::Token> for ComparisonExprOperator {
+    fn from(item: tokens::Token) -> ComparisonExprOperator {
+        match item.token_type {
+            tokens::TokenType::Greater => ComparisonExprOperator::Greater,
+            tokens::TokenType::GreaterEqual => ComparisonExprOperator::GreaterEqual,
+            tokens::TokenType::Less => ComparisonExprOperator::Less,
+            tokens::TokenType::LessEqual => ComparisonExprOperator::LessEqual,
+        }
+    }
 }
 
 impl ComparisonExprOperator {
@@ -268,6 +288,15 @@ pub enum AdditionExprOperator {
     Subraction,
 }
 
+impl From<tokens::Token> for AdditionExprOperator {
+    fn from(item: tokens::Token) -> AdditionExprOperator {
+        match item.token_type {
+            tokens::TokenType::Plus => AdditionExprOperator::Addition,
+            tokens::TokenType::Minus => AdditionExprOperator::Subraction,
+        }
+    }
+}
+
 impl AdditionExprOperator {
     pub fn from_token(token: tokens::Token) -> Result<AdditionExprOperator, String> {
         match token.token_type {
@@ -373,6 +402,15 @@ impl BinaryExpr for AdditionExpr {
 pub enum MultiplicationExprOperator {
     Multiply,
     Divide,
+}
+
+impl From<tokens::Token> for MultiplicationExprOperator {
+    fn from(item: tokens::Token) -> MultiplicationExprOperator {
+        match item.token_type {
+            tokens::TokenType::Star => MultiplicationExprOperator::Multiply,
+            tokens::TokenType::Slash => MultiplicationExprOperator::Divide,
+        }
+    }
 }
 
 impl MultiplicationExprOperator {
