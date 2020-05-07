@@ -1,8 +1,9 @@
 extern crate parcel;
+use parcel::Parser;
+use std::convert::TryFrom;
+use std::iter::Iterator;
 use std::option::Option;
 use std::option::Option::{None, Some};
-
-use std::iter::Iterator;
 
 use super::tokens::{Literal, Token, TokenType};
 
@@ -367,14 +368,59 @@ impl Scanner {
     }
 }
 
-fn match_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], Token> {
+// parsers
+fn numeric<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     move |input: &'a [char]| match input.get(0) {
-        Some(next) if *next == expected => Ok(parcel::MatchStatus::Match((
-            &input[1..],
-            Token::from(*next),
-        ))),
+        Some(next) if next.is_digit(10) => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
         _ => Ok(parcel::MatchStatus::NoMatch(input)),
     }
+}
+
+fn alpha<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
+    move |input: &'a [char]| match input.get(0) {
+        Some(next) if next.is_alphabetic() => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
+        _ => Ok(parcel::MatchStatus::NoMatch(input)),
+    }
+}
+
+fn match_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], char> {
+    move |input: &'a [char]| match input.get(0) {
+        Some(next) if *next == expected => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
+        _ => Ok(parcel::MatchStatus::NoMatch(input)),
+    }
+}
+
+fn two_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+    parcel::join(match_char('!'), match_char('='))
+        .or(|| parcel::join(match_char('='), match_char('=')))
+        .or(|| parcel::join(match_char('<'), match_char('=')))
+        .or(|| parcel::join(match_char('>'), match_char('=')))
+        .map(|chars| match chars {
+            ('!', '=') => Token::new(TokenType::BangEqual, None),
+            ('=', '=') => Token::new(TokenType::EqualEqual, None),
+            ('<', '=') => Token::new(TokenType::LessEqual, None),
+            ('>', '=') => Token::new(TokenType::GreaterEqual, None),
+            // unreachable case
+            _ => Token::new(TokenType::EOF, None),
+        })
+}
+
+fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+    match_char('(')
+        .or(|| match_char(')'))
+        .or(|| match_char('{'))
+        .or(|| match_char('}'))
+        .or(|| match_char(','))
+        .or(|| match_char('.'))
+        .or(|| match_char('-'))
+        .or(|| match_char('+'))
+        .or(|| match_char(';'))
+        .or(|| match_char('*'))
+        .or(|| match_char('!'))
+        .or(|| match_char('='))
+        .or(|| match_char('<'))
+        .or(|| match_char('>'))
+        .map(|c| Token::from(c))
 }
 
 impl IntoIterator for Scanner {
