@@ -1,6 +1,5 @@
 extern crate parcel;
 use parcel::Parser;
-use std::convert::TryFrom;
 use std::iter::Iterator;
 use std::option::Option;
 use std::option::Option::{None, Some};
@@ -383,6 +382,13 @@ fn alpha<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     }
 }
 
+fn not_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], char> {
+    move |input: &'a [char]| match input.get(0) {
+        Some(next) if *next != expected => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
+        _ => Ok(parcel::MatchStatus::NoMatch(input)),
+    }
+}
+
 fn match_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], char> {
     move |input: &'a [char]| match input.get(0) {
         Some(next) if *next == expected => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
@@ -421,6 +427,22 @@ fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
         .or(|| match_char('<'))
         .or(|| match_char('>'))
         .map(|c| Token::from(c))
+}
+
+fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+    parcel::right(parcel::join(
+        match_char('"'),
+        parcel::left(parcel::join(
+            parcel::take_while(not_char('"')),
+            match_char('"'),
+        )),
+    ))
+    .map(|literal| {
+        Token::new(
+            TokenType::Str,
+            Some(Literal::Str(literal.into_iter().collect())),
+        )
+    })
 }
 
 impl IntoIterator for Scanner {
