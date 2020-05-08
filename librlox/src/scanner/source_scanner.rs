@@ -367,6 +367,14 @@ impl Scanner {
     }
 }
 
+pub fn scan_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+    two_char_token()
+        .or(|| single_char_token())
+        .or(|| match_string())
+        .or(|| match_number())
+        .or(|| match_identifier())
+}
+
 // parsers
 fn zero_or_more<'a, P, A: 'a, B>(parser: P) -> impl parcel::Parser<'a, A, Vec<B>>
 where
