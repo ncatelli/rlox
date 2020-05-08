@@ -499,6 +499,15 @@ fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
     })
 }
 
+fn match_identifier<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+    parcel::take_while(alpha()).map(|literal| {
+        Token::new(
+            TokenType::Identifier,
+            Some(Literal::Identifier(literal.into_iter().collect())),
+        )
+    })
+}
+
 impl IntoIterator for Scanner {
     type Item = LexResult;
     type IntoIter = ScannerIntoIterator;
