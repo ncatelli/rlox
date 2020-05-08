@@ -368,6 +368,29 @@ impl Scanner {
 }
 
 // parsers
+fn zero_or_more<'a, P, A: 'a, B>(parser: P) -> impl parcel::Parser<'a, A, Vec<B>>
+where
+    A: Copy + 'a,
+    P: parcel::Parser<'a, A, B>,
+{
+    move |mut input| {
+        let mut result_acc: Vec<B> = Vec::new();
+        while let Ok(parcel::MatchStatus::Match((next_input, result))) = parser.parse(input) {
+            input = next_input;
+            result_acc.push(result);
+        }
+
+        Ok(parcel::MatchStatus::Match((input, result_acc)))
+    }
+}
+
+fn whitespace<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
+    match_char(' ')
+        .or(|| match_char('\t'))
+        .or(|| match_char('\r'))
+        .or(|| match_char('\n'))
+}
+
 fn numeric<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     move |input: &'a [char]| match input.get(0) {
         Some(next) if next.is_digit(10) => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
@@ -427,6 +450,37 @@ fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
         .or(|| match_char('<'))
         .or(|| match_char('>'))
         .map(|c| Token::from(c))
+}
+
+/// TODO: can simplify this a bit more. I don't think there is a need for the
+/// parent or combinator
+fn match_number<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+    parcel::or(
+        parcel::take_while(numeric()).map(|n| {
+            Token::new(
+                TokenType::Number,
+                Some(Literal::Number(
+                    n.into_iter().collect::<String>().parse().unwrap(),
+                )),
+            )
+        }),
+        || {
+            parcel::join(
+                parcel::take_while(numeric()),
+                parcel::right(parcel::join(match_char('.'), zero_or_more(numeric()))),
+            )
+            .map(|(mut whole, mut decimal)| {
+                whole.push('.');
+                whole.append(&mut decimal);
+                Token::new(
+                    TokenType::Number,
+                    Some(Literal::Number(
+                        whole.into_iter().collect::<String>().parse().unwrap(),
+                    )),
+                )
+            })
+        },
+    )
 }
 
 fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
