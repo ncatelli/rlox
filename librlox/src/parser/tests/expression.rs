@@ -12,13 +12,13 @@ fn test_expression_formatter_should_pretty_print_an_ast() {
         Box::new(Expr::Unary(UnaryExpr::new(
             UnaryExprOperator::Minus,
             Box::new(Expr::Primary(PrimaryExpr::new(Token::new(
-                TokenType::Number,
+                TokenType::Literal,
                 Option::Some(Literal::Number(123.0)),
             )))),
         ))),
         Box::new(Expr::Grouping(GroupingExpr::new(Box::new(Expr::Primary(
             PrimaryExpr::new(Token::new(
-                TokenType::Number,
+                TokenType::Literal,
                 Option::Some(Literal::Number(45.7)),
             )),
         ))))),

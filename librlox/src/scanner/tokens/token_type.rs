@@ -28,9 +28,7 @@ pub enum TokenType {
     LessEqual,
 
     // Literals
-    Identifier,
-    Str,
-    Number,
+    Literal,
 
     // Keywords
     And,

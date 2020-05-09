@@ -31,15 +31,15 @@ impl fmt::Display for Expr {
 }
 
 // TODO finish implementing actual calculations on type
-impl folder::Folder<Expr> for Expr {
-    fn fold(&self) -> Expr {
+impl folder::Folder<PrimaryExpr> for Expr {
+    fn fold(&self) -> PrimaryExpr {
         match self {
             // Fix to not require clone
-            Expr::Primary(pe) => Expr::Primary(pe.clone()),
-            _ => Expr::Primary(PrimaryExpr::new(tokens::Token::new(
-                tokens::TokenType::Number,
+            Expr::Primary(pe) => pe.clone(),
+            _ => PrimaryExpr::new(tokens::Token::new(
+                tokens::TokenType::Literal,
                 Some(tokens::Literal::Number(5.0)),
-            ))),
+            )),
         }
     }
 }
@@ -104,14 +104,14 @@ impl PartialEq<tokens::Token> for EqualityExprOperator {
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(10.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(10.0)))
 ///                 )
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
 ///                 )
 ///             )
 ///         ),
@@ -215,14 +215,14 @@ impl PartialEq<tokens::Token> for ComparisonExprOperator {
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(10.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(10.0)))
 ///                 )
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
 ///                 )
 ///             )
 ///         ),
@@ -312,14 +312,14 @@ impl PartialEq<tokens::Token> for AdditionExprOperator {
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(10.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(10.0)))
 ///                 )
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
 ///                 )
 ///             )
 ///         ),
@@ -409,14 +409,14 @@ impl PartialEq<tokens::Token> for MultiplicationExprOperator {
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(10.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(10.0)))
 ///                 )
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
 ///                 )
 ///             )
 ///         ),
@@ -506,11 +506,11 @@ impl PartialEq<tokens::Token> for UnaryExprOperator {
 ///
 /// let unary = Expr::Unary(
 ///     UnaryExpr::new(
-///         Token::new(TokenType::Minus, None),
+///         UnaryExprOperator::Minus,
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
 ///                 )
 ///             )
 ///         ),
@@ -535,9 +535,20 @@ impl fmt::Display for UnaryExpr {
     }
 }
 
+// TODO
 impl folder::Folder<PrimaryExpr> for UnaryExpr {
     fn fold(&self) -> PrimaryExpr {
-        todo!()
+        let expr: PrimaryExpr = self.rhe.fold();
+        match (self.operation, expr.literal.token_type) {
+            (UnaryExprOperator::Bang, tokens::TokenType::True) => {
+                PrimaryExpr::new(tokens::Token::new(tokens::TokenType::False, None))
+            }
+            (UnaryExprOperator::Bang, tokens::TokenType::False) => {
+                PrimaryExpr::new(tokens::Token::new(tokens::TokenType::True, None))
+            }
+
+            _ => PrimaryExpr::new(tokens::Token::new(tokens::TokenType::False, None)),
+        }
     }
 }
 
@@ -552,7 +563,7 @@ impl folder::Folder<PrimaryExpr> for UnaryExpr {
 ///
 /// let primary = Expr::Primary(
 ///     PrimaryExpr::new(
-///         Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///         Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
 ///     )
 /// );
 /// ```
@@ -594,7 +605,7 @@ impl folder::Folder<PrimaryExpr> for PrimaryExpr {
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Number, Some(Literal::Number(5.0)))
+///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
 ///                 )
 ///             )
 ///         ),

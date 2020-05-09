@@ -23,7 +23,7 @@ fn match_literal_helper(token: Token) {
 #[test]
 fn validate_parser_should_parse_equality_expression() {
     let op_token = Token::new(TokenType::EqualEqual, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         literal_token.clone(),
         op_token.clone(),
@@ -46,7 +46,7 @@ fn validate_parser_should_parse_equality_expression() {
 #[test]
 fn validate_parser_should_parse_many_equality_expression() {
     let op_token = Token::new(TokenType::EqualEqual, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         literal_token.clone(),
         op_token.clone(),
@@ -75,7 +75,7 @@ fn validate_parser_should_parse_many_equality_expression() {
 #[test]
 fn validate_parser_should_parse_comparison_expression() {
     let op_token = Token::new(TokenType::GreaterEqual, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         literal_token.clone(),
         op_token.clone(),
@@ -98,7 +98,7 @@ fn validate_parser_should_parse_comparison_expression() {
 #[test]
 fn validate_parser_should_parse_many_comparison_expression() {
     let op_token = Token::new(TokenType::GreaterEqual, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         literal_token.clone(),
         op_token.clone(),
@@ -127,7 +127,7 @@ fn validate_parser_should_parse_many_comparison_expression() {
 #[test]
 fn validate_parser_should_parse_addition_expression() {
     let op_token = Token::new(TokenType::Plus, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         literal_token.clone(),
         op_token.clone(),
@@ -150,7 +150,7 @@ fn validate_parser_should_parse_addition_expression() {
 #[test]
 fn validate_parser_should_parse_many_addition_expression() {
     let op_token = Token::new(TokenType::Plus, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         literal_token.clone(),
         op_token.clone(),
@@ -179,7 +179,7 @@ fn validate_parser_should_parse_many_addition_expression() {
 #[test]
 fn validate_parser_should_parse_multiplication_expression() {
     let op_token = Token::new(TokenType::Star, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         literal_token.clone(),
         op_token.clone(),
@@ -202,7 +202,7 @@ fn validate_parser_should_parse_multiplication_expression() {
 #[test]
 fn validate_parser_should_parse_many_multiplication_expression() {
     let op_token = Token::new(TokenType::Star, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         literal_token.clone(),
         op_token.clone(),
@@ -231,7 +231,7 @@ fn validate_parser_should_parse_many_multiplication_expression() {
 #[test]
 fn validate_parser_should_parse_unary_expression() {
     let op_token = Token::new(TokenType::Bang, Option::None);
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![op_token.clone(), literal_token.clone()];
 
     assert_eq!(
@@ -249,14 +249,14 @@ fn validate_parser_should_parse_unary_expression() {
 #[test]
 fn validate_parser_should_parse_primary_expression() {
     match_literal_helper(Token::new(
-        TokenType::Number,
+        TokenType::Literal,
         Option::Some(Literal::Number(1.0)),
     ))
 }
 
 #[test]
 fn validate_parser_should_parse_grouping_expression() {
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         Token::new(TokenType::LeftParen, Option::None),
         literal_token.clone(),
@@ -276,7 +276,7 @@ fn validate_parser_should_parse_grouping_expression() {
 
 #[test]
 fn validate_parser_should_throw_error_on_invalid_expression() {
-    let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+    let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
     let seed_vec = vec![
         Token::new(TokenType::LeftParen, Option::None),
         literal_token.clone(),

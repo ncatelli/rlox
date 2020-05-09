@@ -54,7 +54,7 @@ fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], T
 /// use parcel::*;
 ///
 ///
-/// let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+/// let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
 /// let seed_vec = vec![
 ///     literal_token.clone(),
 /// ];
@@ -229,8 +229,7 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     token_type(TokenType::True)
         .or(|| token_type(TokenType::False))
         .or(|| token_type(TokenType::Nil))
-        .or(|| token_type(TokenType::Number))
-        .or(|| token_type(TokenType::Str))
+        .or(|| token_type(TokenType::Literal))
         .map(|token| Expr::Primary(PrimaryExpr::new(token)))
         .or(|| {
             right(join(
