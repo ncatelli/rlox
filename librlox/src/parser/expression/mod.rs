@@ -1,4 +1,5 @@
 use crate::scanner::tokens;
+use crate::utils::folder;
 use std::fmt;
 
 pub trait BinaryExpr {
@@ -31,6 +32,13 @@ impl fmt::Display for Expr {
             Expr::Primary(e) => write!(f, "{}", &e),
             Expr::Grouping(e) => write!(f, "{}", &e),
         }
+    }
+}
+
+// TODO finish implementing actual calculations on type
+impl folder::Folder<Expr> for Expr {
+    fn fold(&self) -> Expr {
+        todo!()
     }
 }
 
