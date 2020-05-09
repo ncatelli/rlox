@@ -216,7 +216,12 @@ fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         token_type(TokenType::Bang).or(|| token_type(TokenType::Minus)),
         primary(),
     )
-    .map(|(token, lit)| Expr::Unary(UnaryExpr::new(token, Box::new(lit))))
+    .map(|(token, lit)| {
+        Expr::Unary(UnaryExpr::new(
+            UnaryExprOperator::from_token(token).unwrap(),
+            Box::new(lit),
+        ))
+    })
     .or(|| primary())
 }
 

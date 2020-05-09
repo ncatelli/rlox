@@ -2,11 +2,6 @@ use crate::scanner::tokens;
 use crate::utils::folder;
 use std::fmt;
 
-pub trait BinaryExpr {
-    fn left(&self) -> &Expr;
-    fn right(&self) -> &Expr;
-}
-
 /// Represents, and encapsulates one of the four types of expressions possible in
 /// lox currently. Further information can be found on each sub-type.
 ///
@@ -38,7 +33,14 @@ impl fmt::Display for Expr {
 // TODO finish implementing actual calculations on type
 impl folder::Folder<Expr> for Expr {
     fn fold(&self) -> Expr {
-        todo!()
+        match self {
+            // Fix to not require clone
+            Expr::Primary(pe) => Expr::Primary(pe.clone()),
+            _ => Expr::Primary(PrimaryExpr::new(tokens::Token::new(
+                tokens::TokenType::Number,
+                Some(tokens::Literal::Number(5.0)),
+            ))),
+        }
     }
 }
 
@@ -136,16 +138,6 @@ impl EqualityExpr {
 impl fmt::Display for EqualityExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({} {} {})", self.operation, self.lhe, self.rhe)
-    }
-}
-
-impl BinaryExpr for EqualityExpr {
-    fn left(&self) -> &Expr {
-        &self.lhe
-    }
-
-    fn right(&self) -> &Expr {
-        &self.rhe
     }
 }
 
@@ -260,16 +252,6 @@ impl fmt::Display for ComparisonExpr {
     }
 }
 
-impl BinaryExpr for ComparisonExpr {
-    fn left(&self) -> &Expr {
-        &self.lhe
-    }
-
-    fn right(&self) -> &Expr {
-        &self.rhe
-    }
-}
-
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum AdditionExprOperator {
     Addition,
@@ -364,16 +346,6 @@ impl AdditionExpr {
 impl fmt::Display for AdditionExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({} {} {})", self.operation, self.lhe, self.rhe)
-    }
-}
-
-impl BinaryExpr for AdditionExpr {
-    fn left(&self) -> &Expr {
-        &self.lhe
-    }
-
-    fn right(&self) -> &Expr {
-        &self.rhe
     }
 }
 
@@ -478,13 +450,47 @@ impl fmt::Display for MultiplicationExpr {
     }
 }
 
-impl BinaryExpr for MultiplicationExpr {
-    fn left(&self) -> &Expr {
-        &self.lhe
-    }
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum UnaryExprOperator {
+    Bang,
+    Minus,
+}
 
-    fn right(&self) -> &Expr {
-        &self.rhe
+impl UnaryExprOperator {
+    pub fn from_token(token: tokens::Token) -> Result<UnaryExprOperator, String> {
+        match token.token_type {
+            tokens::TokenType::Bang => Ok(UnaryExprOperator::Bang),
+            tokens::TokenType::Minus => Ok(UnaryExprOperator::Minus),
+            _ => Err(format!(
+                "Unable to convert from {} to UnaryExprOperator",
+                token.token_type
+            )),
+        }
+    }
+}
+
+impl fmt::Display for UnaryExprOperator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            UnaryExprOperator::Bang => write!(f, "!"),
+            UnaryExprOperator::Minus => write!(f, "-"),
+        }
+    }
+}
+
+// Implement <UnaryExprOperator> == <tokens::Token>  comparisons
+impl PartialEq<tokens::Token> for UnaryExprOperator {
+    fn eq(&self, token: &tokens::Token) -> bool {
+        match self {
+            UnaryExprOperator::Bang => match token.token_type {
+                tokens::TokenType::Bang => true,
+                _ => false,
+            },
+            UnaryExprOperator::Minus => match token.token_type {
+                tokens::TokenType::Minus => true,
+                _ => false,
+            },
+        }
     }
 }
 
@@ -513,12 +519,12 @@ impl BinaryExpr for MultiplicationExpr {
 /// ```
 #[derive(Debug, PartialEq)]
 pub struct UnaryExpr {
-    operation: tokens::Token,
+    operation: UnaryExprOperator,
     rhe: Box<Expr>,
 }
 
 impl UnaryExpr {
-    pub fn new(operation: tokens::Token, rhe: Box<Expr>) -> UnaryExpr {
+    pub fn new(operation: UnaryExprOperator, rhe: Box<Expr>) -> UnaryExpr {
         UnaryExpr { operation, rhe }
     }
 }
@@ -526,6 +532,12 @@ impl UnaryExpr {
 impl fmt::Display for UnaryExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({} {})", self.operation, self.rhe)
+    }
+}
+
+impl folder::Folder<PrimaryExpr> for UnaryExpr {
+    fn fold(&self) -> PrimaryExpr {
+        todo!()
     }
 }
 
@@ -544,7 +556,7 @@ impl fmt::Display for UnaryExpr {
 ///     )
 /// );
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct PrimaryExpr {
     literal: tokens::Token,
 }
@@ -558,6 +570,12 @@ impl PrimaryExpr {
 impl fmt::Display for PrimaryExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({})", self.literal)
+    }
+}
+
+impl folder::Folder<PrimaryExpr> for PrimaryExpr {
+    fn fold(&self) -> PrimaryExpr {
+        PrimaryExpr::new(self.literal.clone())
     }
 }
 
