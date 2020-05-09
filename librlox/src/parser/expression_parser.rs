@@ -2,6 +2,7 @@ extern crate parcel;
 use crate::parser::expression::*;
 use crate::scanner::tokens::{Token, TokenType};
 use parcel::*;
+use std::convert::TryFrom;
 use std::option::Option::Some;
 
 fn take_while<'a, P, A: 'a, B>(parser: P) -> impl Parser<'a, A, Vec<B>>
@@ -51,6 +52,7 @@ fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], T
 /// use librlox::parser::expression::*;
 /// use librlox::parser::expression_parser::*;
 /// use std::option::Option;
+/// use std::convert::TryFrom;
 /// use parcel::*;
 ///
 ///
@@ -63,9 +65,9 @@ fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], T
 ///     Ok(MatchStatus::Match((
 ///         &seed_vec[1..],
 ///         Expr::Primary(
-///             PrimaryExpr::new(
+///             PrimaryExpr::try_from(
 ///                 literal_token.clone()
-///             )
+///             ).unwrap()
 ///         )
 ///     ))),
 ///     expression().parse(&seed_vec)
@@ -230,7 +232,7 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         .or(|| token_type(TokenType::False))
         .or(|| token_type(TokenType::Nil))
         .or(|| token_type(TokenType::Literal))
-        .map(|token| Expr::Primary(PrimaryExpr::new(token)))
+        .map(|token| Expr::Primary(PrimaryExpr::try_from(token).unwrap()))
         .or(|| {
             right(join(
                 token_type(TokenType::LeftParen),

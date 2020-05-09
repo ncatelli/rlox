@@ -3,6 +3,7 @@ use crate::parser::expression::{
     MultiplicationExpr, MultiplicationExprOperator, UnaryExprOperator,
 };
 use crate::scanner::tokens::{Literal, Token, TokenType};
+use std::convert::TryFrom;
 use std::option::Option;
 
 #[test]
@@ -11,21 +12,25 @@ fn test_expression_formatter_should_pretty_print_an_ast() {
         MultiplicationExprOperator::Multiply,
         Box::new(Expr::Unary(UnaryExpr::new(
             UnaryExprOperator::Minus,
-            Box::new(Expr::Primary(PrimaryExpr::new(Token::new(
-                TokenType::Literal,
-                Option::Some(Literal::Number(123.0)),
-            )))),
+            Box::new(Expr::Primary(
+                PrimaryExpr::try_from(Token::new(
+                    TokenType::Literal,
+                    Option::Some(Literal::Number(123.0)),
+                ))
+                .unwrap(),
+            )),
         ))),
         Box::new(Expr::Grouping(GroupingExpr::new(Box::new(Expr::Primary(
-            PrimaryExpr::new(Token::new(
+            PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,
                 Option::Some(Literal::Number(45.7)),
-            )),
+            ))
+            .unwrap(),
         ))))),
     ));
 
     assert_eq!(
-        "(* (- (123)) (Grouping (45.7)))".to_string(),
+        "(* (- 123) (Grouping 45.7))".to_string(),
         format!("{}", expr)
     )
 }

@@ -4,7 +4,6 @@ use std::fmt;
 
 /// Represents, and encapsulates one of the four types of expressions possible in
 /// lox currently. Further information can be found on each sub-type.
-///
 #[derive(Debug, PartialEq)]
 pub enum Expr {
     Equality(EqualityExpr),
@@ -36,10 +35,7 @@ impl folder::Folder<PrimaryExpr> for Expr {
         match self {
             // Fix to not require clone
             Expr::Primary(pe) => pe.clone(),
-            _ => PrimaryExpr::new(tokens::Token::new(
-                tokens::TokenType::Literal,
-                Some(tokens::Literal::Number(5.0)),
-            )),
+            _ => PrimaryExpr::Number(5.0),
         }
     }
 }
@@ -103,16 +99,12 @@ impl PartialEq<tokens::Token> for EqualityExprOperator {
 ///         EqualityExprOperator::NotEqual,
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(10.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///     )
@@ -214,16 +206,12 @@ impl PartialEq<tokens::Token> for ComparisonExprOperator {
 ///         ComparisonExprOperator::GreaterEqual,
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(10.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///     )
@@ -311,16 +299,12 @@ impl PartialEq<tokens::Token> for AdditionExprOperator {
 ///         AdditionExprOperator::Addition,
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(10.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///     )
@@ -402,22 +386,19 @@ impl PartialEq<tokens::Token> for MultiplicationExprOperator {
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
 /// use std::option::Option::Some;
+/// use std::convert::TryFrom;
 ///
 /// let multiplication = Expr::Multiplication(
 ///     MultiplicationExpr::new(
 ///         MultiplicationExprOperator::Multiply,
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(10.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///     )
@@ -509,9 +490,7 @@ impl PartialEq<tokens::Token> for UnaryExprOperator {
 ///         UnaryExprOperator::Minus,
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///     )
@@ -539,20 +518,16 @@ impl fmt::Display for UnaryExpr {
 impl folder::Folder<PrimaryExpr> for UnaryExpr {
     fn fold(&self) -> PrimaryExpr {
         let expr: PrimaryExpr = self.rhe.fold();
-        match (self.operation, expr.literal.token_type) {
-            (UnaryExprOperator::Bang, tokens::TokenType::True) => {
-                PrimaryExpr::new(tokens::Token::new(tokens::TokenType::False, None))
-            }
-            (UnaryExprOperator::Bang, tokens::TokenType::False) => {
-                PrimaryExpr::new(tokens::Token::new(tokens::TokenType::True, None))
-            }
+        match (self.operation, expr) {
+            (UnaryExprOperator::Bang, PrimaryExpr::True) => PrimaryExpr::False,
+            (UnaryExprOperator::Bang, PrimaryExpr::False) => PrimaryExpr::True,
 
-            _ => PrimaryExpr::new(tokens::Token::new(tokens::TokenType::False, None)),
+            _ => PrimaryExpr::False,
         }
     }
 }
 
-/// Represents Literal Lox expressions and stores a single literal token value.
+/// Represents Literal Lox expressions and stores a single.
 ///
 /// # Examples
 /// ```
@@ -562,31 +537,53 @@ impl folder::Folder<PrimaryExpr> for UnaryExpr {
 /// use std::option::Option::Some;
 ///
 /// let primary = Expr::Primary(
-///     PrimaryExpr::new(
-///         Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
-///     )
+///     PrimaryExpr::Number(5.0)
 /// );
 /// ```
 #[derive(Debug, PartialEq, Clone)]
-pub struct PrimaryExpr {
-    literal: tokens::Token,
+pub enum PrimaryExpr {
+    True,
+    False,
+    Identifier(String),
+    Str(String),
+    Number(f64),
 }
 
-impl PrimaryExpr {
-    pub fn new(literal: tokens::Token) -> PrimaryExpr {
-        PrimaryExpr { literal }
+impl std::convert::TryFrom<tokens::Token> for PrimaryExpr {
+    type Error = String;
+
+    fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
+        match (t.token_type, t.literal) {
+            (tokens::TokenType::True, None) => Ok(PrimaryExpr::True),
+            (tokens::TokenType::False, None) => Ok(PrimaryExpr::False),
+            (tokens::TokenType::Literal, Some(tokens::Literal::Identifier(v))) => {
+                Ok(PrimaryExpr::Identifier(v.clone()))
+            }
+            (tokens::TokenType::Literal, Some(tokens::Literal::Str(v))) => {
+                Ok(PrimaryExpr::Str(v.clone()))
+            }
+            (tokens::TokenType::Literal, Some(tokens::Literal::Number(v))) => {
+                Ok(PrimaryExpr::Number(v.clone()))
+            }
+            // Placeholder
+            _ => Err(format!("invalid token: {}", t.token_type)),
+        }
     }
 }
 
 impl fmt::Display for PrimaryExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({})", self.literal)
-    }
-}
-
-impl folder::Folder<PrimaryExpr> for PrimaryExpr {
-    fn fold(&self) -> PrimaryExpr {
-        PrimaryExpr::new(self.literal.clone())
+        write!(
+            f,
+            "{}",
+            match self {
+                PrimaryExpr::False => "false".to_string(),
+                PrimaryExpr::True => "true".to_string(),
+                PrimaryExpr::Identifier(v) => v.clone(),
+                PrimaryExpr::Str(v) => v.clone(),
+                PrimaryExpr::Number(v) => format!("{}", v),
+            }
+        )
     }
 }
 
@@ -604,9 +601,7 @@ impl folder::Folder<PrimaryExpr> for PrimaryExpr {
 ///     GroupingExpr::new(
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::new(
-///                     Token::new(TokenType::Literal, Some(Literal::Number(5.0)))
-///                 )
+///                 PrimaryExpr::Number(5.0)
 ///             )
 ///         ),
 ///     )
