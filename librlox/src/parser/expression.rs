@@ -11,7 +11,7 @@ pub enum Expr {
     Multiplication(MultiplicationExpr),
     Unary(UnaryExpr),
     Primary(PrimaryExpr),
-    Grouping(GroupingExpr),
+    Grouping(Box<Expr>),
 }
 
 impl fmt::Display for Expr {
@@ -23,7 +23,7 @@ impl fmt::Display for Expr {
             Self::Multiplication(e) => write!(f, "{}", &e),
             Self::Unary(e) => write!(f, "{}", &e),
             Self::Primary(e) => write!(f, "{}", &e),
-            Self::Grouping(e) => write!(f, "{}", &e),
+            Self::Grouping(e) => write!(f, "(Grouping {})", &e),
         }
     }
 }
@@ -277,42 +277,5 @@ impl fmt::Display for PrimaryExpr {
                 Self::Number(v) => format!("{}", v),
             }
         )
-    }
-}
-
-/// Acts as a logical grouping for sub-expressions taking a single boxed
-/// expression.
-///
-/// # Examples
-/// ```
-/// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
-/// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
-///
-/// let grouping = Expr::Grouping(
-///     GroupingExpr::new(
-///         Box::new(
-///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
-///             )
-///         ),
-///     )
-/// );
-/// ```
-#[derive(Debug, PartialEq)]
-pub struct GroupingExpr {
-    expr: Box<Expr>,
-}
-
-impl GroupingExpr {
-    pub fn new(expr: Box<Expr>) -> GroupingExpr {
-        GroupingExpr { expr }
-    }
-}
-
-impl fmt::Display for GroupingExpr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(Grouping {})", self.expr)
     }
 }

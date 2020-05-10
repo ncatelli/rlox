@@ -243,6 +243,6 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
                 token_type(TokenType::LeftParen),
                 left(join(expression(), token_type(TokenType::RightParen))),
             ))
-            .map(|expr| Expr::Grouping(GroupingExpr::new(Box::new(expr))))
+            .map(|expr| Expr::Grouping(Box::new(expr)))
         })
 }

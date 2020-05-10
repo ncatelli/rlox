@@ -1,7 +1,6 @@
 extern crate parcel;
 use crate::parser::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, GroupingExpr, MultiplicationExpr,
-    PrimaryExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
 use crate::parser::expression_parser::expression;
 use crate::scanner::tokens::{Literal, Token, TokenType};
@@ -293,9 +292,9 @@ fn validate_parser_should_parse_grouping_expression() {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[3..],
-            Expr::Grouping(GroupingExpr::new(Box::new(Expr::Primary(
+            Expr::Grouping(Box::new(Expr::Primary(
                 PrimaryExpr::try_from(literal_token).unwrap()
-            ))))
+            )))
         ))),
         expression().parse(&seed_vec)
     );
