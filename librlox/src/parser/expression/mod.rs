@@ -17,13 +17,13 @@ pub enum Expr {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Expr::Equality(e) => write!(f, "{}", &e),
-            Expr::Comparison(e) => write!(f, "{}", &e),
-            Expr::Addition(e) => write!(f, "{}", &e),
-            Expr::Multiplication(e) => write!(f, "{}", &e),
-            Expr::Unary(e) => write!(f, "{}", &e),
-            Expr::Primary(e) => write!(f, "{}", &e),
-            Expr::Grouping(e) => write!(f, "{}", &e),
+            Self::Equality(e) => write!(f, "{}", &e),
+            Self::Comparison(e) => write!(f, "{}", &e),
+            Self::Addition(e) => write!(f, "{}", &e),
+            Self::Multiplication(e) => write!(f, "{}", &e),
+            Self::Unary(e) => write!(f, "{}", &e),
+            Self::Primary(e) => write!(f, "{}", &e),
+            Self::Grouping(e) => write!(f, "{}", &e),
         }
     }
 }
@@ -61,8 +61,8 @@ pub enum EqualityExpr {
 impl fmt::Display for EqualityExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EqualityExpr::Equal(left, right) => write!(f, "(== {} {})", left, right),
-            EqualityExpr::NotEqual(left, right) => write!(f, "(!= {} {})", left, right),
+            Self::Equal(left, right) => write!(f, "(== {} {})", left, right),
+            Self::NotEqual(left, right) => write!(f, "(!= {} {})", left, right),
         }
     }
 }
@@ -102,10 +102,10 @@ pub enum ComparisonExpr {
 impl fmt::Display for ComparisonExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ComparisonExpr::Less(left, right) => write!(f, "(< {} {})", left, right),
-            ComparisonExpr::LessEqual(left, right) => write!(f, "(<= {} {})", left, right),
-            ComparisonExpr::Greater(left, right) => write!(f, "(> {} {})", left, right),
-            ComparisonExpr::GreaterEqual(left, right) => write!(f, "(>= {} {})", left, right),
+            Self::Less(left, right) => write!(f, "(< {} {})", left, right),
+            Self::LessEqual(left, right) => write!(f, "(<= {} {})", left, right),
+            Self::Greater(left, right) => write!(f, "(> {} {})", left, right),
+            Self::GreaterEqual(left, right) => write!(f, "(>= {} {})", left, right),
         }
     }
 }
@@ -143,8 +143,8 @@ pub enum AdditionExpr {
 impl fmt::Display for AdditionExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            AdditionExpr::Add(left, right) => write!(f, "(+ {} {})", left, right),
-            AdditionExpr::Subtract(left, right) => write!(f, "(- {} {})", left, right),
+            Self::Add(left, right) => write!(f, "(+ {} {})", left, right),
+            Self::Subtract(left, right) => write!(f, "(- {} {})", left, right),
         }
     }
 }
@@ -182,8 +182,8 @@ pub enum MultiplicationExpr {
 impl fmt::Display for MultiplicationExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            MultiplicationExpr::Multiply(left, right) => write!(f, "(* {} {})", left, right),
-            MultiplicationExpr::Divide(left, right) => write!(f, "(/ {} {})", left, right),
+            Self::Multiply(left, right) => write!(f, "(* {} {})", left, right),
+            Self::Divide(left, right) => write!(f, "(/ {} {})", left, right),
         }
     }
 }
@@ -216,8 +216,8 @@ pub enum UnaryExpr {
 impl fmt::Display for UnaryExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            UnaryExpr::Bang(expr) => write!(f, "(! {})", expr),
-            UnaryExpr::Minus(expr) => write!(f, "(- {})", expr),
+            Self::Bang(expr) => write!(f, "(! {})", expr),
+            Self::Minus(expr) => write!(f, "(- {})", expr),
         }
     }
 }
@@ -270,11 +270,11 @@ impl fmt::Display for PrimaryExpr {
             f,
             "{}",
             match self {
-                PrimaryExpr::False => "false".to_string(),
-                PrimaryExpr::True => "true".to_string(),
-                PrimaryExpr::Identifier(v) => v.clone(),
-                PrimaryExpr::Str(v) => v.clone(),
-                PrimaryExpr::Number(v) => format!("{}", v),
+                Self::False => "false".to_string(),
+                Self::True => "true".to_string(),
+                Self::Identifier(v) => v.clone(),
+                Self::Str(v) => v.clone(),
+                Self::Number(v) => format!("{}", v),
             }
         )
     }
