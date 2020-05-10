@@ -245,6 +245,16 @@ pub enum PrimaryExpr {
     Number(f64),
 }
 
+impl std::convert::From<bool> for PrimaryExpr {
+    fn from(b: bool) -> Self {
+        if b {
+            PrimaryExpr::True
+        } else {
+            PrimaryExpr::False
+        }
+    }
+}
+
 impl std::convert::TryFrom<tokens::Token> for PrimaryExpr {
     type Error = String;
 

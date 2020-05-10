@@ -6,16 +6,6 @@ use crate::parser::expression::{
 #[cfg(test)]
 mod tests;
 
-macro_rules! bool_to_primary {
-    ($x:expr) => {
-        if $x {
-            PrimaryExpr::True
-        } else {
-            PrimaryExpr::False
-        }
-    };
-}
-
 macro_rules! type_error {
     () => {
         Err(InterpreterErr::TypeErr(
@@ -69,10 +59,10 @@ impl ExpressionInterpreter {
             EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
             {
                 (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => Ok(
-                    bool_to_primary!((left_val - right_val).abs() < std::f64::EPSILON),
+                    PrimaryExpr::from((left_val - right_val).abs() < std::f64::EPSILON),
                 ),
                 (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
-                    Ok(bool_to_primary!(left_val == right_val))
+                    Ok(PrimaryExpr::from(left_val == right_val))
                 }
                 (Ok(l), Ok(r)) => type_error!(l, "==", r),
                 _ => type_error!(),
@@ -80,10 +70,10 @@ impl ExpressionInterpreter {
             EqualityExpr::NotEqual(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => Ok(
-                        bool_to_primary!((left_val - right_val).abs() > std::f64::EPSILON),
+                        PrimaryExpr::from((left_val - right_val).abs() > std::f64::EPSILON),
                     ),
                     (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
-                        Ok(bool_to_primary!(left_val != right_val))
+                        Ok(PrimaryExpr::from(left_val != right_val))
                     }
                     (Ok(l), Ok(r)) => type_error!(l, "!=", r),
                     _ => type_error!(),
@@ -97,7 +87,7 @@ impl ExpressionInterpreter {
             ComparisonExpr::Less(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(bool_to_primary!(left_val < right_val))
+                        Ok(PrimaryExpr::from(left_val < right_val))
                     }
                     (Ok(l), Ok(r)) => type_error!(l, "<", r),
                     _ => type_error!(),
@@ -106,7 +96,7 @@ impl ExpressionInterpreter {
             ComparisonExpr::LessEqual(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(bool_to_primary!(left_val <= right_val))
+                        Ok(PrimaryExpr::from(left_val <= right_val))
                     }
                     (Ok(l), Ok(r)) => type_error!(l, "<=", r),
                     _ => type_error!(),
@@ -115,7 +105,7 @@ impl ExpressionInterpreter {
             ComparisonExpr::Greater(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(bool_to_primary!(left_val > right_val))
+                        Ok(PrimaryExpr::from(left_val > right_val))
                     }
                     (Ok(l), Ok(r)) => type_error!(l, ">", r),
                     _ => type_error!(),
@@ -124,7 +114,7 @@ impl ExpressionInterpreter {
             ComparisonExpr::GreaterEqual(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(bool_to_primary!(left_val >= right_val))
+                        Ok(PrimaryExpr::from(left_val >= right_val))
                     }
                     (Ok(l), Ok(r)) => type_error!(l, ">=", r),
                     _ => type_error!(),
@@ -186,12 +176,8 @@ impl ExpressionInterpreter {
     fn interpret_unary(&self, expr: UnaryExpr) -> InterpreterResult {
         match expr {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
-                Ok(PrimaryExpr::False) => Ok(PrimaryExpr::True),
-                Ok(PrimaryExpr::True) => Ok(PrimaryExpr::False),
-                Ok(PrimaryExpr::Nil) => Ok(PrimaryExpr::True),
-                Ok(PrimaryExpr::Str(_)) => Ok(PrimaryExpr::True),
+                Ok(expr) => Ok(PrimaryExpr::from(!is_true(expr))),
                 Err(e) => type_error!(e),
-                _ => type_error!(),
             },
             UnaryExpr::Minus(ue) => match self.interpret(ue) {
                 Ok(PrimaryExpr::Number(v)) => Ok(PrimaryExpr::Number(v * -1.0)),
@@ -203,5 +189,13 @@ impl ExpressionInterpreter {
 
     fn interpret_primary(&self, expr: PrimaryExpr) -> InterpreterResult {
         Ok(expr)
+    }
+}
+
+fn is_true(expr: PrimaryExpr) -> bool {
+    match expr {
+        PrimaryExpr::Nil => false,
+        PrimaryExpr::False => false,
+        _ => true,
     }
 }
