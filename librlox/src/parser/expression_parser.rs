@@ -99,11 +99,11 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Equality(EqualityExpr::new(
-                EqualityExprOperator::from_token(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Equality(match op.token_type {
+                TokenType::EqualEqual => EqualityExpr::Equal(Box::new(left), Box::new(last)),
+                TokenType::BangEqual => EqualityExpr::NotEqual(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
@@ -135,11 +135,15 @@ fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Comparison(ComparisonExpr::new(
-                ComparisonExprOperator::from_token(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Comparison(match op.token_type {
+                TokenType::Less => ComparisonExpr::Less(Box::new(left), Box::new(last)),
+                TokenType::LessEqual => ComparisonExpr::LessEqual(Box::new(left), Box::new(last)),
+                TokenType::Greater => ComparisonExpr::Greater(Box::new(left), Box::new(last)),
+                TokenType::GreaterEqual => {
+                    ComparisonExpr::GreaterEqual(Box::new(left), Box::new(last))
+                }
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
@@ -168,11 +172,11 @@ fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Addition(AdditionExpr::new(
-                AdditionExprOperator::from_token(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Addition(match op.token_type {
+                TokenType::Plus => AdditionExpr::Add(Box::new(left), Box::new(last)),
+                TokenType::Minus => AdditionExpr::Subtract(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
@@ -201,11 +205,11 @@ fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Multiplication(MultiplicationExpr::new(
-                MultiplicationExprOperator::from_token(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Multiplication(match op.token_type {
+                TokenType::Star => MultiplicationExpr::Multiply(Box::new(left), Box::new(last)),
+                TokenType::Slash => MultiplicationExpr::Divide(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
@@ -219,10 +223,11 @@ fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         primary(),
     )
     .map(|(token, lit)| {
-        Expr::Unary(UnaryExpr::new(
-            UnaryExprOperator::from_token(token).unwrap(),
-            Box::new(lit),
-        ))
+        Expr::Unary(match token.token_type {
+            TokenType::Minus => UnaryExpr::Minus(Box::new(lit)),
+            TokenType::Bang => UnaryExpr::Bang(Box::new(lit)),
+            _ => panic!(format!("unexpected token: {}", token.token_type)),
+        })
     })
     .or(|| primary())
 }
