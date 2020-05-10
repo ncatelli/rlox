@@ -2,7 +2,7 @@ extern crate parcel;
 use crate::parser::expression::{
     AdditionExpr, AdditionExprOperator, ComparisonExpr, ComparisonExprOperator, EqualityExpr,
     EqualityExprOperator, Expr, GroupingExpr, MultiplicationExpr, MultiplicationExprOperator,
-    PrimaryExpr, UnaryExpr, UnaryExprOperator,
+    PrimaryExpr, UnaryExpr,
 };
 use crate::parser::expression_parser::expression;
 use crate::scanner::tokens::{Literal, Token, TokenType};
@@ -278,10 +278,9 @@ fn validate_parser_should_parse_unary_expression() {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[2..],
-            Expr::Unary(UnaryExpr::new(
-                UnaryExprOperator::Bang,
-                Box::new(Expr::Primary(PrimaryExpr::try_from(literal_token).unwrap()))
-            ))
+            Expr::Unary(UnaryExpr::Bang(Box::new(Expr::Primary(
+                PrimaryExpr::try_from(literal_token).unwrap()
+            ))))
         ))),
         expression().parse(&seed_vec)
     );

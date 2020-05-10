@@ -419,52 +419,7 @@ impl fmt::Display for MultiplicationExpr {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum UnaryExprOperator {
-    Bang,
-    Minus,
-}
-
-impl UnaryExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<UnaryExprOperator, String> {
-        match token.token_type {
-            tokens::TokenType::Bang => Ok(UnaryExprOperator::Bang),
-            tokens::TokenType::Minus => Ok(UnaryExprOperator::Minus),
-            _ => Err(format!(
-                "Unable to convert from {} to UnaryExprOperator",
-                token.token_type
-            )),
-        }
-    }
-}
-
-impl fmt::Display for UnaryExprOperator {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            UnaryExprOperator::Bang => write!(f, "!"),
-            UnaryExprOperator::Minus => write!(f, "-"),
-        }
-    }
-}
-
-// Implement <UnaryExprOperator> == <tokens::Token>  comparisons
-impl PartialEq<tokens::Token> for UnaryExprOperator {
-    fn eq(&self, token: &tokens::Token) -> bool {
-        match self {
-            UnaryExprOperator::Bang => match token.token_type {
-                tokens::TokenType::Bang => true,
-                _ => false,
-            },
-            UnaryExprOperator::Minus => match token.token_type {
-                tokens::TokenType::Minus => true,
-                _ => false,
-            },
-        }
-    }
-}
-
-/// Represents Unary Lox expressions and stores an operation token, along with
-/// a single, right hand, expression.
+/// Represents a unary Lox expressions
 ///
 /// # Examples
 /// ```
@@ -474,31 +429,27 @@ impl PartialEq<tokens::Token> for UnaryExprOperator {
 /// use std::option::Option::Some;
 ///
 /// let unary = Expr::Unary(
-///     UnaryExpr::new(
-///         UnaryExprOperator::Minus,
+///     UnaryExpr::Minus(
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::Number(5.0)
 ///             )
-///         ),
+///         )
 ///     )
 /// );
 /// ```
 #[derive(Debug, PartialEq)]
-pub struct UnaryExpr {
-    operation: UnaryExprOperator,
-    rhe: Box<Expr>,
-}
-
-impl UnaryExpr {
-    pub fn new(operation: UnaryExprOperator, rhe: Box<Expr>) -> UnaryExpr {
-        UnaryExpr { operation, rhe }
-    }
+pub enum UnaryExpr {
+    Bang(Box<Expr>),
+    Minus(Box<Expr>),
 }
 
 impl fmt::Display for UnaryExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({} {})", self.operation, self.rhe)
+        match self {
+            UnaryExpr::Bang(expr) => write!(f, "(! {})", expr),
+            UnaryExpr::Minus(expr) => write!(f, "(- {})", expr),
+        }
     }
 }
 
