@@ -18,6 +18,7 @@ macro_rules! bool_to_primary {
 
 type InterpreterResult = Result<PrimaryExpr, InterpreterErr>;
 
+#[derive(Default)]
 pub struct ExpressionInterpreter {}
 
 impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
@@ -43,16 +44,16 @@ impl Interpreter<Box<Expr>, PrimaryExpr> for ExpressionInterpreter {
 
 impl ExpressionInterpreter {
     pub fn new() -> ExpressionInterpreter {
-        ExpressionInterpreter {}
+        ExpressionInterpreter::default()
     }
 
     fn interpret_equality(&self, expr: EqualityExpr) -> Result<PrimaryExpr, InterpreterErr> {
         match expr {
             EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
             {
-                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                    Ok(bool_to_primary!(left_val == right_val))
-                }
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => Ok(
+                    bool_to_primary!((left_val - right_val).abs() < std::f64::EPSILON),
+                ),
                 (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
                     Ok(bool_to_primary!(left_val == right_val))
                 }
@@ -66,9 +67,9 @@ impl ExpressionInterpreter {
             },
             EqualityExpr::NotEqual(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(bool_to_primary!(left_val != right_val))
-                    }
+                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => Ok(
+                        bool_to_primary!((left_val - right_val).abs() > std::f64::EPSILON),
+                    ),
                     (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
                         Ok(bool_to_primary!(left_val != right_val))
                     }
