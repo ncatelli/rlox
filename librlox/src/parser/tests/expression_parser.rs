@@ -1,7 +1,7 @@
 extern crate parcel;
 use crate::parser::expression::{
-    AdditionExpr, ComparisonExpr, ComparisonExprOperator, EqualityExpr, EqualityExprOperator, Expr,
-    GroupingExpr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, EqualityExprOperator, Expr, GroupingExpr,
+    MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
 use crate::parser::expression_parser::expression;
 use crate::scanner::tokens::{Literal, Token, TokenType};
@@ -95,8 +95,7 @@ fn validate_parser_should_parse_comparison_expression() {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[3..],
-            Expr::Comparison(ComparisonExpr::new(
-                ComparisonExprOperator::GreaterEqual,
+            Expr::Comparison(ComparisonExpr::GreaterEqual(
                 Box::new(Expr::Primary(
                     PrimaryExpr::try_from(literal_token.clone()).unwrap()
                 )),
@@ -124,13 +123,11 @@ fn validate_parser_should_parse_many_comparison_expression() {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[5..],
-            Expr::Comparison(ComparisonExpr::new(
-                ComparisonExprOperator::GreaterEqual,
+            Expr::Comparison(ComparisonExpr::GreaterEqual(
                 Box::new(Expr::Primary(
                     PrimaryExpr::try_from(literal_token.clone()).unwrap()
                 )),
-                Box::new(Expr::Comparison(ComparisonExpr::new(
-                    ComparisonExprOperator::GreaterEqual,
+                Box::new(Expr::Comparison(ComparisonExpr::GreaterEqual(
                     Box::new(Expr::Primary(
                         PrimaryExpr::try_from(literal_token.clone()).unwrap()
                     )),

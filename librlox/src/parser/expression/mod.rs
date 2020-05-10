@@ -121,66 +121,7 @@ impl fmt::Display for EqualityExpr {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum ComparisonExprOperator {
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
-}
-
-impl ComparisonExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<ComparisonExprOperator, String> {
-        match token.token_type {
-            tokens::TokenType::Greater => Ok(ComparisonExprOperator::Greater),
-            tokens::TokenType::GreaterEqual => Ok(ComparisonExprOperator::GreaterEqual),
-            tokens::TokenType::Less => Ok(ComparisonExprOperator::Less),
-            tokens::TokenType::LessEqual => Ok(ComparisonExprOperator::LessEqual),
-            _ => Err(format!(
-                "Unable to convert from {} to ComparisonExprOperator",
-                token.token_type
-            )),
-        }
-    }
-}
-
-impl fmt::Display for ComparisonExprOperator {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ComparisonExprOperator::Greater => write!(f, ">"),
-            ComparisonExprOperator::GreaterEqual => write!(f, ">="),
-            ComparisonExprOperator::Less => write!(f, "<"),
-            ComparisonExprOperator::LessEqual => write!(f, "<="),
-        }
-    }
-}
-
-// Implement <ComparisonExprOperator> == <tokens::Token>  comparisons
-impl PartialEq<tokens::Token> for ComparisonExprOperator {
-    fn eq(&self, token: &tokens::Token) -> bool {
-        match self {
-            ComparisonExprOperator::Greater => match token.token_type {
-                tokens::TokenType::Greater => true,
-                _ => false,
-            },
-            ComparisonExprOperator::GreaterEqual => match token.token_type {
-                tokens::TokenType::GreaterEqual => true,
-                _ => false,
-            },
-            ComparisonExprOperator::Less => match token.token_type {
-                tokens::TokenType::Less => true,
-                _ => false,
-            },
-            ComparisonExprOperator::LessEqual => match token.token_type {
-                tokens::TokenType::LessEqual => true,
-                _ => false,
-            },
-        }
-    }
-}
-
-/// Represents Comparison Lox expressions and stores an operation, along
-/// with Boxed left and right hand expressions.
+/// Represents Comparison Lox expressions.
 ///
 /// # Examples
 /// ```
@@ -190,8 +131,7 @@ impl PartialEq<tokens::Token> for ComparisonExprOperator {
 /// use std::option::Option::Some;
 ///
 /// let comparison = Expr::Comparison(
-///     ComparisonExpr::new(
-///         ComparisonExprOperator::GreaterEqual,
+///     ComparisonExpr::GreaterEqual(
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::Number(5.0)
@@ -206,25 +146,21 @@ impl PartialEq<tokens::Token> for ComparisonExprOperator {
 /// );
 /// ```
 #[derive(Debug, PartialEq)]
-pub struct ComparisonExpr {
-    operation: ComparisonExprOperator,
-    lhe: Box<Expr>,
-    rhe: Box<Expr>,
-}
-
-impl ComparisonExpr {
-    pub fn new(op: ComparisonExprOperator, lhe: Box<Expr>, rhe: Box<Expr>) -> ComparisonExpr {
-        ComparisonExpr {
-            operation: op,
-            lhe,
-            rhe,
-        }
-    }
+pub enum ComparisonExpr {
+    Less(Box<Expr>, Box<Expr>),
+    LessEqual(Box<Expr>, Box<Expr>),
+    Greater(Box<Expr>, Box<Expr>),
+    GreaterEqual(Box<Expr>, Box<Expr>),
 }
 
 impl fmt::Display for ComparisonExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({} {} {})", self.operation, self.lhe, self.rhe)
+        match self {
+            ComparisonExpr::Less(left, right) => write!(f, "(< {} {})", left, right),
+            ComparisonExpr::LessEqual(left, right) => write!(f, "(<= {} {})", left, right),
+            ComparisonExpr::Greater(left, right) => write!(f, "(> {} {})", left, right),
+            ComparisonExpr::GreaterEqual(left, right) => write!(f, "(>= {} {})", left, right),
+        }
     }
 }
 

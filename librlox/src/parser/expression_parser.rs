@@ -135,11 +135,15 @@ fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Comparison(ComparisonExpr::new(
-                ComparisonExprOperator::from_token(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Comparison(match op.token_type {
+                TokenType::Less => ComparisonExpr::Less(Box::new(left), Box::new(last)),
+                TokenType::LessEqual => ComparisonExpr::LessEqual(Box::new(left), Box::new(last)),
+                TokenType::Greater => ComparisonExpr::Greater(Box::new(left), Box::new(last)),
+                TokenType::GreaterEqual => {
+                    ComparisonExpr::GreaterEqual(Box::new(left), Box::new(last))
+                }
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
