@@ -5,6 +5,16 @@ use std::fmt;
 #[cfg(test)]
 mod tests;
 
+macro_rules! bool_to_primary {
+    ($x:expr) => {
+        if $x {
+            PrimaryExpr::True
+        } else {
+            PrimaryExpr::False
+        }
+    };
+}
+
 /// Represents, and encapsulates one of the four types of expressions possible in
 /// lox currently. Further information can be found on each sub-type.
 #[derive(Debug, PartialEq)]
@@ -126,6 +136,61 @@ impl fmt::Display for ComparisonExpr {
     }
 }
 
+impl interpreter::Interpreter<PrimaryExpr> for ComparisonExpr {
+    fn interpret(&self) -> Result<PrimaryExpr, interpreter::InterpreterErr> {
+        match self {
+            Self::Less(left, right) => match (left.interpret(), right.interpret()) {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(bool_to_primary!(left_val < right_val))
+                }
+                (Ok(l), Ok(r)) => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} < {}",
+                    l, r
+                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
+            },
+            Self::LessEqual(left, right) => match (left.interpret(), right.interpret()) {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(bool_to_primary!(left_val <= right_val))
+                }
+                (Ok(l), Ok(r)) => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} <= {}",
+                    l, r
+                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
+            },
+            Self::Greater(left, right) => match (left.interpret(), right.interpret()) {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(bool_to_primary!(left_val > right_val))
+                }
+                (Ok(l), Ok(r)) => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} > {}",
+                    l, r
+                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
+            },
+            Self::GreaterEqual(left, right) => match (left.interpret(), right.interpret()) {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(bool_to_primary!(left_val >= right_val))
+                }
+                (Ok(l), Ok(r)) => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} >= {}",
+                    l, r
+                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
+            },
+        }
+    }
+}
+
 /// Represents Addition Lox expressions.
 ///
 /// # Examples
@@ -179,9 +244,9 @@ impl interpreter::Interpreter<PrimaryExpr> for AdditionExpr {
                     "Invalid operand for operator: {} + {}",
                     l, r
                 ))),
-                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
-                    "Invalid operand for operator"
-                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
             },
             Self::Subtract(left, right) => match (left.interpret(), right.interpret()) {
                 (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
@@ -191,9 +256,9 @@ impl interpreter::Interpreter<PrimaryExpr> for AdditionExpr {
                     "Invalid operand for operator: {} - {}",
                     l, r
                 ))),
-                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
-                    "Invalid operand for operator"
-                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
             },
         }
     }
@@ -249,9 +314,9 @@ impl interpreter::Interpreter<PrimaryExpr> for MultiplicationExpr {
                     "Invalid operand for operator: {} * {}",
                     l, r
                 ))),
-                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
-                    "Invalid operand for operator"
-                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
             },
             Self::Divide(left, right) => match (left.interpret(), right.interpret()) {
                 (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
@@ -261,9 +326,9 @@ impl interpreter::Interpreter<PrimaryExpr> for MultiplicationExpr {
                     "Invalid operand for operator: {} / {}",
                     l, r
                 ))),
-                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
-                    "Invalid operand for operator"
-                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
             },
         }
     }
@@ -310,16 +375,16 @@ impl interpreter::Interpreter<PrimaryExpr> for UnaryExpr {
                 Ok(PrimaryExpr::False) => Ok(PrimaryExpr::True),
                 Ok(PrimaryExpr::True) => Ok(PrimaryExpr::False),
                 Err(e) => Err(interpreter::InterpreterErr::TypeErr(e.to_string())),
-                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
-                    "Invalid operand for operator"
-                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
             },
             Self::Minus(expr) => match expr.interpret() {
                 Ok(PrimaryExpr::Number(v)) => Ok(PrimaryExpr::Number(v * -1.0)),
                 Err(e) => Err(interpreter::InterpreterErr::TypeErr(e.to_string())),
-                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
-                    "Invalid operand for operator"
-                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
             },
         }
     }
