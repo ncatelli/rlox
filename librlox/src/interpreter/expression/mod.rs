@@ -16,6 +16,23 @@ macro_rules! bool_to_primary {
     };
 }
 
+macro_rules! type_error {
+    () => {
+        Err(InterpreterErr::TypeErr(
+            "Invalid operand for operator".to_string(),
+        ))
+    };
+    ($error:expr) => {
+        Err(InterpreterErr::TypeErr($error.to_string()))
+    };
+    ($left:expr, $op:literal, $right:expr) => {
+        Err(InterpreterErr::TypeErr(format!(
+            "Invalid operand for operator: {} {} {}",
+            $left, $op, $right
+        )))
+    };
+}
+
 type InterpreterResult = Result<PrimaryExpr, InterpreterErr>;
 
 #[derive(Default)]
@@ -57,13 +74,8 @@ impl ExpressionInterpreter {
                 (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
                     Ok(bool_to_primary!(left_val == right_val))
                 }
-                (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                    "Invalid operand for operator: {} == {}",
-                    l, r
-                ))),
-                _ => Err(InterpreterErr::TypeErr(
-                    "Invalid operand for operator".to_string(),
-                )),
+                (Ok(l), Ok(r)) => type_error!(l, "==", r),
+                _ => type_error!(),
             },
             EqualityExpr::NotEqual(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
@@ -73,13 +85,8 @@ impl ExpressionInterpreter {
                     (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
                         Ok(bool_to_primary!(left_val != right_val))
                     }
-                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                        "Invalid operand for operator: {} != {}",
-                        l, r
-                    ))),
-                    _ => Err(InterpreterErr::TypeErr(
-                        "Invalid operand for operator".to_string(),
-                    )),
+                    (Ok(l), Ok(r)) => type_error!(l, "!=", r),
+                    _ => type_error!(),
                 }
             }
         }
@@ -92,13 +99,8 @@ impl ExpressionInterpreter {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
                         Ok(bool_to_primary!(left_val < right_val))
                     }
-                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                        "Invalid operand for operator: {} < {}",
-                        l, r
-                    ))),
-                    _ => Err(InterpreterErr::TypeErr(
-                        "Invalid operand for operator".to_string(),
-                    )),
+                    (Ok(l), Ok(r)) => type_error!(l, "<", r),
+                    _ => type_error!(),
                 }
             }
             ComparisonExpr::LessEqual(left, right) => {
@@ -106,13 +108,8 @@ impl ExpressionInterpreter {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
                         Ok(bool_to_primary!(left_val <= right_val))
                     }
-                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                        "Invalid operand for operator: {} <= {}",
-                        l, r
-                    ))),
-                    _ => Err(InterpreterErr::TypeErr(
-                        "Invalid operand for operator".to_string(),
-                    )),
+                    (Ok(l), Ok(r)) => type_error!(l, "<=", r),
+                    _ => type_error!(),
                 }
             }
             ComparisonExpr::Greater(left, right) => {
@@ -120,13 +117,8 @@ impl ExpressionInterpreter {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
                         Ok(bool_to_primary!(left_val > right_val))
                     }
-                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                        "Invalid operand for operator: {} > {}",
-                        l, r
-                    ))),
-                    _ => Err(InterpreterErr::TypeErr(
-                        "Invalid operand for operator".to_string(),
-                    )),
+                    (Ok(l), Ok(r)) => type_error!(l, ">", r),
+                    _ => type_error!(),
                 }
             }
             ComparisonExpr::GreaterEqual(left, right) => {
@@ -134,13 +126,8 @@ impl ExpressionInterpreter {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
                         Ok(bool_to_primary!(left_val >= right_val))
                     }
-                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                        "Invalid operand for operator: {} >= {}",
-                        l, r
-                    ))),
-                    _ => Err(InterpreterErr::TypeErr(
-                        "Invalid operand for operator".to_string(),
-                    )),
+                    (Ok(l), Ok(r)) => type_error!(l, ">=", r),
+                    _ => type_error!(),
                 }
             }
         }
@@ -155,26 +142,16 @@ impl ExpressionInterpreter {
                 (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
                     Ok(PrimaryExpr::Str(format!("{}{}", left_val, right_val)))
                 }
-                (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                    "Invalid operand for operator: {} + {}",
-                    l, r
-                ))),
-                _ => Err(InterpreterErr::TypeErr(
-                    "Invalid operand for operator".to_string(),
-                )),
+                (Ok(l), Ok(r)) => type_error!(l, "+", r),
+                _ => type_error!(),
             },
             AdditionExpr::Subtract(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
                         Ok(PrimaryExpr::Number(left_val - right_val))
                     }
-                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                        "Invalid operand for operator: {} - {}",
-                        l, r
-                    ))),
-                    _ => Err(InterpreterErr::TypeErr(
-                        "Invalid operand for operator".to_string(),
-                    )),
+                    (Ok(l), Ok(r)) => type_error!(l, "-", r),
+                    _ => type_error!(),
                 }
             }
         }
@@ -190,13 +167,8 @@ impl ExpressionInterpreter {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
                         Ok(PrimaryExpr::Number(left_val * right_val))
                     }
-                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                        "Invalid operand for operator: {} * {}",
-                        l, r
-                    ))),
-                    _ => Err(InterpreterErr::TypeErr(
-                        "Invalid operand for operator".to_string(),
-                    )),
+                    (Ok(l), Ok(r)) => type_error!(l, "*", r),
+                    _ => type_error!(),
                 }
             }
             MultiplicationExpr::Divide(left, right) => {
@@ -204,13 +176,8 @@ impl ExpressionInterpreter {
                     (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
                         Ok(PrimaryExpr::Number(left_val / right_val))
                     }
-                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
-                        "Invalid operand for operator: {} / {}",
-                        l, r
-                    ))),
-                    _ => Err(InterpreterErr::TypeErr(
-                        "Invalid operand for operator".to_string(),
-                    )),
+                    (Ok(l), Ok(r)) => type_error!(l, "/", r),
+                    _ => type_error!(),
                 }
             }
         }
@@ -221,18 +188,15 @@ impl ExpressionInterpreter {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
                 Ok(PrimaryExpr::False) => Ok(PrimaryExpr::True),
                 Ok(PrimaryExpr::True) => Ok(PrimaryExpr::False),
+                Ok(PrimaryExpr::Nil) => Ok(PrimaryExpr::True),
                 Ok(PrimaryExpr::Str(_)) => Ok(PrimaryExpr::True),
-                Err(e) => Err(InterpreterErr::TypeErr(e.to_string())),
-                _ => Err(InterpreterErr::TypeErr(
-                    "Invalid operand for operator".to_string(),
-                )),
+                Err(e) => type_error!(e),
+                _ => type_error!(),
             },
             UnaryExpr::Minus(ue) => match self.interpret(ue) {
                 Ok(PrimaryExpr::Number(v)) => Ok(PrimaryExpr::Number(v * -1.0)),
-                Err(e) => Err(InterpreterErr::TypeErr(e.to_string())),
-                _ => Err(InterpreterErr::TypeErr(
-                    "Invalid operand for operator".to_string(),
-                )),
+                Err(e) => type_error!(e),
+                _ => type_error!(),
             },
         }
     }

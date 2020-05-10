@@ -237,6 +237,7 @@ impl fmt::Display for UnaryExpr {
 /// ```
 #[derive(Debug, PartialEq, Clone)]
 pub enum PrimaryExpr {
+    Nil,
     True,
     False,
     Identifier(String),
@@ -249,6 +250,7 @@ impl std::convert::TryFrom<tokens::Token> for PrimaryExpr {
 
     fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
         match (t.token_type, t.literal) {
+            (tokens::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
             (tokens::TokenType::True, None) => Ok(PrimaryExpr::True),
             (tokens::TokenType::False, None) => Ok(PrimaryExpr::False),
             (tokens::TokenType::Literal, Some(tokens::Literal::Identifier(v))) => {
@@ -270,6 +272,7 @@ impl fmt::Display for PrimaryExpr {
             f,
             "{}",
             match self {
+                Self::Nil => "nil".to_string(),
                 Self::False => "false".to_string(),
                 Self::True => "true".to_string(),
                 Self::Identifier(v) => v.clone(),
