@@ -370,13 +370,11 @@ impl std::convert::TryFrom<tokens::Token> for PrimaryExpr {
             (tokens::TokenType::True, None) => Ok(PrimaryExpr::True),
             (tokens::TokenType::False, None) => Ok(PrimaryExpr::False),
             (tokens::TokenType::Literal, Some(tokens::Literal::Identifier(v))) => {
-                Ok(PrimaryExpr::Identifier(v.clone()))
+                Ok(PrimaryExpr::Identifier(v))
             }
-            (tokens::TokenType::Literal, Some(tokens::Literal::Str(v))) => {
-                Ok(PrimaryExpr::Str(v.clone()))
-            }
+            (tokens::TokenType::Literal, Some(tokens::Literal::Str(v))) => Ok(PrimaryExpr::Str(v)),
             (tokens::TokenType::Literal, Some(tokens::Literal::Number(v))) => {
-                Ok(PrimaryExpr::Number(v.clone()))
+                Ok(PrimaryExpr::Number(v))
             }
             // Placeholder
             _ => Err(format!("invalid token: {}", t.token_type)),
