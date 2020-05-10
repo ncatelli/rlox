@@ -38,7 +38,8 @@ impl interpreter::Interpreter<PrimaryExpr> for Expr {
         match self {
             Self::Primary(expr) => expr.interpret(),
             Self::Unary(expr) => expr.interpret(),
-            _ => Ok(PrimaryExpr::Number(5.0)),
+            Self::Multiplication(expr) => expr.interpret(),
+            _ => Ok(PrimaryExpr::Number(100.0)),
         }
     }
 }
@@ -203,6 +204,37 @@ impl fmt::Display for MultiplicationExpr {
     }
 }
 
+impl interpreter::Interpreter<PrimaryExpr> for MultiplicationExpr {
+    fn interpret(&self) -> Result<PrimaryExpr, interpreter::InterpreterErr> {
+        match self {
+            Self::Multiply(left, right) => match (left.interpret(), right.interpret()) {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(PrimaryExpr::Number(left_val * right_val))
+                }
+                (Ok(l), Ok(r)) => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} * {}",
+                    l, r
+                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator"
+                ))),
+            },
+            Self::Divide(left, right) => match (left.interpret(), right.interpret()) {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(PrimaryExpr::Number(left_val / right_val))
+                }
+                (Ok(l), Ok(r)) => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} / {}",
+                    l, r
+                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator"
+                ))),
+            },
+        }
+    }
+}
+
 /// Represents a unary Lox expressions.
 ///
 /// # Examples
@@ -245,14 +277,14 @@ impl interpreter::Interpreter<PrimaryExpr> for UnaryExpr {
                 Ok(PrimaryExpr::True) => Ok(PrimaryExpr::False),
                 Err(e) => Err(interpreter::InterpreterErr::TypeErr(e.to_string())),
                 _ => Err(interpreter::InterpreterErr::TypeErr(format!(
-                    "Invalid type for operator"
+                    "Invalid operand for operator"
                 ))),
             },
             Self::Minus(expr) => match expr.interpret() {
                 Ok(PrimaryExpr::Number(v)) => Ok(PrimaryExpr::Number(v * -1.0)),
                 Err(e) => Err(interpreter::InterpreterErr::TypeErr(e.to_string())),
                 _ => Err(interpreter::InterpreterErr::TypeErr(format!(
-                    "Invalid type for operator"
+                    "Invalid operand for operator"
                 ))),
             },
         }
