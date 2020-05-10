@@ -221,6 +221,7 @@ impl ExpressionInterpreter {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
                 Ok(PrimaryExpr::False) => Ok(PrimaryExpr::True),
                 Ok(PrimaryExpr::True) => Ok(PrimaryExpr::False),
+                Ok(PrimaryExpr::Str(_)) => Ok(PrimaryExpr::True),
                 Err(e) => Err(InterpreterErr::TypeErr(e.to_string())),
                 _ => Err(InterpreterErr::TypeErr(
                     "Invalid operand for operator".to_string(),
