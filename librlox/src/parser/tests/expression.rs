@@ -1,13 +1,12 @@
+use crate::parser::expression::MultiplicationExpr;
 use crate::parser::expression::{Expr, GroupingExpr, PrimaryExpr, UnaryExpr};
-use crate::parser::expression::{MultiplicationExpr, MultiplicationExprOperator};
 use crate::scanner::tokens::{Literal, Token, TokenType};
 use std::convert::TryFrom;
 use std::option::Option;
 
 #[test]
 fn test_expression_formatter_should_pretty_print_an_ast() {
-    let expr = Expr::Multiplication(MultiplicationExpr::new(
-        MultiplicationExprOperator::Multiply,
+    let expr = Expr::Multiplication(MultiplicationExpr::Multiply(
         Box::new(Expr::Unary(UnaryExpr::Minus(Box::new(Expr::Primary(
             PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,

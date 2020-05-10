@@ -1,8 +1,7 @@
 extern crate parcel;
 use crate::parser::expression::{
     AdditionExpr, AdditionExprOperator, ComparisonExpr, ComparisonExprOperator, EqualityExpr,
-    EqualityExprOperator, Expr, GroupingExpr, MultiplicationExpr, MultiplicationExprOperator,
-    PrimaryExpr, UnaryExpr,
+    EqualityExprOperator, Expr, GroupingExpr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
 use crate::parser::expression_parser::expression;
 use crate::scanner::tokens::{Literal, Token, TokenType};
@@ -220,8 +219,7 @@ fn validate_parser_should_parse_multiplication_expression() {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[3..],
-            Expr::Multiplication(MultiplicationExpr::new(
-                MultiplicationExprOperator::Multiply,
+            Expr::Multiplication(MultiplicationExpr::Multiply(
                 Box::new(Expr::Primary(
                     PrimaryExpr::try_from(literal_token.clone()).unwrap()
                 )),
@@ -249,13 +247,11 @@ fn validate_parser_should_parse_many_multiplication_expression() {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[5..],
-            Expr::Multiplication(MultiplicationExpr::new(
-                MultiplicationExprOperator::Multiply,
+            Expr::Multiplication(MultiplicationExpr::Multiply(
                 Box::new(Expr::Primary(
                     PrimaryExpr::try_from(literal_token.clone()).unwrap()
                 )),
-                Box::new(Expr::Multiplication(MultiplicationExpr::new(
-                    MultiplicationExprOperator::Multiply,
+                Box::new(Expr::Multiplication(MultiplicationExpr::Multiply(
                     Box::new(Expr::Primary(
                         PrimaryExpr::try_from(literal_token.clone()).unwrap()
                     )),

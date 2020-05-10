@@ -321,52 +321,7 @@ impl fmt::Display for AdditionExpr {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum MultiplicationExprOperator {
-    Multiply,
-    Divide,
-}
-
-impl MultiplicationExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<MultiplicationExprOperator, String> {
-        match token.token_type {
-            tokens::TokenType::Star => Ok(MultiplicationExprOperator::Multiply),
-            tokens::TokenType::Slash => Ok(MultiplicationExprOperator::Divide),
-            _ => Err(format!(
-                "Unable to convert from {} to MultiplicationExprOperator",
-                token.token_type
-            )),
-        }
-    }
-}
-
-impl fmt::Display for MultiplicationExprOperator {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            MultiplicationExprOperator::Multiply => write!(f, "*"),
-            MultiplicationExprOperator::Divide => write!(f, "/"),
-        }
-    }
-}
-
-// Implement <MultiplicationExprOperator> == <tokens::Token>  comparisons
-impl PartialEq<tokens::Token> for MultiplicationExprOperator {
-    fn eq(&self, token: &tokens::Token) -> bool {
-        match self {
-            MultiplicationExprOperator::Multiply => match token.token_type {
-                tokens::TokenType::Star => true,
-                _ => false,
-            },
-            MultiplicationExprOperator::Divide => match token.token_type {
-                tokens::TokenType::Slash => true,
-                _ => false,
-            },
-        }
-    }
-}
-
-/// Represents Multiplication Lox expressions and stores an operation, along
-/// with Boxed left and right hand expressions.
+/// Represents Multiplication Lox expressions
 ///
 /// # Examples
 /// ```
@@ -374,11 +329,9 @@ impl PartialEq<tokens::Token> for MultiplicationExprOperator {
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
 /// use std::option::Option::Some;
-/// use std::convert::TryFrom;
 ///
 /// let multiplication = Expr::Multiplication(
-///     MultiplicationExpr::new(
-///         MultiplicationExprOperator::Multiply,
+///     MultiplicationExpr::Multiply(
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::Number(5.0)
@@ -393,29 +346,17 @@ impl PartialEq<tokens::Token> for MultiplicationExprOperator {
 /// );
 /// ```
 #[derive(Debug, PartialEq)]
-pub struct MultiplicationExpr {
-    operation: MultiplicationExprOperator,
-    lhe: Box<Expr>,
-    rhe: Box<Expr>,
-}
-
-impl MultiplicationExpr {
-    pub fn new(
-        op: MultiplicationExprOperator,
-        lhe: Box<Expr>,
-        rhe: Box<Expr>,
-    ) -> MultiplicationExpr {
-        MultiplicationExpr {
-            operation: op,
-            lhe,
-            rhe,
-        }
-    }
+pub enum MultiplicationExpr {
+    Multiply(Box<Expr>, Box<Expr>),
+    Divide(Box<Expr>, Box<Expr>),
 }
 
 impl fmt::Display for MultiplicationExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({} {} {})", self.operation, self.lhe, self.rhe)
+        match self {
+            MultiplicationExpr::Multiply(left, right) => write!(f, "(* {} {})", left, right),
+            MultiplicationExpr::Divide(left, right) => write!(f, "(/ {} {})", left, right),
+        }
     }
 }
 

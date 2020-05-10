@@ -201,11 +201,11 @@ fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Multiplication(MultiplicationExpr::new(
-                MultiplicationExprOperator::from_token(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Multiplication(match op.token_type {
+                TokenType::Star => MultiplicationExpr::Multiply(Box::new(left), Box::new(last)),
+                TokenType::Slash => MultiplicationExpr::Divide(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
