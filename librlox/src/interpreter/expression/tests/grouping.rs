@@ -9,14 +9,14 @@ macro_rules! primary_number {
 }
 
 macro_rules! multiplication_expr {
-    ($x:item, $y:item) => {
-        Expr::Multiplication(MultiplicationExpr::Multiply(Box::new($x), Box::new(y)))
+    ($x:expr, $y:expr) => {
+        Expr::Multiplication(MultiplicationExpr::Multiply(Box::new($x), Box::new($y)))
     };
 }
 
 macro_rules! addition_expr {
-    ($x:item, $y:item) => {
-        Expr::Addition(AdditionExpr::Add(Box::new(x), Box::new(y)))
+    ($x:expr, $y:expr) => {
+        Expr::Addition(AdditionExpr::Add(Box::new($x), Box::new($y)))
     };
 }
 
@@ -30,12 +30,14 @@ fn grouping_expr_should_interpret_to_equivalent_primary() {
     );
 }
 
-/*
 #[test]
 fn grouping_expr_should_maintain_operator_precedence() {
     let expr = multiplication_expr!(
-        primary_number! {5.0},
-        Expr::Grouping(Box::new(addition_expr!(-1.0, 2.0))),
+        primary_number!(5.0),
+        Expr::Grouping(Box::new(addition_expr!(
+            primary_number!(-1.0),
+            primary_number!(2.0)
+        )))
     );
 
     assert_eq!(
@@ -43,4 +45,3 @@ fn grouping_expr_should_maintain_operator_precedence() {
         ExpressionInterpreter::new().interpret(expr)
     );
 }
-*/
