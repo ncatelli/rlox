@@ -1,6 +1,6 @@
 use crate::interpreter::{Interpreter, InterpreterErr};
 use crate::parser::expression::{
-    AdditionExpr, ComparisonExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
 
 #[cfg(test)]
@@ -28,6 +28,7 @@ impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
             Expr::Addition(expr) => self.interpret_addition(expr),
             Expr::Comparison(expr) => self.interpret_comparison(expr),
+            Expr::Equality(expr) => self.interpret_equality(expr),
             _ => Ok(PrimaryExpr::Number(100.0)),
         }
     }
@@ -44,6 +45,45 @@ impl ExpressionInterpreter {
     pub fn new() -> ExpressionInterpreter {
         ExpressionInterpreter {}
     }
+
+    fn interpret_equality(&self, expr: EqualityExpr) -> Result<PrimaryExpr, InterpreterErr> {
+        match expr {
+            EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
+            {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(bool_to_primary!(left_val == right_val))
+                }
+                (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
+                    Ok(bool_to_primary!(left_val == right_val))
+                }
+                (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} == {}",
+                    l, r
+                ))),
+                _ => Err(InterpreterErr::TypeErr(
+                    "Invalid operand for operator".to_string(),
+                )),
+            },
+            EqualityExpr::NotEqual(left, right) => {
+                match (self.interpret(left), self.interpret(right)) {
+                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                        Ok(bool_to_primary!(left_val != right_val))
+                    }
+                    (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
+                        Ok(bool_to_primary!(left_val != right_val))
+                    }
+                    (Ok(l), Ok(r)) => Err(InterpreterErr::TypeErr(format!(
+                        "Invalid operand for operator: {} != {}",
+                        l, r
+                    ))),
+                    _ => Err(InterpreterErr::TypeErr(
+                        "Invalid operand for operator".to_string(),
+                    )),
+                }
+            }
+        }
+    }
+
     fn interpret_comparison(&self, expr: ComparisonExpr) -> Result<PrimaryExpr, InterpreterErr> {
         match expr {
             ComparisonExpr::Less(left, right) => {
