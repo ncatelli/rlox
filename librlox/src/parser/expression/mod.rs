@@ -1,5 +1,9 @@
+use crate::interpreter;
 use crate::scanner::tokens;
 use std::fmt;
+
+#[cfg(test)]
+mod tests;
 
 /// Represents, and encapsulates one of the four types of expressions possible in
 /// lox currently. Further information can be found on each sub-type.
@@ -24,6 +28,17 @@ impl fmt::Display for Expr {
             Self::Unary(e) => write!(f, "{}", &e),
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "{}", &e),
+        }
+    }
+}
+
+// TODO
+impl interpreter::Interpreter<PrimaryExpr> for Expr {
+    fn interpret(&self) -> Result<PrimaryExpr, interpreter::InterpreterErr> {
+        match self {
+            Self::Primary(expr) => expr.interpret(),
+            Self::Unary(expr) => expr.interpret(),
+            _ => Ok(PrimaryExpr::Number(5.0)),
         }
     }
 }
@@ -222,6 +237,28 @@ impl fmt::Display for UnaryExpr {
     }
 }
 
+impl interpreter::Interpreter<PrimaryExpr> for UnaryExpr {
+    fn interpret(&self) -> Result<PrimaryExpr, interpreter::InterpreterErr> {
+        match self {
+            Self::Bang(expr) => match expr.interpret() {
+                Ok(PrimaryExpr::False) => Ok(PrimaryExpr::True),
+                Ok(PrimaryExpr::True) => Ok(PrimaryExpr::False),
+                Err(e) => Err(interpreter::InterpreterErr::TypeErr(e.to_string())),
+                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid type for operator"
+                ))),
+            },
+            Self::Minus(expr) => match expr.interpret() {
+                Ok(PrimaryExpr::Number(v)) => Ok(PrimaryExpr::Number(v * -1.0)),
+                Err(e) => Err(interpreter::InterpreterErr::TypeErr(e.to_string())),
+                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid type for operator"
+                ))),
+            },
+        }
+    }
+}
+
 /// Represents Literal Lox expressions and stores a single.
 ///
 /// # Examples
@@ -277,6 +314,12 @@ impl fmt::Display for PrimaryExpr {
                 Self::Number(v) => format!("{}", v),
             }
         )
+    }
+}
+
+impl interpreter::Interpreter<PrimaryExpr> for PrimaryExpr {
+    fn interpret(&self) -> Result<PrimaryExpr, interpreter::InterpreterErr> {
+        Ok(self.to_owned())
     }
 }
 
