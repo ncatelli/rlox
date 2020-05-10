@@ -1,5 +1,4 @@
 use crate::scanner::tokens;
-use crate::utils::folder;
 use std::fmt;
 
 /// Represents, and encapsulates one of the four types of expressions possible in
@@ -25,17 +24,6 @@ impl fmt::Display for Expr {
             Expr::Unary(e) => write!(f, "{}", &e),
             Expr::Primary(e) => write!(f, "{}", &e),
             Expr::Grouping(e) => write!(f, "{}", &e),
-        }
-    }
-}
-
-// TODO finish implementing actual calculations on type
-impl folder::Folder<PrimaryExpr> for Expr {
-    fn fold(&self) -> PrimaryExpr {
-        match self {
-            // Fix to not require clone
-            Expr::Primary(pe) => pe.clone(),
-            _ => PrimaryExpr::Number(5.0),
         }
     }
 }
@@ -511,19 +499,6 @@ impl UnaryExpr {
 impl fmt::Display for UnaryExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({} {})", self.operation, self.rhe)
-    }
-}
-
-// TODO
-impl folder::Folder<PrimaryExpr> for UnaryExpr {
-    fn fold(&self) -> PrimaryExpr {
-        let expr: PrimaryExpr = self.rhe.fold();
-        match (self.operation, expr) {
-            (UnaryExprOperator::Bang, PrimaryExpr::True) => PrimaryExpr::False,
-            (UnaryExprOperator::Bang, PrimaryExpr::False) => PrimaryExpr::True,
-
-            _ => PrimaryExpr::False,
-        }
     }
 }
 
