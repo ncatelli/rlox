@@ -228,52 +228,7 @@ impl fmt::Display for ComparisonExpr {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum AdditionExprOperator {
-    Addition,
-    Subraction,
-}
-
-impl AdditionExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<AdditionExprOperator, String> {
-        match token.token_type {
-            tokens::TokenType::Plus => Ok(AdditionExprOperator::Addition),
-            tokens::TokenType::Minus => Ok(AdditionExprOperator::Subraction),
-            _ => Err(format!(
-                "Unable to convert from {} to AdditionExprOperator",
-                token.token_type
-            )),
-        }
-    }
-}
-
-impl fmt::Display for AdditionExprOperator {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            AdditionExprOperator::Addition => write!(f, "+"),
-            AdditionExprOperator::Subraction => write!(f, "-"),
-        }
-    }
-}
-
-// Implement <AdditionExprOperator> == <tokens::Token>  comparisons
-impl PartialEq<tokens::Token> for AdditionExprOperator {
-    fn eq(&self, token: &tokens::Token) -> bool {
-        match self {
-            AdditionExprOperator::Addition => match token.token_type {
-                tokens::TokenType::Plus => true,
-                _ => false,
-            },
-            AdditionExprOperator::Subraction => match token.token_type {
-                tokens::TokenType::Minus => true,
-                _ => false,
-            },
-        }
-    }
-}
-
-/// Represents Addition Lox expressions and stores an operation, along
-/// with Boxed left and right hand expressions.
+/// Represents Addition Lox expressions.
 ///
 /// # Examples
 /// ```
@@ -283,8 +238,7 @@ impl PartialEq<tokens::Token> for AdditionExprOperator {
 /// use std::option::Option::Some;
 ///
 /// let addition = Expr::Addition(
-///     AdditionExpr::new(
-///         AdditionExprOperator::Addition,
+///     AdditionExpr::Add(
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::Number(5.0)
@@ -299,29 +253,21 @@ impl PartialEq<tokens::Token> for AdditionExprOperator {
 /// );
 /// ```
 #[derive(Debug, PartialEq)]
-pub struct AdditionExpr {
-    operation: AdditionExprOperator,
-    lhe: Box<Expr>,
-    rhe: Box<Expr>,
-}
-
-impl AdditionExpr {
-    pub fn new(op: AdditionExprOperator, lhe: Box<Expr>, rhe: Box<Expr>) -> AdditionExpr {
-        AdditionExpr {
-            operation: op,
-            lhe,
-            rhe,
-        }
-    }
+pub enum AdditionExpr {
+    Add(Box<Expr>, Box<Expr>),
+    Subtract(Box<Expr>, Box<Expr>),
 }
 
 impl fmt::Display for AdditionExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({} {} {})", self.operation, self.lhe, self.rhe)
+        match self {
+            AdditionExpr::Add(left, right) => write!(f, "(+ {} {})", left, right),
+            AdditionExpr::Subtract(left, right) => write!(f, "(- {} {})", left, right),
+        }
     }
 }
 
-/// Represents Multiplication Lox expressions
+/// Represents Multiplication Lox expressions.
 ///
 /// # Examples
 /// ```
@@ -360,7 +306,7 @@ impl fmt::Display for MultiplicationExpr {
     }
 }
 
-/// Represents a unary Lox expressions
+/// Represents a unary Lox expressions.
 ///
 /// # Examples
 /// ```

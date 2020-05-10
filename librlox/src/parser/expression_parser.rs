@@ -168,11 +168,11 @@ fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Addition(AdditionExpr::new(
-                AdditionExprOperator::from_token(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Addition(match op.token_type {
+                TokenType::Plus => AdditionExpr::Add(Box::new(left), Box::new(last)),
+                TokenType::Minus => AdditionExpr::Subtract(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
