@@ -8,7 +8,7 @@ fn scan_tokens_should_lex_digit() {
     compare_single_token_source_with_literal_helper(
         "123",
         Literal::Number(123.0),
-        TokenType::Number,
+        TokenType::Literal,
     );
 }
 
@@ -17,7 +17,7 @@ fn scan_tokens_should_lex_floating_point() {
     compare_single_token_source_with_literal_helper(
         "123.45",
         Literal::Number(123.45),
-        TokenType::Number,
+        TokenType::Literal,
     );
 }
 
