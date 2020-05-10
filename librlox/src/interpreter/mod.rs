@@ -13,6 +13,8 @@ impl fmt::Display for InterpreterErr {
     }
 }
 
-pub trait Interpreter<T> {
-    fn interpret(&self) -> Result<T, InterpreterErr>;
+pub trait Interpreter<A, B> {
+    fn interpret(&self, input: A) -> Result<B, InterpreterErr>;
 }
+
+pub mod expression;
