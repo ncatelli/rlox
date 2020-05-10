@@ -28,52 +28,7 @@ impl fmt::Display for Expr {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum EqualityExprOperator {
-    Equal,
-    NotEqual,
-}
-
-impl EqualityExprOperator {
-    pub fn from_token(token: tokens::Token) -> Result<EqualityExprOperator, String> {
-        match token.token_type {
-            tokens::TokenType::EqualEqual => Ok(EqualityExprOperator::Equal),
-            tokens::TokenType::BangEqual => Ok(EqualityExprOperator::NotEqual),
-            _ => Err(format!(
-                "Unable to convert from {} to EqualityExprOperator",
-                token.token_type
-            )),
-        }
-    }
-}
-
-impl fmt::Display for EqualityExprOperator {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            EqualityExprOperator::Equal => write!(f, "=="),
-            EqualityExprOperator::NotEqual => write!(f, "!="),
-        }
-    }
-}
-
-// Implement <EqualityExprOperator> == <tokens::Token>  comparisons
-impl PartialEq<tokens::Token> for EqualityExprOperator {
-    fn eq(&self, token: &tokens::Token) -> bool {
-        match self {
-            EqualityExprOperator::Equal => match token.token_type {
-                tokens::TokenType::EqualEqual => true,
-                _ => false,
-            },
-            EqualityExprOperator::NotEqual => match token.token_type {
-                tokens::TokenType::BangEqual => true,
-                _ => false,
-            },
-        }
-    }
-}
-
-/// Represents Equality Lox expressions and stores an operation, along
-/// with Boxed left and right hand expressions.
+/// Represents Equality Lox expressions.
 ///
 /// # Examples
 /// ```
@@ -83,8 +38,7 @@ impl PartialEq<tokens::Token> for EqualityExprOperator {
 /// use std::option::Option::Some;
 ///
 /// let comparison = Expr::Equality(
-///     EqualityExpr::new(
-///         EqualityExprOperator::NotEqual,
+///     EqualityExpr::NotEqual(
 ///         Box::new(
 ///             Expr::Primary(
 ///                 PrimaryExpr::Number(5.0)
@@ -99,25 +53,17 @@ impl PartialEq<tokens::Token> for EqualityExprOperator {
 /// );
 /// ```
 #[derive(Debug, PartialEq)]
-pub struct EqualityExpr {
-    operation: EqualityExprOperator,
-    lhe: Box<Expr>,
-    rhe: Box<Expr>,
-}
-
-impl EqualityExpr {
-    pub fn new(op: EqualityExprOperator, lhe: Box<Expr>, rhe: Box<Expr>) -> EqualityExpr {
-        EqualityExpr {
-            operation: op,
-            lhe,
-            rhe,
-        }
-    }
+pub enum EqualityExpr {
+    Equal(Box<Expr>, Box<Expr>),
+    NotEqual(Box<Expr>, Box<Expr>),
 }
 
 impl fmt::Display for EqualityExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({} {} {})", self.operation, self.lhe, self.rhe)
+        match self {
+            EqualityExpr::Equal(left, right) => write!(f, "(== {} {})", left, right),
+            EqualityExpr::NotEqual(left, right) => write!(f, "(!= {} {})", left, right),
+        }
     }
 }
 

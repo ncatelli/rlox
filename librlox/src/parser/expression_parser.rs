@@ -99,11 +99,11 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Equality(EqualityExpr::new(
-                EqualityExprOperator::from_token(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Equality(match op.token_type {
+                TokenType::EqualEqual => EqualityExpr::Equal(Box::new(left), Box::new(last)),
+                TokenType::BangEqual => EqualityExpr::NotEqual(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
