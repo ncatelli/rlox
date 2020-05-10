@@ -1,15 +1,27 @@
 use crate::interpreter::{Interpreter, InterpreterErr};
-use crate::parser::expression::{Expr, MultiplicationExpr, PrimaryExpr};
+use crate::parser::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
+
+macro_rules! primary_number {
+    ($x:literal) => {
+        Expr::Primary(PrimaryExpr::Number($x))
+    };
+}
+
+macro_rules! primary_string {
+    ($s:literal) => {
+        Expr::Primary(PrimaryExpr::Str($s.to_string()))
+    };
+}
 
 #[test]
 fn multiplication_expr_should_evaluate_when_both_operands_are_numbers() {
     let product_expr = MultiplicationExpr::Multiply(
-        Box::new(Expr::Primary(PrimaryExpr::Number(5.0))),
-        Box::new(Expr::Primary(PrimaryExpr::Number(2.0))),
+        Box::new(primary_number!(5.0)),
+        Box::new(primary_number!(2.0)),
     );
     let division_expr = MultiplicationExpr::Divide(
-        Box::new(Expr::Primary(PrimaryExpr::Number(10.0))),
-        Box::new(Expr::Primary(PrimaryExpr::Number(2.0))),
+        Box::new(primary_number!(10.0)),
+        Box::new(primary_number!(2.0)),
     );
 
     assert_eq!(Ok(PrimaryExpr::Number(10.0)), product_expr.interpret());
@@ -19,8 +31,8 @@ fn multiplication_expr_should_evaluate_when_both_operands_are_numbers() {
 #[test]
 fn multiplication_expr_should_err_when_operands_are_not_numbers() {
     let expr = MultiplicationExpr::Multiply(
-        Box::new(Expr::Primary(PrimaryExpr::Str("hello".to_string()))),
-        Box::new(Expr::Primary(PrimaryExpr::Str("world".to_string()))),
+        Box::new(primary_string!("hello")),
+        Box::new(primary_string!("world")),
     );
     assert_eq!(
         Err(InterpreterErr::TypeErr(
@@ -28,4 +40,16 @@ fn multiplication_expr_should_err_when_operands_are_not_numbers() {
         )),
         expr.interpret()
     );
+}
+
+#[test]
+fn multiplication_expr_should_maintain_operator_precedence() {
+    let expr = MultiplicationExpr::Multiply(
+        Box::new(primary_number!(5.0)),
+        Box::new(Expr::Unary(UnaryExpr::Minus(Box::new(primary_number!(
+            1.0
+        ))))),
+    );
+
+    assert_eq!(Ok(PrimaryExpr::Number(-5.0)), expr.interpret());
 }
