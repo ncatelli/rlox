@@ -165,6 +165,40 @@ impl fmt::Display for AdditionExpr {
     }
 }
 
+impl interpreter::Interpreter<PrimaryExpr> for AdditionExpr {
+    fn interpret(&self) -> Result<PrimaryExpr, interpreter::InterpreterErr> {
+        match self {
+            Self::Add(left, right) => match (left.interpret(), right.interpret()) {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(PrimaryExpr::Number(left_val + right_val))
+                }
+                (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
+                    Ok(PrimaryExpr::Str(format!("{}{}", left_val, right_val)))
+                }
+                (Ok(l), Ok(r)) => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} + {}",
+                    l, r
+                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator"
+                ))),
+            },
+            Self::Subtract(left, right) => match (left.interpret(), right.interpret()) {
+                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
+                    Ok(PrimaryExpr::Number(left_val - right_val))
+                }
+                (Ok(l), Ok(r)) => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator: {} - {}",
+                    l, r
+                ))),
+                _ => Err(interpreter::InterpreterErr::TypeErr(format!(
+                    "Invalid operand for operator"
+                ))),
+            },
+        }
+    }
+}
+
 /// Represents Multiplication Lox expressions.
 ///
 /// # Examples
