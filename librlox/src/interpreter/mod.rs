@@ -14,7 +14,9 @@ impl fmt::Display for InterpreterErr {
 }
 
 pub trait Interpreter<A, B> {
-    fn interpret(&self, input: A) -> Result<B, InterpreterErr>;
+    type Error;
+
+    fn interpret(&self, input: A) -> Result<B, Self::Error>;
 }
 
 pub mod expression;

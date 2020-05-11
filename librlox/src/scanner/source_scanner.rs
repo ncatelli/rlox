@@ -5,10 +5,12 @@ use std::iter::Iterator;
 
 use super::tokens::{Literal, Token, TokenType};
 
+type LexError = String;
+
 /// LexResult is an alias that represents the result of an attempt to lex a
 /// single character token. Returning either the Token or a string containing
 /// positional data for the error.
-pub type LexResult = Result<Token, String>;
+pub type LexResult = Result<Token, LexError>;
 
 /// Cursor stores positional data for the scanner. Actively tracking index into
 /// the source Vector, the current column and line of the token being parsed.
