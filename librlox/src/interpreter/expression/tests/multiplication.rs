@@ -1,5 +1,5 @@
-use crate::interpreter::expression::ExpressionInterpreter;
-use crate::interpreter::{Interpreter, InterpreterErr};
+use crate::interpreter::expression::{ExprInterpreterErr, ExpressionInterpreter};
+use crate::interpreter::Interpreter;
 use crate::parser::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
 
 macro_rules! primary_number {
@@ -42,8 +42,10 @@ fn multiplication_expr_should_err_when_operands_are_not_numbers() {
         Box::new(primary_string!("world")),
     ));
     assert_eq!(
-        Err(InterpreterErr::TypeErr(
-            "Invalid operand for operator: hello * world".to_string()
+        Err(ExprInterpreterErr::BinaryExpr(
+            "*",
+            PrimaryExpr::Str("hello".to_string()),
+            PrimaryExpr::Str("world".to_string()),
         )),
         expr_interpret!(expr)
     );

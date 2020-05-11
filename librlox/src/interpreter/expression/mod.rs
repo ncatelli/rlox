@@ -1,34 +1,53 @@
-use crate::interpreter::{Interpreter, InterpreterErr};
+use crate::interpreter::Interpreter;
 use crate::parser::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
+use std::fmt;
 
 #[cfg(test)]
 mod tests;
 
 macro_rules! type_error {
     () => {
-        Err(InterpreterErr::TypeErr(
-            "Invalid operand for operator".to_string(),
-        ))
+        Err(ExprInterpreterErr::Unspecified)
     };
-    ($error:expr) => {
-        Err(InterpreterErr::TypeErr($error.to_string()))
+    ($e:expr) => {
+        Err(ExprInterpreterErr::Type($e))
     };
     ($left:expr, $op:literal, $right:expr) => {
-        Err(InterpreterErr::TypeErr(format!(
-            "Invalid operand for operator: {} {} {}",
-            $left, $op, $right
-        )))
+        Err(ExprInterpreterErr::BinaryExpr($op, $left, $right))
     };
 }
 
-type InterpreterResult = Result<PrimaryExpr, InterpreterErr>;
+#[derive(PartialEq, Debug)]
+pub enum ExprInterpreterErr {
+    Unspecified,
+    Type(&'static str),
+    BinaryExpr(&'static str, PrimaryExpr, PrimaryExpr),
+}
+
+impl fmt::Display for ExprInterpreterErr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unspecified => write!(f, "unspecified expression error"),
+            Self::Type(e) => write!(f, "invalid type: {}", e),
+            Self::BinaryExpr(op, left, right) => write!(
+                f,
+                "invalid operand for operators: {} {} {}",
+                left, op, right
+            ),
+        }
+    }
+}
+
+type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 
 #[derive(Default)]
 pub struct ExpressionInterpreter {}
 
 impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
+    type Error = ExprInterpreterErr;
+
     fn interpret(&self, expr: Expr) -> InterpreterResult {
         match expr {
             Expr::Grouping(expr) => self.interpret(expr),
@@ -44,6 +63,7 @@ impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
 
 /// This functions only to unpack an Expr and dispatch to the upstream Interpreter<Expr, PrimaryExpr> implementation
 impl Interpreter<Box<Expr>, PrimaryExpr> for ExpressionInterpreter {
+    type Error = ExprInterpreterErr;
     fn interpret(&self, expr: Box<Expr>) -> InterpreterResult {
         self.interpret(*expr)
     }
@@ -54,7 +74,7 @@ impl ExpressionInterpreter {
         ExpressionInterpreter::default()
     }
 
-    fn interpret_equality(&self, expr: EqualityExpr) -> Result<PrimaryExpr, InterpreterErr> {
+    fn interpret_equality(&self, expr: EqualityExpr) -> Result<PrimaryExpr, ExprInterpreterErr> {
         match expr {
             EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
             {
@@ -82,7 +102,10 @@ impl ExpressionInterpreter {
         }
     }
 
-    fn interpret_comparison(&self, expr: ComparisonExpr) -> Result<PrimaryExpr, InterpreterErr> {
+    fn interpret_comparison(
+        &self,
+        expr: ComparisonExpr,
+    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
         match expr {
             ComparisonExpr::Less(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
@@ -123,7 +146,7 @@ impl ExpressionInterpreter {
         }
     }
 
-    fn interpret_addition(&self, expr: AdditionExpr) -> Result<PrimaryExpr, InterpreterErr> {
+    fn interpret_addition(&self, expr: AdditionExpr) -> Result<PrimaryExpr, ExprInterpreterErr> {
         match expr {
             AdditionExpr::Add(left, right) => match (self.interpret(left), self.interpret(right)) {
                 (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
@@ -150,7 +173,7 @@ impl ExpressionInterpreter {
     fn interpret_multiplication(
         &self,
         expr: MultiplicationExpr,
-    ) -> Result<PrimaryExpr, InterpreterErr> {
+    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
         match expr {
             MultiplicationExpr::Multiply(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
@@ -177,11 +200,11 @@ impl ExpressionInterpreter {
         match expr {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
                 Ok(expr) => Ok(PrimaryExpr::from(!is_true(expr))),
-                Err(e) => type_error!(e),
+                e @ Err(_) => e,
             },
             UnaryExpr::Minus(ue) => match self.interpret(ue) {
                 Ok(PrimaryExpr::Number(v)) => Ok(PrimaryExpr::Number(v * -1.0)),
-                Err(e) => type_error!(e),
+                e @ Err(_) => e,
                 _ => type_error!(),
             },
         }
