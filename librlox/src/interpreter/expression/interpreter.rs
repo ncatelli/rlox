@@ -37,7 +37,7 @@ impl fmt::Display for ExprInterpreterErr {
     }
 }
 
-type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
+pub type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 
 #[derive(Default)]
 pub struct ExpressionInterpreter {}
