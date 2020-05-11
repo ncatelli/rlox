@@ -1,5 +1,6 @@
 mod interpreter;
 
+use crate::interpreter::Interpreter;
 use crate::parser::expression::{Expr, PrimaryExpr};
 use interpreter::ExpressionInterpreter;
 
@@ -11,6 +12,5 @@ mod tests;
 pub type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 
 pub fn interpret(expr: Expr) -> InterpreterResult {
-    use crate::interpreter::Interpreter;
     ExpressionInterpreter::new().interpret(expr)
 }
