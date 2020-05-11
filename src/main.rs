@@ -11,7 +11,7 @@ use librlox::parser::expression_parser::expression;
 use librlox::scanner;
 use parcel::Parser;
 
-type ParseResult<T> = Result<T, String>;
+type RuntimeResult<T> = Result<T, String>;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -51,9 +51,8 @@ fn run_prompt() {
     }
 }
 
-fn run(source: String) -> ParseResult<usize> {
-    let s = scanner::Scanner::new(source);
-    let token_iter = s.scan_tokens().into_iter();
+fn run(source: String) -> RuntimeResult<usize> {
+    let token_iter = scanner::Scanner::new(source).scan_tokens().into_iter();
     let token_count = token_iter.len();
 
     let tokens: Vec<scanner::Token> = token_iter
