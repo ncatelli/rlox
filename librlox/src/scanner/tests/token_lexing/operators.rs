@@ -38,6 +38,12 @@ fn scan_tokens_combinator_should_lex_single_character_lexemes() {
     compare_single_token_source_combinator_helper("+", TokenType::Plus);
     compare_single_token_source_combinator_helper(";", TokenType::Semicolon);
     compare_single_token_source_combinator_helper("*", TokenType::Star);
+
+    compare_single_token_source_combinator_helper("!", TokenType::Bang);
+    compare_single_token_source_combinator_helper("=", TokenType::Equal);
+    compare_single_token_source_combinator_helper("<", TokenType::Less);
+    compare_single_token_source_combinator_helper(">", TokenType::Greater);
+    compare_single_token_source_combinator_helper("/", TokenType::Slash);
 }
 
 #[test]

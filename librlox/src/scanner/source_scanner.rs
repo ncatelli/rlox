@@ -401,7 +401,9 @@ fn alpha<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
 fn not_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], char> {
     move |input: &'a [char]| match input.get(0) {
         Some(next) if *next != expected => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
-        _ => Ok(parcel::MatchStatus::NoMatch(input)),
+        Some(next) if *next == expected => Ok(parcel::MatchStatus::NoMatch(input)),
+        // This matches for an end-of-input case. ' ' is a placeholder
+        _ => Ok(parcel::MatchStatus::Match((&input[0..], ' '))),
     }
 }
 
@@ -425,6 +427,7 @@ fn two_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
             // unreachable case
             _ => Token::new(TokenType::EOF, None),
         })
+        .map(|c| Token::from(c))
 }
 
 fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
@@ -438,6 +441,11 @@ fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
         .or(|| match_char('+'))
         .or(|| match_char(';'))
         .or(|| match_char('*'))
+        .or(|| match_char('!'))
+        .or(|| match_char('='))
+        .or(|| match_char('<'))
+        .or(|| match_char('>'))
+        .or(|| match_char('/'))
         .map(|c| Token::from(c))
 }
 
