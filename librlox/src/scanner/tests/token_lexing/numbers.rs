@@ -27,9 +27,37 @@ fn scan_tokens_should_not_allow_trailing_decimal() {
     let s = Scanner::new(source);
     let token_results = s.scan_tokens();
 
-    //assert_eq!(1, token_results.len());
     assert_eq!(
         token_results[0],
         LexResult::Err("Invalid number at line: 1, position: 3".to_string())
+    );
+}
+
+#[test]
+fn scan_tokens_should_allow_numbers_to_include_operators() {
+    let source = "5+5".to_string();
+    let s = Scanner::new(source);
+    let token_results = s.scan_tokens();
+
+    assert_eq!(
+        token_results,
+        vec![
+            LexResult::Ok(Token {
+                token_type: TokenType::Literal,
+                literal: Some(Literal::Number(5.0)),
+            }),
+            LexResult::Ok(Token {
+                token_type: TokenType::Plus,
+                literal: None,
+            }),
+            LexResult::Ok(Token {
+                token_type: TokenType::Literal,
+                literal: Some(Literal::Number(5.0)),
+            }),
+            LexResult::Ok(Token {
+                token_type: TokenType::EOF,
+                literal: None,
+            })
+        ]
     );
 }
