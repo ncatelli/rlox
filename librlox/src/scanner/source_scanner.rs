@@ -304,13 +304,11 @@ impl Scanner {
                     }
                 }
                 _ => {
-                    //reverse reader one step to negate quote
-                    let literal_str: String = self
-                        .substring(start, Cursor::reverse(current))
-                        .iter()
-                        .collect();
+                    // rewind cursor to not eat next token.
+                    let current = Cursor::reverse(current);
+                    let literal_num: String = self.substring(start, current).iter().collect();
 
-                    return match literal_str.parse() {
+                    return match literal_num.parse() {
                         Ok(n) => (
                             Ok(Token::new(TokenType::Literal, Some(Literal::Number(n)))),
                             current,
