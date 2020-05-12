@@ -377,11 +377,8 @@ pub fn scan_tokens_combinator<'a>() -> impl parcel::Parser<'a, &'a [char], Vec<T
     )
 }
 
-fn whitespace<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
-    match_char(' ')
-        .or(|| match_char('\t'))
-        .or(|| match_char('\r'))
-        .or(|| match_char('\n'))
+fn newline<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
+    match_char('\n')
 }
 
 fn numeric<'a>() -> impl parcel::Parser<'a, &'a [char], char> {

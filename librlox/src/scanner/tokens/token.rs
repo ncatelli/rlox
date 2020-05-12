@@ -73,7 +73,6 @@ impl Token {
     }
 }
 
-// TODO
 impl From<char> for Token {
     fn from(item: char) -> Self {
         match item {

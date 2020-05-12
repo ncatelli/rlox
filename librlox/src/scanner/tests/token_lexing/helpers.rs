@@ -24,14 +24,13 @@ pub fn compare_single_token_source_combinator_helper(
     single_token_source: &str,
     expected_token_type: TokenType,
 ) {
-    let source_chars: Vec<char> = single_token_source.chars().collect();
-    let token_results =
-        crate::scanner::source_scanner::scan_tokens_combinator().parse(&source_chars);
+    let input: Vec<char> = single_token_source.chars().collect();
+    let token_results = crate::scanner::source_scanner::scan_tokens_combinator().parse(&input);
 
     assert_eq!(
         token_results,
         Ok(parcel::MatchStatus::Match((
-            &source_chars[1..],
+            &input[input.len()..],
             vec![Token {
                 token_type: expected_token_type,
                 literal: None,
