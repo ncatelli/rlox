@@ -5,22 +5,6 @@ use parcel::*;
 use std::convert::TryFrom;
 use std::option::Option::Some;
 
-fn take_while<'a, P, A: 'a, B>(parser: P) -> impl Parser<'a, A, Vec<B>>
-where
-    A: Copy + 'a,
-    P: Parser<'a, A, B>,
-{
-    move |mut input| {
-        let mut result_acc: Vec<B> = Vec::new();
-        while let Ok(MatchStatus::Match((next_input, result))) = parser.parse(input) {
-            input = next_input;
-            result_acc.push(result);
-        }
-
-        Ok(MatchStatus::Match((input, result_acc)))
-    }
-}
-
 fn unzip<A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
     let mut left_vec: Vec<A> = vec![];
     let mut right_vec: Vec<B> = vec![];
@@ -81,7 +65,7 @@ pub fn expression<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         comparison(),
-        take_while(join(
+        parcel::zero_or_more(join(
             token_type(TokenType::EqualEqual).or(|| token_type(TokenType::BangEqual)),
             comparison(),
         ))
@@ -114,7 +98,7 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         addition(),
-        take_while(join(
+        parcel::zero_or_more(join(
             token_type(TokenType::Greater)
                 .or(|| token_type(TokenType::GreaterEqual))
                 .or(|| token_type(TokenType::Less))
@@ -154,7 +138,7 @@ fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         multiplication(),
-        take_while(join(
+        parcel::zero_or_more(join(
             token_type(TokenType::Plus).or(|| token_type(TokenType::Minus)),
             multiplication(),
         ))
@@ -187,7 +171,7 @@ fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         unary(),
-        take_while(join(
+        parcel::zero_or_more(join(
             token_type(TokenType::Star).or(|| token_type(TokenType::Slash)),
             unary(),
         ))
