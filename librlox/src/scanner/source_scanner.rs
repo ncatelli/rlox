@@ -464,9 +464,9 @@ fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
 /// parent or combinator
 fn match_number<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
     parcel::or(
-        parcel::take_while(numeric()).map(|n| {
+        parcel::one_or_more(numeric()).map(|n| {
             Token::new(
-                TokenType::Number,
+                TokenType::Literal,
                 Some(Literal::Number(
                     n.into_iter().collect::<String>().parse().unwrap(),
                 )),
@@ -474,14 +474,14 @@ fn match_number<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
         }),
         || {
             parcel::join(
-                parcel::take_while(numeric()),
+                parcel::one_or_more(numeric()),
                 parcel::right(parcel::join(match_char('.'), zero_or_more(numeric()))),
             )
             .map(|(mut whole, mut decimal)| {
                 whole.push('.');
                 whole.append(&mut decimal);
                 Token::new(
-                    TokenType::Number,
+                    TokenType::Literal,
                     Some(Literal::Number(
                         whole.into_iter().collect::<String>().parse().unwrap(),
                     )),
@@ -495,22 +495,22 @@ fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
     parcel::right(parcel::join(
         match_char('"'),
         parcel::left(parcel::join(
-            parcel::take_while(not_char('"')),
+            parcel::one_or_more(not_char('"')),
             match_char('"'),
         )),
     ))
     .map(|literal| {
         Token::new(
-            TokenType::Str,
+            TokenType::Literal,
             Some(Literal::Str(literal.into_iter().collect())),
         )
     })
 }
 
 fn match_identifier<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
-    parcel::take_while(alpha()).map(|literal| {
+    parcel::one_or_more(alpha()).map(|literal| {
         Token::new(
-            TokenType::Identifier,
+            TokenType::Literal,
             Some(Literal::Identifier(literal.into_iter().collect())),
         )
     })
