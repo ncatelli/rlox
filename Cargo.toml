@@ -17,5 +17,5 @@ harness = false
 members = ["librlox"]
 
 [dependencies]
-parcel = { git = "https://github.com/ncatelli/parcel", tag = "v0.1.1" }
+parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.0.0" }
 librlox = { path = "librlox" }

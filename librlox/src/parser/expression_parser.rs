@@ -1,25 +1,9 @@
 extern crate parcel;
 use crate::parser::expression::*;
 use crate::scanner::tokens::{Token, TokenType};
-use parcel::{join, left, right, MatchStatus, Parser};
+use parcel::*;
 use std::convert::TryFrom;
 use std::option::Option::Some;
-
-fn take_while<'a, P, A: 'a, B>(parser: P) -> impl Parser<'a, A, Vec<B>>
-where
-    A: Copy + 'a,
-    P: Parser<'a, A, B>,
-{
-    move |mut input| {
-        let mut result_acc: Vec<B> = Vec::new();
-        while let Ok(MatchStatus::Match((next_input, result))) = parser.parse(input) {
-            input = next_input;
-            result_acc.push(result);
-        }
-
-        Ok(MatchStatus::Match((input, result_acc)))
-    }
-}
 
 fn unzip<A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
     let mut left_vec: Vec<A> = vec![];
@@ -52,10 +36,11 @@ fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], T
 /// use librlox::parser::expression::*;
 /// use librlox::parser::expression_parser::*;
 /// use std::option::Option;
+/// use std::convert::TryFrom;
 /// use parcel::*;
 ///
 ///
-/// let literal_token = Token::new(TokenType::Number, Option::Some(Literal::Number(1.0)));
+/// let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
 /// let seed_vec = vec![
 ///     literal_token.clone(),
 /// ];
@@ -64,9 +49,9 @@ fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], T
 ///     Ok(MatchStatus::Match((
 ///         &seed_vec[1..],
 ///         Expr::Primary(
-///             PrimaryExpr::new(
+///             PrimaryExpr::try_from(
 ///                 literal_token.clone()
-///             )
+///             ).unwrap()
 ///         )
 ///     ))),
 ///     expression().parse(&seed_vec)
@@ -80,7 +65,7 @@ pub fn expression<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         comparison(),
-        take_while(join(
+        parcel::zero_or_more(join(
             token_type(TokenType::EqualEqual).or(|| token_type(TokenType::BangEqual)),
             comparison(),
         ))
@@ -98,11 +83,11 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Equality(EqualityExpr::new(
-                EqualityExprOperator::try_from(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Equality(match op.token_type {
+                TokenType::EqualEqual => EqualityExpr::Equal(Box::new(left), Box::new(last)),
+                TokenType::BangEqual => EqualityExpr::NotEqual(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
@@ -113,7 +98,7 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         addition(),
-        take_while(join(
+        parcel::zero_or_more(join(
             token_type(TokenType::Greater)
                 .or(|| token_type(TokenType::GreaterEqual))
                 .or(|| token_type(TokenType::Less))
@@ -134,11 +119,15 @@ fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Comparison(ComparisonExpr::new(
-                ComparisonExprOperator::try_from(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Comparison(match op.token_type {
+                TokenType::Less => ComparisonExpr::Less(Box::new(left), Box::new(last)),
+                TokenType::LessEqual => ComparisonExpr::LessEqual(Box::new(left), Box::new(last)),
+                TokenType::Greater => ComparisonExpr::Greater(Box::new(left), Box::new(last)),
+                TokenType::GreaterEqual => {
+                    ComparisonExpr::GreaterEqual(Box::new(left), Box::new(last))
+                }
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
@@ -149,7 +138,7 @@ fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         multiplication(),
-        take_while(join(
+        parcel::zero_or_more(join(
             token_type(TokenType::Plus).or(|| token_type(TokenType::Minus)),
             multiplication(),
         ))
@@ -167,11 +156,11 @@ fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Addition(AdditionExpr::new(
-                AdditionExprOperator::try_from(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Addition(match op.token_type {
+                TokenType::Plus => AdditionExpr::Add(Box::new(left), Box::new(last)),
+                TokenType::Minus => AdditionExpr::Subtract(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
@@ -182,7 +171,7 @@ fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         unary(),
-        take_while(join(
+        parcel::zero_or_more(join(
             token_type(TokenType::Star).or(|| token_type(TokenType::Slash)),
             unary(),
         ))
@@ -200,11 +189,11 @@ fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         for op in operators_iter {
             // this is fairly safe due to the parser guaranteeing enough args.
             let left = operands_iter.next().unwrap();
-            last = Expr::Multiplication(MultiplicationExpr::new(
-                MultiplicationExprOperator::try_from(op).unwrap(),
-                Box::new(left),
-                Box::new(last),
-            ))
+            last = Expr::Multiplication(match op.token_type {
+                TokenType::Star => MultiplicationExpr::Multiply(Box::new(left), Box::new(last)),
+                TokenType::Slash => MultiplicationExpr::Divide(Box::new(left), Box::new(last)),
+                _ => panic!(format!("unexpected token: {}", op.token_type)),
+            })
         }
         last
     })
@@ -217,7 +206,13 @@ fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         token_type(TokenType::Bang).or(|| token_type(TokenType::Minus)),
         primary(),
     )
-    .map(|(token, lit)| Expr::Unary(UnaryExpr::new(token, Box::new(lit))))
+    .map(|(token, lit)| {
+        Expr::Unary(match token.token_type {
+            TokenType::Minus => UnaryExpr::Minus(Box::new(lit)),
+            TokenType::Bang => UnaryExpr::Bang(Box::new(lit)),
+            _ => panic!(format!("unexpected token: {}", token.token_type)),
+        })
+    })
     .or(|| primary())
 }
 
@@ -225,14 +220,13 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     token_type(TokenType::True)
         .or(|| token_type(TokenType::False))
         .or(|| token_type(TokenType::Nil))
-        .or(|| token_type(TokenType::Number))
-        .or(|| token_type(TokenType::Str))
-        .map(|token| Expr::Primary(PrimaryExpr::new(token)))
+        .or(|| token_type(TokenType::Literal))
+        .map(|token| Expr::Primary(PrimaryExpr::try_from(token).unwrap()))
         .or(|| {
             right(join(
                 token_type(TokenType::LeftParen),
                 left(join(expression(), token_type(TokenType::RightParen))),
             ))
-            .map(|expr| Expr::Grouping(GroupingExpr::new(Box::new(expr))))
+            .map(|expr| Expr::Grouping(Box::new(expr)))
         })
 }

@@ -6,10 +6,12 @@ use std::option::Option::{None, Some};
 
 use super::tokens::{Literal, Token, TokenType};
 
+type LexError = String;
+
 /// LexResult is an alias that represents the result of an attempt to lex a
 /// single character token. Returning either the Token or a string containing
 /// positional data for the error.
-pub type LexResult = Result<Token, String>;
+pub type LexResult = Result<Token, LexError>;
 
 /// Cursor stores positional data for the scanner. Actively tracking index into
 /// the source Vector, the current column and line of the token being parsed.
@@ -249,7 +251,10 @@ impl Scanner {
                         .iter()
                         .collect();
                     return (
-                        Ok(Token::new(TokenType::Str, Some(Literal::Str(literal_str)))),
+                        Ok(Token::new(
+                            TokenType::Literal,
+                            Some(Literal::Str(literal_str)),
+                        )),
                         current,
                     );
                 }
@@ -300,15 +305,13 @@ impl Scanner {
                     }
                 }
                 _ => {
-                    //reverse reader one step to negate quote
-                    let literal_str: String = self
-                        .substring(start, Cursor::reverse(current))
-                        .iter()
-                        .collect();
+                    // rewind cursor to not eat next token.
+                    let current = Cursor::reverse(current);
+                    let literal_num: String = self.substring(start, current).iter().collect();
 
-                    return match literal_str.parse() {
+                    return match literal_num.parse() {
                         Ok(n) => (
-                            Ok(Token::new(TokenType::Number, Some(Literal::Number(n)))),
+                            Ok(Token::new(TokenType::Literal, Some(Literal::Number(n)))),
                             current,
                         ),
                         Err(_) => (
@@ -335,10 +338,7 @@ impl Scanner {
                         .substring(start, Cursor::reverse(current))
                         .iter()
                         .collect();
-                    let t = Token::new(
-                        TokenType::Identifier,
-                        Some(Literal::Identifier(literal_str)),
-                    );
+                    let t = Token::new(TokenType::Literal, Some(Literal::Identifier(literal_str)));
 
                     return match t.is_reserved_keyword() {
                         Some(token_type) => (Ok(Token::new(token_type, None)), current),

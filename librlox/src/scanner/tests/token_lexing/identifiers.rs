@@ -10,7 +10,7 @@ fn scan_tokens_should_lex_identifiers() {
     compare_single_token_source_with_literal_helper(
         identifier,
         Literal::Identifier(identifier.to_string()),
-        TokenType::Identifier,
+        TokenType::Literal,
     )
 }
 
@@ -20,7 +20,7 @@ fn scan_tokens_should_separate_identifier_on_non_alpha() {
     compare_single_token_source_with_literal_helper(
         identifier,
         Literal::Identifier(identifier.trim().to_string()),
-        TokenType::Identifier,
+        TokenType::Literal,
     )
 }
 
