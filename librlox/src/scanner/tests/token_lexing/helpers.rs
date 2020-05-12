@@ -1,5 +1,7 @@
+extern crate parcel;
 use crate::scanner::tokens::{Literal, Token, TokenType};
 use crate::scanner::*;
+use parcel::Parser;
 
 pub fn compare_single_token_source_helper(
     single_token_source: &str,
@@ -15,6 +17,26 @@ pub fn compare_single_token_source_helper(
             token_type: expected_token_type,
             literal: None,
         })
+    );
+}
+
+pub fn compare_single_token_source_combinator_helper(
+    single_token_source: &str,
+    expected_token_type: TokenType,
+) {
+    let source_chars: Vec<char> = single_token_source.chars().collect();
+    let token_results =
+        crate::scanner::source_scanner::scan_tokens_combinator().parse(&source_chars);
+
+    assert_eq!(
+        token_results,
+        Ok(parcel::MatchStatus::Match((
+            &source_chars[1..],
+            vec![Token {
+                token_type: expected_token_type,
+                literal: None,
+            }]
+        )))
     );
 }
 

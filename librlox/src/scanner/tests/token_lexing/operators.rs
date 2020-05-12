@@ -2,7 +2,8 @@ use crate::scanner::tokens::TokenType;
 use crate::scanner::*;
 
 use super::helpers::{
-    compare_single_token_source_helper, compare_single_token_source_returns_none_helper,
+    compare_single_token_source_combinator_helper, compare_single_token_source_helper,
+    compare_single_token_source_returns_none_helper,
 };
 
 #[test]
@@ -23,6 +24,20 @@ fn scan_tokens_should_lex_single_character_lexemes() {
     compare_single_token_source_helper("<", TokenType::Less);
     compare_single_token_source_helper(">", TokenType::Greater);
     compare_single_token_source_helper("/", TokenType::Slash);
+}
+
+#[test]
+fn scan_tokens_combinator_should_lex_single_character_lexemes() {
+    compare_single_token_source_combinator_helper("(", TokenType::LeftParen);
+    compare_single_token_source_combinator_helper(")", TokenType::RightParen);
+    compare_single_token_source_combinator_helper("{", TokenType::LeftBrace);
+    compare_single_token_source_combinator_helper("}", TokenType::RightBrace);
+    compare_single_token_source_combinator_helper(",", TokenType::Comma);
+    compare_single_token_source_combinator_helper(".", TokenType::Dot);
+    compare_single_token_source_combinator_helper("-", TokenType::Minus);
+    compare_single_token_source_combinator_helper("+", TokenType::Plus);
+    compare_single_token_source_combinator_helper(";", TokenType::Semicolon);
+    compare_single_token_source_combinator_helper("*", TokenType::Star);
 }
 
 #[test]

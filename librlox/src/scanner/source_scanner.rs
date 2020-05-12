@@ -367,29 +367,14 @@ impl Scanner {
     }
 }
 
-pub fn scan_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
-    two_char_token()
-        .or(|| single_char_token())
-        .or(|| match_string())
-        .or(|| match_number())
-        .or(|| match_identifier())
-}
-
-// parsers
-fn zero_or_more<'a, P, A: 'a, B>(parser: P) -> impl parcel::Parser<'a, A, Vec<B>>
-where
-    A: Copy + 'a,
-    P: parcel::Parser<'a, A, B>,
-{
-    move |mut input| {
-        let mut result_acc: Vec<B> = Vec::new();
-        while let Ok(parcel::MatchStatus::Match((next_input, result))) = parser.parse(input) {
-            input = next_input;
-            result_acc.push(result);
-        }
-
-        Ok(parcel::MatchStatus::Match((input, result_acc)))
-    }
+pub fn scan_tokens_combinator<'a>() -> impl parcel::Parser<'a, &'a [char], Vec<Token>> {
+    parcel::zero_or_more(
+        two_char_token()
+            .or(|| single_char_token())
+            .or(|| match_string())
+            .or(|| match_number())
+            .or(|| match_identifier()),
+    )
 }
 
 fn whitespace<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
@@ -453,10 +438,6 @@ fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
         .or(|| match_char('+'))
         .or(|| match_char(';'))
         .or(|| match_char('*'))
-        .or(|| match_char('!'))
-        .or(|| match_char('='))
-        .or(|| match_char('<'))
-        .or(|| match_char('>'))
         .map(|c| Token::from(c))
 }
 
@@ -475,7 +456,10 @@ fn match_number<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
         || {
             parcel::join(
                 parcel::one_or_more(numeric()),
-                parcel::right(parcel::join(match_char('.'), zero_or_more(numeric()))),
+                parcel::right(parcel::join(
+                    match_char('.'),
+                    parcel::zero_or_more(numeric()),
+                )),
             )
             .map(|(mut whole, mut decimal)| {
                 whole.push('.');

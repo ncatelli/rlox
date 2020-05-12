@@ -87,6 +87,11 @@ impl From<char> for Token {
             '+' => Token::new(TokenType::Plus, None),
             ';' => Token::new(TokenType::Semicolon, None),
             '*' => Token::new(TokenType::Star, None),
+            '!' => Token::new(TokenType::Bang, None),
+            '=' => Token::new(TokenType::Equal, None),
+            '<' => Token::new(TokenType::Less, None),
+            '>' => Token::new(TokenType::Greater, None),
+            '/' => Token::new(TokenType::Slash, None),
             _ => Token::new(TokenType::EOF, None),
         }
     }
