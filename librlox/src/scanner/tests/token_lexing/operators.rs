@@ -1,78 +1,61 @@
 use crate::scanner::tokens::TokenType;
 use crate::scanner::*;
 
-use super::helpers::{
-    compare_single_token_source_combinator_helper, compare_single_token_source_helper,
-    compare_single_token_source_returns_none_helper,
-};
+extern crate parcel;
+use parcel::Parser;
 
-#[test]
-fn scan_tokens_should_lex_single_character_lexemes() {
-    compare_single_token_source_helper("(", TokenType::LeftParen);
-    compare_single_token_source_helper(")", TokenType::RightParen);
-    compare_single_token_source_helper("{", TokenType::LeftBrace);
-    compare_single_token_source_helper("}", TokenType::RightBrace);
-    compare_single_token_source_helper(",", TokenType::Comma);
-    compare_single_token_source_helper(".", TokenType::Dot);
-    compare_single_token_source_helper("-", TokenType::Minus);
-    compare_single_token_source_helper("+", TokenType::Plus);
-    compare_single_token_source_helper(";", TokenType::Semicolon);
-    compare_single_token_source_helper("*", TokenType::Star);
+use super::helpers::compare_single_token_source_returns_none_helper;
 
-    compare_single_token_source_helper("!", TokenType::Bang);
-    compare_single_token_source_helper("=", TokenType::Equal);
-    compare_single_token_source_helper("<", TokenType::Less);
-    compare_single_token_source_helper(">", TokenType::Greater);
-    compare_single_token_source_helper("/", TokenType::Slash);
+macro_rules! compare_literal_token {
+    ($source:expr, $tt: expr) => {
+        let input: Vec<char> = $source.chars().collect();
+        let token_results = crate::scanner::source_scanner::scan_tokens_combinator().parse(&input);
+
+        assert_eq!(
+            token_results,
+            Ok(parcel::MatchStatus::Match((
+                &input[input.len()..],
+                vec![Token {
+                    token_type: $tt,
+                    literal: None,
+                }]
+            )))
+        );
+    };
 }
 
 #[test]
 fn scan_tokens_combinator_should_lex_single_character_lexemes() {
-    compare_single_token_source_combinator_helper("(", TokenType::LeftParen);
-    compare_single_token_source_combinator_helper(")", TokenType::RightParen);
-    compare_single_token_source_combinator_helper("{", TokenType::LeftBrace);
-    compare_single_token_source_combinator_helper("}", TokenType::RightBrace);
-    compare_single_token_source_combinator_helper(",", TokenType::Comma);
-    compare_single_token_source_combinator_helper(".", TokenType::Dot);
-    compare_single_token_source_combinator_helper("-", TokenType::Minus);
-    compare_single_token_source_combinator_helper("+", TokenType::Plus);
-    compare_single_token_source_combinator_helper(";", TokenType::Semicolon);
-    compare_single_token_source_combinator_helper("*", TokenType::Star);
+    compare_literal_token!("(", TokenType::LeftParen);
+    compare_literal_token!(")", TokenType::RightParen);
+    compare_literal_token!("{", TokenType::LeftBrace);
+    compare_literal_token!("}", TokenType::RightBrace);
+    compare_literal_token!(",", TokenType::Comma);
+    compare_literal_token!(".", TokenType::Dot);
+    compare_literal_token!("-", TokenType::Minus);
+    compare_literal_token!("+", TokenType::Plus);
+    compare_literal_token!(";", TokenType::Semicolon);
+    compare_literal_token!("*", TokenType::Star);
 
-    compare_single_token_source_combinator_helper("!", TokenType::Bang);
-    compare_single_token_source_combinator_helper("=", TokenType::Equal);
-    compare_single_token_source_combinator_helper("<", TokenType::Less);
-    compare_single_token_source_combinator_helper(">", TokenType::Greater);
-    compare_single_token_source_combinator_helper("/", TokenType::Slash);
-}
-
-#[test]
-fn scan_tokens_should_lex_multiple_character_operator_lexemes() {
-    compare_single_token_source_helper("!=", TokenType::BangEqual);
-    compare_single_token_source_helper("==", TokenType::EqualEqual);
-    compare_single_token_source_helper("<=", TokenType::LessEqual);
-    compare_single_token_source_helper(">=", TokenType::GreaterEqual);
+    compare_literal_token!("!", TokenType::Bang);
+    compare_literal_token!("=", TokenType::Equal);
+    compare_literal_token!("<", TokenType::Less);
+    compare_literal_token!(">", TokenType::Greater);
+    compare_literal_token!("/", TokenType::Slash);
 }
 
 #[test]
 fn scan_tokens_combinator_should_lex_multiple_character_operator_lexemes() {
-    compare_single_token_source_combinator_helper("!=", TokenType::BangEqual);
-    compare_single_token_source_combinator_helper("==", TokenType::EqualEqual);
-    compare_single_token_source_combinator_helper("<=", TokenType::LessEqual);
-    compare_single_token_source_combinator_helper(">=", TokenType::GreaterEqual);
+    compare_literal_token!("!=", TokenType::BangEqual);
+    compare_literal_token!("==", TokenType::EqualEqual);
+    compare_literal_token!("<=", TokenType::LessEqual);
+    compare_literal_token!(">=", TokenType::GreaterEqual);
 }
 
 #[test]
 fn scan_tokens_should_lex_comments() {
     compare_single_token_source_returns_none_helper("// this is a test comment\n");
     compare_single_token_source_returns_none_helper("/* this is a test comment */");
-}
-
-#[test]
-fn scan_tokens_should_lex_whitespace() {
-    compare_single_token_source_returns_none_helper(" ");
-    compare_single_token_source_returns_none_helper("\r");
-    compare_single_token_source_returns_none_helper("\t");
 }
 
 #[test]
