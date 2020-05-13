@@ -503,11 +503,15 @@ fn match_identifier<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
     parcel::join(alpha(), parcel::one_or_more(alphanumeric())).map(|(head, tail)| {
         let mut lit = vec![head];
         lit.extend(tail);
-
-        Token::new(
+        let t = Token::new(
             TokenType::Literal,
             Some(Literal::Identifier(lit.into_iter().collect())),
-        )
+        );
+
+        match t.is_reserved_keyword() {
+            Some(token_type) => Token::new(token_type, None),
+            None => t,
+        }
     })
 }
 

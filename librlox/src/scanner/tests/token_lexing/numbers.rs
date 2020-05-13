@@ -1,7 +1,7 @@
 extern crate parcel;
 use crate::scanner::tokens::{Literal, TokenType};
 use crate::scanner::*;
-use parcel::Parser;
+use parcel::prelude::v1::*;
 
 macro_rules! compare_literal {
     ($source:expr, $lit:expr, $tt: expr) => {

@@ -2,7 +2,7 @@ use crate::scanner::tokens::TokenType;
 use crate::scanner::*;
 
 extern crate parcel;
-use parcel::Parser;
+use parcel::prelude::v1::*;
 
 use super::helpers::compare_single_token_source_returns_none_helper;
 
