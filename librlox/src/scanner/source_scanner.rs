@@ -396,6 +396,10 @@ fn alpha<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     }
 }
 
+fn alphanumeric<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
+    alpha().or(|| numeric()).or(|| match_char('_'))
+}
+
 fn not_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], char> {
     move |input: &'a [char]| match input.get(0) {
         Some(next) if *next != expected => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
@@ -498,10 +502,13 @@ fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
 }
 
 fn match_identifier<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
-    parcel::one_or_more(alpha()).map(|literal| {
+    parcel::join(alpha(), parcel::one_or_more(alphanumeric())).map(|(head, mut tail)| {
+        let mut lit = vec![head];
+        lit.append(&mut tail);
+
         Token::new(
             TokenType::Literal,
-            Some(Literal::Identifier(literal.into_iter().collect())),
+            Some(Literal::Identifier(lit.into_iter().collect())),
         )
     })
 }
