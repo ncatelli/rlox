@@ -407,15 +407,6 @@ fn any_char<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     }
 }
 
-fn not_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], char> {
-    move |input: &'a [char]| match input.get(0) {
-        Some(next) if *next != expected => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
-        Some(next) if *next == expected => Ok(parcel::MatchStatus::NoMatch(input)),
-        // This matches for an end-of-input case. ' ' is a placeholder
-        _ => Ok(parcel::MatchStatus::Match((&input[0..], ' '))),
-    }
-}
-
 fn match_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], char> {
     move |input: &'a [char]| match input.get(0) {
         Some(next) if *next == expected => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
