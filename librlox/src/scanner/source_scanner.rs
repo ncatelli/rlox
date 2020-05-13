@@ -377,6 +377,7 @@ pub fn scan_tokens_combinator<'a>() -> impl parcel::Parser<'a, &'a [char], Vec<T
     )
 }
 
+#[allow(dead_code)]
 fn newline<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     match_char('\n')
 }
@@ -450,29 +451,29 @@ fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
 /// parent or combinator
 fn match_number<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
     parcel::or(
-        parcel::one_or_more(numeric()).map(|n| {
+        parcel::join(
+            parcel::one_or_more(numeric()),
+            parcel::right(parcel::join(
+                match_char('.'),
+                parcel::one_or_more(numeric()),
+            )),
+        )
+        .map(|(mut whole, mut decimal)| {
+            whole.push('.');
+            whole.append(&mut decimal);
             Token::new(
                 TokenType::Literal,
                 Some(Literal::Number(
-                    n.into_iter().collect::<String>().parse().unwrap(),
+                    whole.into_iter().collect::<String>().parse().unwrap(),
                 )),
             )
         }),
         || {
-            parcel::join(
-                parcel::one_or_more(numeric()),
-                parcel::right(parcel::join(
-                    match_char('.'),
-                    parcel::zero_or_more(numeric()),
-                )),
-            )
-            .map(|(mut whole, mut decimal)| {
-                whole.push('.');
-                whole.append(&mut decimal);
+            parcel::one_or_more(numeric()).map(|n| {
                 Token::new(
                     TokenType::Literal,
                     Some(Literal::Number(
-                        whole.into_iter().collect::<String>().parse().unwrap(),
+                        n.into_iter().collect::<String>().parse().unwrap(),
                     )),
                 )
             })
