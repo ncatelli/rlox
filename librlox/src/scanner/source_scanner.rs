@@ -384,20 +384,27 @@ fn newline<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
 
 fn numeric<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     move |input: &'a [char]| match input.get(0) {
-        Some(next) if next.is_digit(10) => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
+        Some(&next) if next.is_digit(10) => Ok(parcel::MatchStatus::Match((&input[1..], next))),
         _ => Ok(parcel::MatchStatus::NoMatch(input)),
     }
 }
 
 fn alpha<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     move |input: &'a [char]| match input.get(0) {
-        Some(next) if next.is_alphabetic() => Ok(parcel::MatchStatus::Match((&input[1..], *next))),
+        Some(&next) if next.is_alphabetic() => Ok(parcel::MatchStatus::Match((&input[1..], next))),
         _ => Ok(parcel::MatchStatus::NoMatch(input)),
     }
 }
 
 fn alphanumeric<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
     alpha().or(|| numeric()).or(|| match_char('_'))
+}
+
+fn any_char<'a>() -> impl parcel::Parser<'a, &'a [char], char> {
+    move |input: &'a [char]| match input.get(0) {
+        Some(&next) => Ok(parcel::MatchStatus::Match((&input[1..], next))),
+        _ => Ok(parcel::MatchStatus::NoMatch(input)),
+    }
 }
 
 fn not_char<'a>(expected: char) -> impl parcel::Parser<'a, &'a [char], char> {
@@ -489,7 +496,7 @@ fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
     parcel::right(parcel::join(
         match_char('"'),
         parcel::left(parcel::join(
-            parcel::one_or_more(not_char('"')),
+            parcel::one_or_more(parcel::predicate(any_char(), |&c| c != '"')),
             match_char('"'),
         )),
     ))
