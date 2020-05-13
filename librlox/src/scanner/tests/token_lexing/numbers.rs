@@ -37,20 +37,6 @@ fn scan_tokens_combinator_should_lex_floating_point() {
     compare_literal!("123.45", Literal::Number(123.45), TokenType::Literal);
 }
 
-// TODO: I can't think of a good way to express this with parcel currently.
-/*
-#[test]
-fn scan_tokens_combinator_should_not_allow_trailing_decimal() {
-    let input = "123.".to_string();
-    let input_chars: Vec<char> = input.chars().collect();
-
-    compare_literal!(
-        input,
-        //Ok(parcel::MatchStatus::Match((&input_chars[0..], vec![])))
-        Err(_)
-    );
-}*/
-
 #[test]
 fn scan_tokens_combinator_should_allow_numbers_to_include_operators() {
     let input = "5+5".to_string();
