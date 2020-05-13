@@ -462,9 +462,9 @@ fn match_number<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
                 parcel::one_or_more(numeric()),
             )),
         )
-        .map(|(mut whole, mut decimal)| {
+        .map(|(mut whole, decimal)| {
             whole.push('.');
-            whole.append(&mut decimal);
+            whole.extend(decimal);
             Token::new(
                 TokenType::Literal,
                 Some(Literal::Number(
@@ -502,9 +502,9 @@ fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
 }
 
 fn match_identifier<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
-    parcel::join(alpha(), parcel::one_or_more(alphanumeric())).map(|(head, mut tail)| {
+    parcel::join(alpha(), parcel::one_or_more(alphanumeric())).map(|(head, tail)| {
         let mut lit = vec![head];
-        lit.append(&mut tail);
+        lit.extend(tail);
 
         Token::new(
             TokenType::Literal,
