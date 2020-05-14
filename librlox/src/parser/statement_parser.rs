@@ -34,7 +34,7 @@ fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], T
 /// extern crate parcel;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use librlox::parser::expression_parser::*;
+/// use librlox::parser::statement_parser::*;
 /// use std::option::Option;
 /// use std::convert::TryFrom;
 /// use parcel::*;

@@ -1,9 +1,9 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 extern crate librlox;
 extern crate parcel;
-use librlox::parser::expression_parser::expression;
+use librlox::parser::statement_parser::expression;
 use librlox::scanner::{Scanner, Token};
-use parcel::Parser;
+use parcel::prelude::v1::*;
 
 fn scan_tokens_benchmark(c: &mut Criterion) {
     let s = Scanner::new(";*.\"hello world\"123.4".to_string());

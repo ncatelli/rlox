@@ -2,7 +2,7 @@ extern crate parcel;
 use crate::parser::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
-use crate::parser::expression_parser::expression;
+use crate::parser::statement_parser::expression;
 use crate::scanner::tokens::{Literal, Token, TokenType};
 use parcel::*;
 use std::convert::TryFrom;
