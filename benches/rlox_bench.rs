@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 extern crate librlox;
 extern crate parcel;
-use librlox::parser::statement_parser::expression;
+use librlox::parser::expression_parser::expression;
 use librlox::scanner::{Scanner, Token};
 use parcel::prelude::v1::*;
 

@@ -7,7 +7,7 @@ use std::process;
 extern crate librlox;
 extern crate parcel;
 use librlox::interpreter::expression::interpret;
-use librlox::parser::statement_parser::expression;
+use librlox::parser::expression_parser::expression;
 use librlox::scanner;
 use parcel::prelude::v1::*;
 
