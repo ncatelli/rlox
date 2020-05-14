@@ -372,6 +372,7 @@ pub fn scan_tokens_combinator<'a>() -> impl parcel::Parser<'a, &'a [char], Vec<T
     parcel::zero_or_more(
         two_char_token()
             .or(|| match_comment())
+            .or(|| match_c_style_comment())
             .or(|| single_char_token())
             .or(|| match_string())
             .or(|| match_number())
@@ -500,7 +501,7 @@ fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
     })
 }
 
-pub fn match_comment<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+fn match_comment<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
     parcel::right(parcel::join(
         match_char('/'),
         parcel::join(
@@ -508,6 +509,20 @@ pub fn match_comment<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
             parcel::join(
                 parcel::one_or_more(parcel::predicate(any_char(), |&c| c != '\n')),
                 match_char('\n'),
+            ),
+        ),
+    ))
+    .map(|_| Token::new(TokenType::Comment, None))
+}
+
+fn match_c_style_comment<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+    parcel::right(parcel::join(
+        match_char('/'),
+        parcel::join(
+            match_char('*'),
+            parcel::join(
+                parcel::one_or_more(parcel::predicate(any_char(), |&c| c != '*')),
+                parcel::join(match_char('*'), match_char('/')),
             ),
         ),
     ))
