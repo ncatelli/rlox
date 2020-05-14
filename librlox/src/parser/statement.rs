@@ -11,7 +11,7 @@ pub enum Stmt {
 impl fmt::Display for Stmt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Expression(e) => write!(f, "{}", &e),
+            Self::Expression(e) => write!(f, "(Expression {})", &e),
         }
     }
 }
