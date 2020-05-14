@@ -1,5 +1,5 @@
 extern crate parcel;
-use parcel::Parser;
+use parcel::prelude::v1::*;
 use std::iter::Iterator;
 use std::option::Option;
 use std::option::Option::{None, Some};
@@ -367,9 +367,11 @@ impl Scanner {
     }
 }
 
+#[allow(clippy::redundant_closure)]
 pub fn scan_tokens_combinator<'a>() -> impl parcel::Parser<'a, &'a [char], Vec<Token>> {
     parcel::zero_or_more(
         two_char_token()
+            .or(|| match_comment())
             .or(|| single_char_token())
             .or(|| match_string())
             .or(|| match_number())
@@ -427,7 +429,6 @@ fn two_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
             // unreachable case
             _ => Token::new(TokenType::EOF, None),
         })
-        .map(|c| Token::from(c))
 }
 
 fn single_char_token<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
@@ -497,6 +498,20 @@ fn match_string<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
             Some(Literal::Str(literal.into_iter().collect())),
         )
     })
+}
+
+pub fn match_comment<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {
+    parcel::right(parcel::join(
+        match_char('/'),
+        parcel::join(
+            match_char('/'),
+            parcel::join(
+                parcel::one_or_more(parcel::predicate(any_char(), |&c| c != '\n')),
+                match_char('\n'),
+            ),
+        ),
+    ))
+    .map(|_| Token::new(TokenType::Comment, None))
 }
 
 fn match_identifier<'a>() -> impl parcel::Parser<'a, &'a [char], Token> {

@@ -59,6 +59,12 @@ fn scan_tokens_should_lex_comments() {
 }
 
 #[test]
+fn scan_tokens_combinator_should_lex_comments() {
+    compare_literal_token!("// this is a test comment\n", TokenType::Comment);
+    //compare_literal_token!("/* this is a test comment */", TokenType::Comment);
+}
+
+#[test]
 fn scan_tokens_should_lex_newlines() {
     compare_single_token_source_returns_none_helper("\n");
 }
