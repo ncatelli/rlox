@@ -19,17 +19,14 @@ A rust implementation of https://craftinginterpreters.com/
 ## Grammars
 
 ```
-program        = declaration* EOF ;
-
-declaration    = varDecl
-               | statement ;
-
-varDecl        = "var" IDENTIFIER ( "=" expression )? ";" ;
+program        = statement* EOF ;
 
 statement      = exprStmt
-               | printStmt ;
+               | printStmt
+               | declaration ;
 exprStmt       = expression ";" ;
 printStmt      = "print" expression ";" ;
+declaration    = "var" IDENTIFIER ( "=" expression )? ";" ;
 
 expression     = equality ;
 equality       = comparison ( ( "!=" | "==" ) comparison )* ;
