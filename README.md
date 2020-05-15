@@ -19,9 +19,14 @@ A rust implementation of https://craftinginterpreters.com/
 ## Grammars
 
 ```
-program        = statement* EOF ;
+program        = declaration* EOF ;
+
+declaration    = varDecl
+               | statement ;
+               
 statement      = exprStmt
                | printStmt ;
+
 exprStmt       = expression ";" ;
 printStmt      = "print" expression ";" ;
 expression     = equality ;
