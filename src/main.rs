@@ -51,6 +51,7 @@ fn run_prompt() {
     }
 }
 
+#[allow(unused_must_use)]
 fn run(source: String) -> RuntimeResult<usize> {
     let token_iter = scanner::Scanner::new(source).scan_tokens().into_iter();
     let token_count = token_iter.len();
@@ -63,7 +64,10 @@ fn run(source: String) -> RuntimeResult<usize> {
         .collect();
 
     match statements().parse(&tokens) {
-        Ok(parcel::MatchStatus::Match((_, stmt))) => println!("{:?}", interpret(stmt)),
+        Ok(parcel::MatchStatus::Match((_, stmt))) => {
+            interpret(stmt);
+            ()
+        }
         Ok(parcel::MatchStatus::NoMatch(_)) => println!("No match found"),
         Err(e) => println!("{:?}", e),
     };

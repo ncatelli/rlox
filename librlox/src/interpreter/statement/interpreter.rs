@@ -30,6 +30,7 @@ impl Interpreter<Stmt, ()> for StatementInterpreter {
     fn interpret(&self, stmt: Stmt) -> InterpreterResult {
         match stmt {
             Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
+            Stmt::Print(expr) => self.interpret_print_stmt(expr),
         }
     }
 }
@@ -49,7 +50,17 @@ impl StatementInterpreter {
 
     fn interpret_expression_stmt(&self, expr: Expr) -> InterpreterResult {
         match expression::interpret(expr) {
-            Ok(_expr) => Ok(()),
+            Ok(_) => Ok(()),
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+        }
+    }
+
+    fn interpret_print_stmt(&self, expr: Expr) -> InterpreterResult {
+        match expression::interpret(expr) {
+            Ok(expr) => {
+                println!("{}", expr);
+                Ok(())
+            }
             Err(err) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
