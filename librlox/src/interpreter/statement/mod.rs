@@ -12,6 +12,15 @@ pub use interpreter::StmtInterpreterErr;
 mod tests;
 
 /// Handles interpreting an arbitrarily Statements
-pub fn interpret(stmt: Stmt) -> InterpreterResult {
-    StatementInterpreter::new().interpret(stmt)
+pub fn interpret(statements: Vec<Stmt>) -> InterpreterResult {
+    let interpreter = StatementInterpreter::new();
+
+    for stmt in statements {
+        match interpreter.interpret(stmt) {
+            Ok(_) => continue,
+            Err(e) => return Err(e),
+        };
+    }
+
+    Ok(())
 }

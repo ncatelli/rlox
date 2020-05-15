@@ -6,9 +6,12 @@ use crate::scanner::tokens::{Token, TokenType};
 use parcel::*;
 
 /// Represents the entrypoint for statement parsing within the lox parser and
-/// yields an Stmt object after recursively descending through the statement
-/// grammar
-pub fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+/// yields a Vec<Stmt> representing the program statemnts.
+pub fn statements<'a>() -> impl parcel::Parser<'a, &'a [Token], Vec<Stmt>> {
+    parcel::one_or_more(statement())
+}
+
+fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     expression_stmt()
 }
 
