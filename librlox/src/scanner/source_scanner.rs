@@ -333,12 +333,9 @@ impl Scanner {
             match self.char_at(current) {
                 Some('a'..='z') | Some('A'..='Z') | Some('0'..='9') | Some('_') => continue,
                 _ => {
-                    let literal_str: String = self
-                        .substring(start, Cursor::reverse(current))
-                        .iter()
-                        .collect();
+                    let current = Cursor::reverse(current);
+                    let literal_str: String = self.substring(start, current).iter().collect();
                     let t = Token::new(TokenType::Literal, Some(Literal::Identifier(literal_str)));
-
                     return match t.is_reserved_keyword() {
                         Some(token_type) => (Ok(Token::new(token_type, None)), current),
                         None => (Ok(t), current),

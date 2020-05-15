@@ -35,7 +35,7 @@ impl Interpreter<Stmt, ()> for StatementInterpreter {
     }
 }
 
-/// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, PrimaryExpr> implementation
+/// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, ())> implementation
 impl Interpreter<Box<Stmt>, ()> for StatementInterpreter {
     type Error = StmtInterpreterErr;
     fn interpret(&self, stmt: Box<Stmt>) -> InterpreterResult {
