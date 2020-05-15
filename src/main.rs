@@ -6,8 +6,8 @@ use std::process;
 
 extern crate librlox;
 extern crate parcel;
-use librlox::interpreter::expression::interpret;
-use librlox::parser::expression_parser::expression;
+use librlox::interpreter::statement::interpret;
+use librlox::parser::statement_parser::statement;
 use librlox::scanner;
 use parcel::prelude::v1::*;
 
@@ -62,8 +62,8 @@ fn run(source: String) -> RuntimeResult<usize> {
         })
         .collect();
 
-    match expression().parse(&tokens) {
-        Ok(parcel::MatchStatus::Match((_, expr))) => println!("{}", interpret(expr).unwrap()),
+    match statement().parse(&tokens) {
+        Ok(parcel::MatchStatus::Match((_, stmt))) => println!("{:?}", interpret(stmt)),
         Ok(parcel::MatchStatus::NoMatch(_)) => println!("No match found"),
         Err(e) => println!("{:?}", e),
     };
