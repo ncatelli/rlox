@@ -54,6 +54,7 @@ impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
             Expr::Addition(expr) => self.interpret_addition(expr),
             Expr::Comparison(expr) => self.interpret_comparison(expr),
             Expr::Equality(expr) => self.interpret_equality(expr),
+            Expr::Variable(_expr) => todo!(),
         }
     }
 }

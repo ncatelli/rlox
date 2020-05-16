@@ -12,7 +12,17 @@ pub fn statements<'a>() -> impl parcel::Parser<'a, &'a [Token], Vec<Stmt>> {
 }
 
 fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
-    print_stmt().or(|| expression_stmt())
+    declaration_stmt()
+        .or(|| print_stmt())
+        .or(|| expression_stmt())
+}
+
+fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    left(right(join(
+        token_type(TokenType::Print),
+        join(expression(), token_type(TokenType::Semicolon)),
+    )))
+    .map(|expr| Stmt::Print(expr))
 }
 
 fn expression_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {

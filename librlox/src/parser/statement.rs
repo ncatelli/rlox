@@ -7,6 +7,7 @@ use std::fmt;
 pub enum Stmt {
     Expression(Expr),
     Print(Expr),
+    Declaration(Expr, Expr),
 }
 
 impl fmt::Display for Stmt {
@@ -14,6 +15,7 @@ impl fmt::Display for Stmt {
         match self {
             Self::Expression(e) => write!(f, "(Expression {})", &e),
             Self::Print(e) => write!(f, "(Print {})", &e),
+            Self::Declaration(name, e) => write!(f, "(Declaration {} {}", &name, &e),
         }
     }
 }

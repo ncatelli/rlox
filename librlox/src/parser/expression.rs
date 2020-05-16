@@ -12,6 +12,7 @@ pub enum Expr {
     Unary(UnaryExpr),
     Primary(PrimaryExpr),
     Grouping(Box<Expr>),
+    Variable(Identifier),
 }
 
 impl fmt::Display for Expr {
@@ -24,6 +25,7 @@ impl fmt::Display for Expr {
             Self::Unary(e) => write!(f, "{}", &e),
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "(Grouping {})", &e),
+            Self::Variable(i) => write!(f, "(Var {})", &i),
         }
     }
 }
@@ -33,9 +35,7 @@ impl fmt::Display for Expr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let comparison = Expr::Equality(
 ///     EqualityExpr::NotEqual(
@@ -72,9 +72,7 @@ impl fmt::Display for EqualityExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let comparison = Expr::Comparison(
 ///     ComparisonExpr::GreaterEqual(
@@ -115,9 +113,7 @@ impl fmt::Display for ComparisonExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let addition = Expr::Addition(
 ///     AdditionExpr::Add(
@@ -154,9 +150,7 @@ impl fmt::Display for AdditionExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let multiplication = Expr::Multiplication(
 ///     MultiplicationExpr::Multiply(
@@ -193,9 +187,7 @@ impl fmt::Display for MultiplicationExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let unary = Expr::Unary(
 ///     UnaryExpr::Minus(
@@ -222,14 +214,16 @@ impl fmt::Display for UnaryExpr {
     }
 }
 
-/// Represents Literal Lox expressions and stores a single.
+/// Identifier represents a type alias for Identifier types used in the
+/// below PrimaryExpr.
+pub type Identifier = String;
+
+/// Represents Primary Terminal Lox expressions and stores a single.
 ///
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let primary = Expr::Primary(
 ///     PrimaryExpr::Number(5.0)
@@ -240,7 +234,7 @@ pub enum PrimaryExpr {
     Nil,
     True,
     False,
-    Identifier(String),
+    Identifier(Identifier),
     Str(String),
     Number(f64),
 }
@@ -259,17 +253,20 @@ impl std::convert::TryFrom<tokens::Token> for PrimaryExpr {
     type Error = String;
 
     fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
-        match (t.token_type, t.literal) {
+        match (t.token_type, t.value) {
             (tokens::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
             (tokens::TokenType::True, None) => Ok(PrimaryExpr::True),
             (tokens::TokenType::False, None) => Ok(PrimaryExpr::False),
-            (tokens::TokenType::Literal, Some(tokens::Literal::Identifier(v))) => {
+            (tokens::TokenType::Literal, Some(tokens::Value::Identifier(v))) => {
                 Ok(PrimaryExpr::Identifier(v))
             }
-            (tokens::TokenType::Literal, Some(tokens::Literal::Str(v))) => Ok(PrimaryExpr::Str(v)),
-            (tokens::TokenType::Literal, Some(tokens::Literal::Number(v))) => {
-                Ok(PrimaryExpr::Number(v))
+            (tokens::TokenType::Literal, Some(tokens::Value::Literal(tokens::Literal::Str(v)))) => {
+                Ok(PrimaryExpr::Str(v))
             }
+            (
+                tokens::TokenType::Literal,
+                Some(tokens::Value::Literal(tokens::Literal::Number(v))),
+            ) => Ok(PrimaryExpr::Number(v)),
             // Placeholder
             _ => Err(format!("invalid token: {}", t.token_type)),
         }

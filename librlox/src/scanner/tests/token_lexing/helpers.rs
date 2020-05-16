@@ -1,4 +1,4 @@
-use crate::scanner::tokens::{Literal, Token, TokenType};
+use crate::scanner::tokens::{Token, TokenType, Value};
 use crate::scanner::*;
 
 pub fn compare_single_token_source_helper(
@@ -13,14 +13,14 @@ pub fn compare_single_token_source_helper(
         token_results[0],
         LexResult::Ok(Token {
             token_type: expected_token_type,
-            literal: None,
+            value: None,
         })
     );
 }
 
 pub fn compare_single_token_source_with_literal_helper(
     single_token_source: &str,
-    literal: Literal,
+    literal: Value,
     expected_token_type: TokenType,
 ) {
     let source = single_token_source.to_string();
@@ -31,7 +31,7 @@ pub fn compare_single_token_source_with_literal_helper(
         token_results[0],
         LexResult::Ok(Token {
             token_type: expected_token_type,
-            literal: Some(literal),
+            value: Some(literal),
         })
     );
 }
@@ -46,7 +46,7 @@ pub fn compare_single_token_source_returns_none_helper(single_token_source: &str
         token_results[0],
         LexResult::Ok(Token {
             token_type: TokenType::EOF,
-            literal: None,
+            value: None,
         })
     );
 }
