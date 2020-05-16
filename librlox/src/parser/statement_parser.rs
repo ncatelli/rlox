@@ -11,12 +11,14 @@ pub fn statements<'a>() -> impl parcel::Parser<'a, &'a [Token], Vec<Stmt>> {
     parcel::one_or_more(statement())
 }
 
+#[allow(clippy::redundant_closure)]
 fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     declaration_stmt()
         .or(|| print_stmt())
         .or(|| expression_stmt())
 }
 
+#[allow(clippy::redundant_closure)]
 fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     left(right(join(
         token_type(TokenType::Print),
@@ -25,10 +27,12 @@ fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     .map(|expr| Stmt::Print(expr))
 }
 
+#[allow(clippy::redundant_closure)]
 fn expression_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     left(join(expression(), token_type(TokenType::Semicolon))).map(|expr| Stmt::Expression(expr))
 }
 
+#[allow(clippy::redundant_closure)]
 fn print_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     left(right(join(
         token_type(TokenType::Print),

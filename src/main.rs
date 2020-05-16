@@ -66,7 +66,6 @@ fn run(source: String) -> RuntimeResult<usize> {
     match statements().parse(&tokens) {
         Ok(parcel::MatchStatus::Match((_, stmt))) => {
             interpret(stmt);
-            ()
         }
         Ok(parcel::MatchStatus::NoMatch(_)) => println!("No match found"),
         Err(e) => println!("{:?}", e),
