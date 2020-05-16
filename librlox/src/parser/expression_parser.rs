@@ -201,6 +201,7 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         .or(|| token_type(TokenType::False))
         .or(|| token_type(TokenType::Nil))
         .or(|| token_type(TokenType::Literal))
+        .or(|| token_type(TokenType::Identifier))
         .map(|token| Expr::Primary(PrimaryExpr::try_from(token).unwrap()))
         .or(|| {
             right(join(
