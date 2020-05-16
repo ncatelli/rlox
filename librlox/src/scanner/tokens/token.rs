@@ -67,10 +67,9 @@ impl Token {
         Token { token_type, value }
     }
 
-    /// TODO: Literal -> Identifier
     pub fn is_reserved_keyword(&self) -> Option<TokenType> {
         match self.token_type {
-            TokenType::Literal => match self.value {
+            TokenType::Identifier => match self.value {
                 Some(Value::Identifier(ref id)) => {
                     for kw in RESERVED_KEYWORDS.iter() {
                         if kw.0 == id {
