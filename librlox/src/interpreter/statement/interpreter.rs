@@ -1,6 +1,6 @@
 use crate::interpreter::expression;
 use crate::interpreter::Interpreter;
-use crate::parser::expression::Expr;
+use crate::parser::expression::{Expr, Identifier};
 use crate::parser::statement::Stmt;
 use std::fmt;
 
@@ -68,10 +68,10 @@ impl StatementInterpreter {
 
     /// TODO This is yet to be implemented and is just copied from
     /// interpret_print_stmt.
-    fn interpret_declaration_stmt(&self, _name: Expr, expr: Expr) -> InterpreterResult {
+    fn interpret_declaration_stmt(&self, name: Identifier, expr: Expr) -> InterpreterResult {
         match expression::interpret(expr) {
             Ok(expr) => {
-                println!("{}", expr);
+                println!("{}={}", name, expr);
                 Ok(())
             }
             Err(err) => Err(StmtInterpreterErr::Expression(err)),

@@ -339,6 +339,7 @@ impl Scanner {
                     let current = Cursor::reverse(current);
                     let literal_str: String = self.substring(start, current).iter().collect();
                     let t = Token::new(TokenType::Identifier, Some(Value::Identifier(literal_str)));
+                    println!("{}", &t);
                     return match t.is_reserved_keyword() {
                         Some(token_type) => (Ok(Token::new(token_type, None)), current),
                         None => (Ok(t), current),

@@ -2,7 +2,7 @@ extern crate parcel;
 use super::combinators::token_type;
 use crate::parser::expression_parser::expression;
 use crate::parser::statement::Stmt;
-use crate::scanner::tokens::{Token, TokenType};
+use crate::scanner::tokens::{Token, TokenType, Value};
 use parcel::*;
 
 /// Represents the entrypoint for statement parsing within the lox parser and
@@ -20,11 +20,24 @@ fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
 
 #[allow(clippy::redundant_closure)]
 fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
-    left(right(join(
-        token_type(TokenType::Print),
-        join(expression(), token_type(TokenType::Semicolon)),
-    )))
-    .map(|expr| Stmt::Print(expr))
+    right(join(
+        token_type(TokenType::Var),
+        join(
+            token_type(TokenType::Identifier),
+            right(join(
+                token_type(TokenType::Equal),
+                left(join(expression(), token_type(TokenType::Semicolon))),
+            )),
+        ),
+    ))
+    .map(|(id_tok, expr)| {
+        let id = match id_tok.value {
+            Some(Value::Identifier(v)) => v,
+            _ => panic!("Unknown value specified"),
+        };
+
+        Stmt::Declaration(id, expr)
+    })
 }
 
 #[allow(clippy::redundant_closure)]
