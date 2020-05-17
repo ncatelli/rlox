@@ -1,10 +1,11 @@
+use crate::environment::hashmap;
 use crate::environment::Environment;
 use crate::parser::expression::{Expr, PrimaryExpr};
 use std::option::Option;
 
 #[test]
 fn environment_should_allow_setting_of_symbols() {
-    let mut symtable = Environment::new();
+    let mut symtable = hashmap::Hashmap::new();
 
     // unset var returns None
     assert_eq!(
@@ -21,7 +22,7 @@ fn environment_should_allow_setting_of_symbols() {
 
 #[test]
 fn environment_should_allow_getting_of_symbols() {
-    let mut symtable = Environment::new();
+    let mut symtable = hashmap::Hashmap::new();
     let key = "test".to_string();
 
     assert_eq!(
