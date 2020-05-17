@@ -15,11 +15,11 @@ impl Environment {
         Self::default()
     }
 
-    fn define(&mut self, name: Identifier, value: Expr) -> Option<Expr> {
+    pub fn define(&mut self, name: Identifier, value: Expr) -> Option<Expr> {
         self.symbols_table.insert(name, value)
     }
 
-    fn get(&mut self, name: &Identifier) -> Option<&Expr> {
+    pub fn get(&mut self, name: &Identifier) -> Option<&Expr> {
         self.symbols_table.get(name)
     }
 }
