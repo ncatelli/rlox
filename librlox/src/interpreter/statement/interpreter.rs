@@ -55,18 +55,18 @@ impl StatementInterpreter {
 
     fn interpret_expression_stmt(&self, sym_tab: Environment, expr: Expr) -> InterpreterResult {
         match expression::interpret(sym_tab, expr) {
-            (st, Ok(_)) => Ok(st),
-            (_, Err(err)) => Err(StmtInterpreterErr::Expression(err)),
+            Ok((st, _)) => Ok(st),
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
 
     fn interpret_print_stmt(&self, sym_tab: Environment, expr: Expr) -> InterpreterResult {
         match expression::interpret(sym_tab, expr) {
-            (st, Ok(expr)) => {
+            Ok((st, expr)) => {
                 println!("{}", expr);
                 Ok(st)
             }
-            (_, Err(err)) => Err(StmtInterpreterErr::Expression(err)),
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
 
@@ -77,12 +77,12 @@ impl StatementInterpreter {
         expr: Expr,
     ) -> InterpreterResult {
         match expression::interpret(sym_tab, expr) {
-            (mut st, Ok(expr)) => {
+            Ok((mut st, expr)) => {
                 st.define(name, Expr::Primary(expr));
                 println!("state: {:?}", &st);
                 Ok(st)
             }
-            (_, Err(err)) => Err(StmtInterpreterErr::Expression(err)),
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
 }
