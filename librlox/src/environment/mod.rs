@@ -5,7 +5,7 @@ use std::collections::HashMap;
 mod tests;
 
 /// Functions as a symbols table for looking up variables assignments.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Environment {
     symbols_table: HashMap<Identifier, Expr>,
 }

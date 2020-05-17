@@ -6,6 +6,7 @@ use std::process;
 
 extern crate librlox;
 extern crate parcel;
+use librlox::environment::Environment;
 use librlox::interpreter::statement::interpret;
 use librlox::parser::statement_parser::statements;
 use librlox::scanner;
@@ -53,6 +54,7 @@ fn run_prompt() {
 
 #[allow(unused_must_use)]
 fn run(source: String) -> RuntimeResult<usize> {
+    let mut sym_table = Environment::new();
     let token_iter = scanner::Scanner::new(source).scan_tokens().into_iter();
     let token_count = token_iter.len();
 
@@ -64,9 +66,10 @@ fn run(source: String) -> RuntimeResult<usize> {
         .collect();
 
     match statements().parse(&tokens) {
-        Ok(parcel::MatchStatus::Match((_, stmt))) => {
-            interpret(stmt);
-        }
+        Ok(parcel::MatchStatus::Match((_, stmt))) => match interpret(sym_table, stmt) {
+            Ok(s) => sym_table = s,
+            Err(e) => panic!(e),
+        },
         Ok(parcel::MatchStatus::NoMatch(_)) => println!("No match found"),
         Err(e) => println!("{:?}", e),
     };

@@ -1,3 +1,4 @@
+use crate::environment::Environment;
 use crate::interpreter::expression;
 use crate::interpreter::Interpreter;
 use crate::parser::expression::{Expr, Identifier};
@@ -19,28 +20,31 @@ impl fmt::Display for StmtInterpreterErr {
     }
 }
 
-pub type InterpreterResult = Result<(), StmtInterpreterErr>;
+pub type InterpreterInput = (Environment, Stmt);
+pub type InterpreterResult = Result<Environment, StmtInterpreterErr>;
 
 #[derive(Default)]
 pub struct StatementInterpreter {}
 
-impl Interpreter<Stmt, ()> for StatementInterpreter {
+impl Interpreter<InterpreterInput, Environment> for StatementInterpreter {
     type Error = StmtInterpreterErr;
 
-    fn interpret(&self, stmt: Stmt) -> InterpreterResult {
+    fn interpret(&self, input: InterpreterInput) -> InterpreterResult {
+        let (sym_tab, stmt) = input;
         match stmt {
-            Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
-            Stmt::Print(expr) => self.interpret_print_stmt(expr),
-            Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
+            Stmt::Expression(expr) => self.interpret_expression_stmt(sym_tab, expr),
+            Stmt::Print(expr) => self.interpret_print_stmt(sym_tab, expr),
+            Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(sym_tab, name, expr),
         }
     }
 }
 
 /// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, ())> implementation
-impl Interpreter<Box<Stmt>, ()> for StatementInterpreter {
+impl Interpreter<Box<InterpreterInput>, Environment> for StatementInterpreter {
     type Error = StmtInterpreterErr;
-    fn interpret(&self, stmt: Box<Stmt>) -> InterpreterResult {
-        self.interpret(*stmt)
+    fn interpret(&self, input: Box<InterpreterInput>) -> InterpreterResult {
+        let (sym_tab, stmt) = *input;
+        self.interpret((sym_tab, stmt))
     }
 }
 
@@ -49,32 +53,36 @@ impl StatementInterpreter {
         StatementInterpreter::default()
     }
 
-    fn interpret_expression_stmt(&self, expr: Expr) -> InterpreterResult {
-        match expression::interpret(expr) {
-            Ok(_) => Ok(()),
-            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+    fn interpret_expression_stmt(&self, sym_tab: Environment, expr: Expr) -> InterpreterResult {
+        match expression::interpret(sym_tab, expr) {
+            (st, Ok(_)) => Ok(st),
+            (_, Err(err)) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
 
-    fn interpret_print_stmt(&self, expr: Expr) -> InterpreterResult {
-        match expression::interpret(expr) {
-            Ok(expr) => {
+    fn interpret_print_stmt(&self, sym_tab: Environment, expr: Expr) -> InterpreterResult {
+        match expression::interpret(sym_tab, expr) {
+            (st, Ok(expr)) => {
                 println!("{}", expr);
-                Ok(())
+                Ok(st)
             }
-            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            (_, Err(err)) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
 
-    /// TODO This is yet to be implemented and is just copied from
-    /// interpret_print_stmt.
-    fn interpret_declaration_stmt(&self, name: Identifier, expr: Expr) -> InterpreterResult {
-        match expression::interpret(expr) {
-            Ok(expr) => {
-                println!("{}={}", name, expr);
-                Ok(())
+    fn interpret_declaration_stmt(
+        &self,
+        sym_tab: Environment,
+        name: Identifier,
+        expr: Expr,
+    ) -> InterpreterResult {
+        match expression::interpret(sym_tab, expr) {
+            (mut st, Ok(expr)) => {
+                st.define(name, Expr::Primary(expr));
+                println!("state: {:?}", &st);
+                Ok(st)
             }
-            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            (_, Err(err)) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
 }

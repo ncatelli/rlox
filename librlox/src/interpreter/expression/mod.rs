@@ -1,5 +1,6 @@
 mod interpreter;
 
+use crate::environment::Environment;
 use crate::interpreter::Interpreter;
 use crate::parser::expression::Expr;
 use interpreter::ExpressionInterpreter;
@@ -14,6 +15,6 @@ mod tests;
 /// Handles interpreting an arbitrarily nested Expr into a terminal literal as
 /// represented by the PrimaryExpr type. This value is returned as an
 /// InterpreterResult containing either an Ok(PrimaryExpr) or an Error.
-pub fn interpret(expr: Expr) -> InterpreterResult {
-    ExpressionInterpreter::new().interpret(expr)
+pub fn interpret(sym_tab: Environment, expr: Expr) -> (Environment, InterpreterResult) {
+    (sym_tab, ExpressionInterpreter::new().interpret(expr))
 }
