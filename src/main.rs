@@ -12,7 +12,7 @@ use librlox::parser::statement_parser::statements;
 use librlox::scanner;
 use parcel::prelude::v1::*;
 
-type RuntimeResult<T> = Result<T, String>;
+type RuntimeResult<T> = Result<T, (Environment, String)>;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -29,12 +29,21 @@ fn main() {
 }
 
 fn run_file(filename: &str) -> Result<(), String> {
+    let mut sym_tab = Environment::new();
     let mut f = File::open(filename).expect("file not found");
 
     let mut contents = String::new();
     match f.read_to_string(&mut contents) {
         Ok(_) => {
-            run(contents).unwrap();
+            match run(sym_tab, contents) {
+                Ok((st, _)) => {
+                    sym_tab = st;
+                }
+                Err((st, e)) => {
+                    sym_tab = st;
+                    println!("{}", e);
+                }
+            };
             Ok(())
         }
         Err(error) => Err(format!("error: {}", error)),
@@ -42,19 +51,27 @@ fn run_file(filename: &str) -> Result<(), String> {
 }
 
 fn run_prompt() {
+    let mut sym_tab = Environment::new();
     loop {
         let mut input = String::new();
         print!("> ");
         stdout().flush().unwrap();
 
         stdin().read_line(&mut input).expect("execution error");
-        run(input).unwrap();
+        match run(sym_tab, input) {
+            Ok((st, _)) => {
+                sym_tab = st;
+            }
+            Err((st, e)) => {
+                sym_tab = st;
+                println!("{}", e);
+            }
+        }
     }
 }
 
 #[allow(unused_must_use)]
-fn run(source: String) -> RuntimeResult<usize> {
-    let mut sym_table = Environment::new();
+fn run(sym_tab: Environment, source: String) -> RuntimeResult<(Environment, usize)> {
     let token_iter = scanner::Scanner::new(source).scan_tokens().into_iter();
     let token_count = token_iter.len();
 
@@ -65,14 +82,14 @@ fn run(source: String) -> RuntimeResult<usize> {
         })
         .collect();
 
-    match statements().parse(&tokens) {
-        Ok(parcel::MatchStatus::Match((_, stmt))) => match interpret(sym_table, stmt) {
-            Ok(s) => sym_table = s,
-            Err(e) => panic!(e),
+    let result = match statements().parse(&tokens) {
+        Ok(parcel::MatchStatus::Match((_, stmt))) => match interpret(sym_tab, stmt) {
+            Ok(s) => Ok((s, token_count)),
+            Err((st, e)) => Err((st, format!("{}", e))),
         },
-        Ok(parcel::MatchStatus::NoMatch(_)) => println!("No match found"),
-        Err(e) => println!("{:?}", e),
+        Ok(parcel::MatchStatus::NoMatch(_)) => Err((sym_tab, "no match found".to_string())),
+        Err(e) => Err((sym_tab, format!("{}", e))),
     };
 
-    Ok(token_count)
+    result
 }

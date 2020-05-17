@@ -21,13 +21,14 @@ impl fmt::Display for StmtInterpreterErr {
 }
 
 pub type InterpreterInput = (Environment, Stmt);
-pub type InterpreterResult = Result<Environment, StmtInterpreterErr>;
+pub type InterpreterErrOutput = (Environment, StmtInterpreterErr);
+pub type InterpreterResult = Result<Environment, InterpreterErrOutput>;
 
 #[derive(Default)]
 pub struct StatementInterpreter {}
 
 impl Interpreter<InterpreterInput, Environment> for StatementInterpreter {
-    type Error = StmtInterpreterErr;
+    type Error = InterpreterErrOutput;
 
     fn interpret(&self, input: InterpreterInput) -> InterpreterResult {
         let (sym_tab, stmt) = input;
@@ -41,7 +42,7 @@ impl Interpreter<InterpreterInput, Environment> for StatementInterpreter {
 
 /// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, ())> implementation
 impl Interpreter<Box<InterpreterInput>, Environment> for StatementInterpreter {
-    type Error = StmtInterpreterErr;
+    type Error = InterpreterErrOutput;
     fn interpret(&self, input: Box<InterpreterInput>) -> InterpreterResult {
         let (sym_tab, stmt) = *input;
         self.interpret((sym_tab, stmt))
@@ -56,7 +57,7 @@ impl StatementInterpreter {
     fn interpret_expression_stmt(&self, sym_tab: Environment, expr: Expr) -> InterpreterResult {
         match expression::interpret(sym_tab, expr) {
             Ok((st, _)) => Ok(st),
-            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            Err((st, e)) => Err((st, StmtInterpreterErr::Expression(e))),
         }
     }
 
@@ -66,7 +67,7 @@ impl StatementInterpreter {
                 println!("{}", expr);
                 Ok(st)
             }
-            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            Err((st, e)) => Err((st, StmtInterpreterErr::Expression(e))),
         }
     }
 
@@ -82,7 +83,7 @@ impl StatementInterpreter {
                 println!("state: {:?}", &st);
                 Ok(st)
             }
-            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            Err((st, e)) => Err((st, StmtInterpreterErr::Expression(e))),
         }
     }
 }

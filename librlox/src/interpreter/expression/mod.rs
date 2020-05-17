@@ -11,7 +11,7 @@ pub use interpreter::ExprInterpreterErr;
 #[cfg(tests)]
 mod tests;
 
-pub type InterpreterResult = Result<(Environment, PrimaryExpr), ExprInterpreterErr>;
+pub type InterpreterResult = Result<(Environment, PrimaryExpr), (Environment, ExprInterpreterErr)>;
 
 /// Handles interpreting an arbitrarily nested Expr into a terminal literal as
 /// represented by the PrimaryExpr type. This value is returned as an
@@ -19,6 +19,6 @@ pub type InterpreterResult = Result<(Environment, PrimaryExpr), ExprInterpreterE
 pub fn interpret(sym_tab: Environment, expr: Expr) -> InterpreterResult {
     match ExpressionInterpreter::new().interpret(expr) {
         Ok(v) => Ok((sym_tab, v)),
-        Err(e) => Err(e),
+        Err(e) => Err((sym_tab, e)),
     }
 }
