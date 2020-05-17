@@ -1,9 +1,25 @@
+use crate::parser::expression::{Expr, Identifier};
+use std::collections::HashMap;
+
 #[cfg(test)]
 mod tests;
 
-pub trait Environment<K, V> {
-    fn define(&mut self, name: K, value: V) -> Option<V>;
-    fn get(&mut self, name: &K) -> Option<&V>;
+/// Functions as a symbols table for looking up variables assignments.
+#[derive(Default)]
+pub struct Environment {
+    symbols_table: HashMap<Identifier, Expr>,
 }
 
-pub mod hashmap;
+impl Environment {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    fn define(&mut self, name: Identifier, value: Expr) -> Option<Expr> {
+        self.symbols_table.insert(name, value)
+    }
+
+    fn get(&mut self, name: &Identifier) -> Option<&Expr> {
+        self.symbols_table.get(name)
+    }
+}
