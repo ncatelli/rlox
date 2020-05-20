@@ -2,7 +2,7 @@ use std::fmt;
 mod interpreter;
 
 use crate::parser::expression::Expr;
-use interpreter::ExpressionInterpreter;
+use interpreter::StatefulInterpreter;
 
 // Export Error and Result
 pub use interpreter::ExprInterpreterErr;
@@ -34,5 +34,5 @@ pub trait Interpreter<A, B> {
 /// represented by the PrimaryExpr type. This value is returned as an
 /// InterpreterResult containing either an Ok(PrimaryExpr) or an Error.
 pub fn interpret(expr: Expr) -> InterpreterResult {
-    ExpressionInterpreter::new().interpret(expr)
+    StatefulInterpreter::new().interpret(expr)
 }

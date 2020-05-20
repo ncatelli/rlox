@@ -40,9 +40,9 @@ impl fmt::Display for ExprInterpreterErr {
 pub type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 
 #[derive(Default)]
-pub struct ExpressionInterpreter {}
+pub struct StatefulInterpreter {}
 
-impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
+impl Interpreter<Expr, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
 
     fn interpret(&self, expr: Expr) -> InterpreterResult {
@@ -59,16 +59,16 @@ impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
 }
 
 /// This functions only to unpack an Expr and dispatch to the upstream Interpreter<Expr, PrimaryExpr> implementation
-impl Interpreter<Box<Expr>, PrimaryExpr> for ExpressionInterpreter {
+impl Interpreter<Box<Expr>, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
     fn interpret(&self, expr: Box<Expr>) -> InterpreterResult {
         self.interpret(*expr)
     }
 }
 
-impl ExpressionInterpreter {
-    pub fn new() -> ExpressionInterpreter {
-        ExpressionInterpreter::default()
+impl StatefulInterpreter {
+    pub fn new() -> StatefulInterpreter {
+        StatefulInterpreter::default()
     }
 
     fn interpret_equality(&self, expr: EqualityExpr) -> Result<PrimaryExpr, ExprInterpreterErr> {
