@@ -1,3 +1,4 @@
+use crate::environment::Environment;
 use crate::interpreter::InterpreterMut;
 use crate::parser::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
@@ -39,9 +40,20 @@ impl fmt::Display for ExprInterpreterErr {
 
 pub type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 
-#[derive(Default)]
-pub struct StatefulInterpreter {}
+pub struct StatefulInterpreter {
+    globals: Environment,
+}
 
+impl StatefulInterpreter {
+    pub fn new() -> StatefulInterpreter {
+        StatefulInterpreter {
+            globals: Environment::new(),
+        }
+    }
+}
+
+/// InterpreterMut<Expr, PrimaryExpr> begins implemententing the required state
+/// for interpreting Expressions in a stateful way.
 impl InterpreterMut<Expr, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
 
@@ -67,10 +79,6 @@ impl InterpreterMut<Box<Expr>, PrimaryExpr> for StatefulInterpreter {
 }
 
 impl StatefulInterpreter {
-    pub fn new() -> StatefulInterpreter {
-        StatefulInterpreter::default()
-    }
-
     fn interpret_equality(
         &mut self,
         expr: EqualityExpr,
