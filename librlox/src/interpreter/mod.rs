@@ -1,4 +1,15 @@
 use std::fmt;
+mod interpreter;
+
+use crate::parser::expression::Expr;
+use interpreter::ExpressionInterpreter;
+
+// Export Error and Result
+pub use interpreter::ExprInterpreterErr;
+pub use interpreter::InterpreterResult;
+
+#[cfg(tests)]
+mod tests;
 
 #[derive(PartialEq, Debug)]
 pub enum InterpreterErr {
@@ -19,4 +30,9 @@ pub trait Interpreter<A, B> {
     fn interpret(&self, input: A) -> Result<B, Self::Error>;
 }
 
-pub mod expression;
+/// Handles interpreting an arbitrarily nested Expr into a terminal literal as
+/// represented by the PrimaryExpr type. This value is returned as an
+/// InterpreterResult containing either an Ok(PrimaryExpr) or an Error.
+pub fn interpret(expr: Expr) -> InterpreterResult {
+    ExpressionInterpreter::new().interpret(expr)
+}

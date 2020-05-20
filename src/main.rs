@@ -6,7 +6,7 @@ use std::process;
 
 extern crate librlox;
 extern crate parcel;
-use librlox::interpreter::expression::interpret;
+use librlox::interpreter::interpret;
 use librlox::parser::expression_parser::expression;
 use librlox::scanner;
 use parcel::Parser;
