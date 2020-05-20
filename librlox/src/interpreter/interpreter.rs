@@ -233,3 +233,36 @@ fn is_true(expr: PrimaryExpr) -> bool {
         _ => true,
     }
 }
+
+use crate::parser::statement::Stmt;
+
+#[derive(PartialEq, Debug)]
+pub enum StmtInterpreterErr {
+    Unspecified,
+    Expression(ExprInterpreterErr),
+}
+
+impl fmt::Display for StmtInterpreterErr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unspecified => write!(f, "unspecified statement error"),
+            Self::Expression(e) => write!(f, "Expression Error: {}", e),
+        }
+    }
+}
+
+impl InterpreterMut<Stmt, ()> for StatefulInterpreter {
+    type Error = StmtInterpreterErr;
+
+    fn interpret(&mut self, _input: Stmt) -> Result<(), Self::Error> {
+        todo!();
+    }
+}
+
+/// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, ())> implementation
+impl InterpreterMut<Box<Stmt>, ()> for StatefulInterpreter {
+    type Error = StmtInterpreterErr;
+    fn interpret(&mut self, input: Box<Stmt>) -> Result<(), Self::Error> {
+        self.interpret(*input)
+    }
+}
