@@ -35,7 +35,6 @@ impl fmt::Display for Expr {
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let comparison = Expr::Equality(
 ///     EqualityExpr::NotEqual(
@@ -74,7 +73,6 @@ impl fmt::Display for EqualityExpr {
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let comparison = Expr::Comparison(
 ///     ComparisonExpr::GreaterEqual(
@@ -117,7 +115,6 @@ impl fmt::Display for ComparisonExpr {
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let addition = Expr::Addition(
 ///     AdditionExpr::Add(
@@ -156,7 +153,6 @@ impl fmt::Display for AdditionExpr {
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let multiplication = Expr::Multiplication(
 ///     MultiplicationExpr::Multiply(
@@ -195,7 +191,6 @@ impl fmt::Display for MultiplicationExpr {
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let unary = Expr::Unary(
 ///     UnaryExpr::Minus(
@@ -222,6 +217,10 @@ impl fmt::Display for UnaryExpr {
     }
 }
 
+/// Identifier represents a type alias for Identifier types used in the
+/// below PrimaryExpr.
+pub type Identifier = String;
+
 /// Represents Literal Lox expressions and stores a single.
 ///
 /// # Examples
@@ -229,7 +228,6 @@ impl fmt::Display for UnaryExpr {
 /// extern crate librlox;
 /// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
-/// use std::option::Option::Some;
 ///
 /// let primary = Expr::Primary(
 ///     PrimaryExpr::Number(5.0)
@@ -240,7 +238,7 @@ pub enum PrimaryExpr {
     Nil,
     True,
     False,
-    Identifier(String),
+    Identifier(Identifier),
     Str(String),
     Number(f64),
 }
