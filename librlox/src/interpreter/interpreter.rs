@@ -38,7 +38,7 @@ impl fmt::Display for ExprInterpreterErr {
     }
 }
 
-pub type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
+pub type ExprInterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 
 pub struct StatefulInterpreter {
     globals: Environment,
@@ -57,7 +57,7 @@ impl StatefulInterpreter {
 impl InterpreterMut<Expr, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
 
-    fn interpret(&mut self, expr: Expr) -> InterpreterResult {
+    fn interpret(&mut self, expr: Expr) -> ExprInterpreterResult {
         match expr {
             Expr::Grouping(expr) => self.interpret(expr),
             Expr::Primary(expr) => self.interpret_primary(expr),
@@ -73,16 +73,13 @@ impl InterpreterMut<Expr, PrimaryExpr> for StatefulInterpreter {
 /// This functions only to unpack an Expr and dispatch to the upstream Interpreter<Expr, PrimaryExpr> implementation
 impl InterpreterMut<Box<Expr>, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
-    fn interpret(&mut self, expr: Box<Expr>) -> InterpreterResult {
+    fn interpret(&mut self, expr: Box<Expr>) -> ExprInterpreterResult {
         self.interpret(*expr)
     }
 }
 
 impl StatefulInterpreter {
-    fn interpret_equality(
-        &mut self,
-        expr: EqualityExpr,
-    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_equality(&mut self, expr: EqualityExpr) -> ExprInterpreterResult {
         match expr {
             EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
             {
@@ -110,10 +107,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_comparison(
-        &mut self,
-        expr: ComparisonExpr,
-    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_comparison(&mut self, expr: ComparisonExpr) -> ExprInterpreterResult {
         match expr {
             ComparisonExpr::Less(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
@@ -154,10 +148,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_addition(
-        &mut self,
-        expr: AdditionExpr,
-    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_addition(&mut self, expr: AdditionExpr) -> ExprInterpreterResult {
         match expr {
             AdditionExpr::Add(left, right) => match (self.interpret(left), self.interpret(right)) {
                 (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
@@ -181,10 +172,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_multiplication(
-        &mut self,
-        expr: MultiplicationExpr,
-    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_multiplication(&mut self, expr: MultiplicationExpr) -> ExprInterpreterResult {
         match expr {
             MultiplicationExpr::Multiply(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
@@ -207,7 +195,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_unary(&mut self, expr: UnaryExpr) -> InterpreterResult {
+    fn interpret_unary(&mut self, expr: UnaryExpr) -> ExprInterpreterResult {
         match expr {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
                 Ok(expr) => Ok(PrimaryExpr::from(!is_true(expr))),
@@ -221,7 +209,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_primary(&self, expr: PrimaryExpr) -> InterpreterResult {
+    fn interpret_primary(&self, expr: PrimaryExpr) -> ExprInterpreterResult {
         Ok(expr)
     }
 }
@@ -251,18 +239,43 @@ impl fmt::Display for StmtInterpreterErr {
     }
 }
 
+pub type StmtInterpreterResult = Result<(), StmtInterpreterErr>;
+
 impl InterpreterMut<Stmt, ()> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
 
-    fn interpret(&mut self, _input: Stmt) -> Result<(), Self::Error> {
-        todo!();
+    fn interpret(&mut self, input: Stmt) -> StmtInterpreterResult {
+        match input {
+            Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
+            Stmt::Print(expr) => self.interpret_print_stmt(expr),
+            Stmt::Declaration(_, _) => todo!(),
+        }
     }
 }
 
 /// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, ())> implementation
 impl InterpreterMut<Box<Stmt>, ()> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
-    fn interpret(&mut self, input: Box<Stmt>) -> Result<(), Self::Error> {
+    fn interpret(&mut self, input: Box<Stmt>) -> StmtInterpreterResult {
         self.interpret(*input)
+    }
+}
+
+impl StatefulInterpreter {
+    fn interpret_expression_stmt(&mut self, expr: Expr) -> StmtInterpreterResult {
+        match self.interpret(expr) {
+            Ok(_) => Ok(()),
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+        }
+    }
+
+    fn interpret_print_stmt(&mut self, expr: Expr) -> StmtInterpreterResult {
+        match self.interpret(expr) {
+            Ok(expr) => {
+                println!("{}", expr);
+                Ok(())
+            }
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+        }
     }
 }

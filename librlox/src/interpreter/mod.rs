@@ -1,12 +1,13 @@
 use std::fmt;
 mod interpreter;
 
-use crate::parser::expression::Expr;
+//use crate::parser::expression::Expr;
+use crate::parser::statement::Stmt;
 use interpreter::StatefulInterpreter;
 
 // Export Error and Result
 pub use interpreter::ExprInterpreterErr;
-pub use interpreter::InterpreterResult;
+pub use interpreter::StmtInterpreterResult;
 
 #[cfg(tests)]
 mod tests;
@@ -36,9 +37,16 @@ pub trait InterpreterMut<A, B> {
     fn interpret(&mut self, input: A) -> Result<B, Self::Error>;
 }
 
-/// Handles interpreting an arbitrarily nested Expr into a terminal literal as
-/// represented by the PrimaryExpr type. This value is returned as an
-/// InterpreterResult containing either an Ok(PrimaryExpr) or an Error.
-pub fn interpret(expr: Expr) -> InterpreterResult {
-    StatefulInterpreter::new().interpret(expr)
+/// Handles interpreting an arbitrarily Statements
+pub fn interpret(statements: Vec<Stmt>) -> StmtInterpreterResult {
+    let mut interpreter = StatefulInterpreter::new();
+
+    for stmt in statements {
+        match interpreter.interpret(stmt) {
+            Ok(()) => continue,
+            Err(e) => return Err(e),
+        };
+    }
+
+    Ok(())
 }
