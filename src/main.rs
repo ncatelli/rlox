@@ -9,7 +9,7 @@ extern crate parcel;
 use librlox::interpreter::interpret;
 use librlox::parser::expression_parser::expression;
 use librlox::scanner;
-use parcel::Parser;
+use parcel::prelude::v1::*;
 
 type RuntimeResult<T> = Result<T, String>;
 
