@@ -3,7 +3,7 @@ use std::option::Option::{None, Some};
 
 use std::iter::Iterator;
 
-use super::tokens::{Literal, Token, TokenType};
+use super::tokens::{Token, TokenType, Value};
 
 type LexError = String;
 
@@ -252,7 +252,7 @@ impl Scanner {
                     return (
                         Ok(Token::new(
                             TokenType::Literal,
-                            Some(Literal::Str(literal_str)),
+                            Some(Value::Str(literal_str)),
                         )),
                         current,
                     );
@@ -310,7 +310,7 @@ impl Scanner {
 
                     return match literal_num.parse() {
                         Ok(n) => (
-                            Ok(Token::new(TokenType::Literal, Some(Literal::Number(n)))),
+                            Ok(Token::new(TokenType::Literal, Some(Value::Number(n)))),
                             current,
                         ),
                         Err(_) => (
@@ -336,7 +336,7 @@ impl Scanner {
                     // rewind cursor to not eat next token.
                     let current = Cursor::reverse(current);
                     let literal_str: String = self.substring(start, current).iter().collect();
-                    let t = Token::new(TokenType::Literal, Some(Literal::Identifier(literal_str)));
+                    let t = Token::new(TokenType::Identifier, Some(Value::Identifier(literal_str)));
 
                     return match t.is_reserved_keyword() {
                         Some(token_type) => (Ok(Token::new(token_type, None)), current),

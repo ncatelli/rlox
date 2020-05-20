@@ -12,28 +12,28 @@ fn into_iter_should_return_characters_from_iterators() {
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Semicolon,
-            literal: None,
+            value: None,
         }))
     );
     assert_eq!(
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Plus,
-            literal: None,
+            value: None,
         }))
     );
     assert_eq!(
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Minus,
-            literal: None,
+            value: None,
         }))
     );
     assert_eq!(
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::EOF,
-            literal: None,
+            value: None,
         }))
     );
     assert_eq!(iter.next(), None);

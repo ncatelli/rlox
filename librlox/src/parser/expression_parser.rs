@@ -13,7 +13,7 @@ use std::convert::TryFrom;
 /// ```
 /// extern crate librlox;
 /// extern crate parcel;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::scanner::tokens::{Value, TokenType, Token};
 /// use librlox::parser::expression::*;
 /// use librlox::parser::expression_parser::*;
 /// use std::option::Option;
@@ -21,7 +21,7 @@ use std::convert::TryFrom;
 /// use parcel::*;
 ///
 ///
-/// let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
+/// let literal_token = Token::new(TokenType::Literal, Option::Some(Value::Number(1.0)));
 /// let seed_vec = vec![
 ///     literal_token.clone(),
 /// ];

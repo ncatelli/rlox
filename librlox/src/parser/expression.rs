@@ -33,7 +33,6 @@ impl fmt::Display for Expr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
 ///
 /// let comparison = Expr::Equality(
@@ -71,7 +70,6 @@ impl fmt::Display for EqualityExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
 ///
 /// let comparison = Expr::Comparison(
@@ -113,7 +111,6 @@ impl fmt::Display for ComparisonExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
 ///
 /// let addition = Expr::Addition(
@@ -151,7 +148,6 @@ impl fmt::Display for AdditionExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
 ///
 /// let multiplication = Expr::Multiplication(
@@ -189,7 +185,6 @@ impl fmt::Display for MultiplicationExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
 ///
 /// let unary = Expr::Unary(
@@ -226,7 +221,6 @@ pub type Identifier = String;
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
 /// use librlox::parser::expression::*;
 ///
 /// let primary = Expr::Primary(
@@ -257,15 +251,15 @@ impl std::convert::TryFrom<tokens::Token> for PrimaryExpr {
     type Error = String;
 
     fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
-        match (t.token_type, t.literal) {
+        match (t.token_type, t.value) {
             (tokens::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
             (tokens::TokenType::True, None) => Ok(PrimaryExpr::True),
             (tokens::TokenType::False, None) => Ok(PrimaryExpr::False),
-            (tokens::TokenType::Literal, Some(tokens::Literal::Identifier(v))) => {
+            (tokens::TokenType::Literal, Some(tokens::Value::Identifier(v))) => {
                 Ok(PrimaryExpr::Identifier(v))
             }
-            (tokens::TokenType::Literal, Some(tokens::Literal::Str(v))) => Ok(PrimaryExpr::Str(v)),
-            (tokens::TokenType::Literal, Some(tokens::Literal::Number(v))) => {
+            (tokens::TokenType::Literal, Some(tokens::Value::Str(v))) => Ok(PrimaryExpr::Str(v)),
+            (tokens::TokenType::Literal, Some(tokens::Value::Number(v))) => {
                 Ok(PrimaryExpr::Number(v))
             }
             // Placeholder
