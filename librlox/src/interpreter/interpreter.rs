@@ -1,4 +1,4 @@
-use crate::interpreter::Interpreter;
+use crate::interpreter::InterpreterMut;
 use crate::parser::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
@@ -42,10 +42,10 @@ pub type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 #[derive(Default)]
 pub struct StatefulInterpreter {}
 
-impl Interpreter<Expr, PrimaryExpr> for StatefulInterpreter {
+impl InterpreterMut<Expr, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
 
-    fn interpret(&self, expr: Expr) -> InterpreterResult {
+    fn interpret(&mut self, expr: Expr) -> InterpreterResult {
         match expr {
             Expr::Grouping(expr) => self.interpret(expr),
             Expr::Primary(expr) => self.interpret_primary(expr),
@@ -59,9 +59,9 @@ impl Interpreter<Expr, PrimaryExpr> for StatefulInterpreter {
 }
 
 /// This functions only to unpack an Expr and dispatch to the upstream Interpreter<Expr, PrimaryExpr> implementation
-impl Interpreter<Box<Expr>, PrimaryExpr> for StatefulInterpreter {
+impl InterpreterMut<Box<Expr>, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
-    fn interpret(&self, expr: Box<Expr>) -> InterpreterResult {
+    fn interpret(&mut self, expr: Box<Expr>) -> InterpreterResult {
         self.interpret(*expr)
     }
 }
@@ -71,7 +71,10 @@ impl StatefulInterpreter {
         StatefulInterpreter::default()
     }
 
-    fn interpret_equality(&self, expr: EqualityExpr) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_equality(
+        &mut self,
+        expr: EqualityExpr,
+    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
         match expr {
             EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
             {
@@ -100,7 +103,7 @@ impl StatefulInterpreter {
     }
 
     fn interpret_comparison(
-        &self,
+        &mut self,
         expr: ComparisonExpr,
     ) -> Result<PrimaryExpr, ExprInterpreterErr> {
         match expr {
@@ -143,7 +146,10 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_addition(&self, expr: AdditionExpr) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_addition(
+        &mut self,
+        expr: AdditionExpr,
+    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
         match expr {
             AdditionExpr::Add(left, right) => match (self.interpret(left), self.interpret(right)) {
                 (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
@@ -168,7 +174,7 @@ impl StatefulInterpreter {
     }
 
     fn interpret_multiplication(
-        &self,
+        &mut self,
         expr: MultiplicationExpr,
     ) -> Result<PrimaryExpr, ExprInterpreterErr> {
         match expr {
@@ -193,7 +199,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_unary(&self, expr: UnaryExpr) -> InterpreterResult {
+    fn interpret_unary(&mut self, expr: UnaryExpr) -> InterpreterResult {
         match expr {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
                 Ok(expr) => Ok(PrimaryExpr::from(!is_true(expr))),

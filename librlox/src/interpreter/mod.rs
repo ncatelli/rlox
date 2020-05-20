@@ -30,6 +30,12 @@ pub trait Interpreter<A, B> {
     fn interpret(&self, input: A) -> Result<B, Self::Error>;
 }
 
+pub trait InterpreterMut<A, B> {
+    type Error;
+
+    fn interpret(&mut self, input: A) -> Result<B, Self::Error>;
+}
+
 /// Handles interpreting an arbitrarily nested Expr into a terminal literal as
 /// represented by the PrimaryExpr type. This value is returned as an
 /// InterpreterResult containing either an Ok(PrimaryExpr) or an Error.
