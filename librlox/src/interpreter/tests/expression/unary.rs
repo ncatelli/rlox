@@ -1,5 +1,5 @@
-use crate::interpreter::expression::ExpressionInterpreter;
-use crate::interpreter::Interpreter;
+use crate::interpreter::InterpreterMut;
+use crate::interpreter::StatefulInterpreter;
 use crate::parser::expression::{Expr, PrimaryExpr, UnaryExpr};
 
 #[test]
@@ -9,11 +9,11 @@ fn unary_expr_should_invert_bool_with_bang_operator() {
 
     assert_eq!(
         Ok(PrimaryExpr::False),
-        ExpressionInterpreter::new().interpret(true_expr)
+        StatefulInterpreter::new().interpret(true_expr)
     );
     assert_eq!(
         Ok(PrimaryExpr::True),
-        ExpressionInterpreter::new().interpret(false_expr)
+        StatefulInterpreter::new().interpret(false_expr)
     );
 }
 
@@ -25,6 +25,6 @@ fn unary_expr_should_negate_number_with_minus_operator() {
 
     assert_eq!(
         Ok(PrimaryExpr::Number(-1.0)),
-        ExpressionInterpreter::new().interpret(expr)
+        StatefulInterpreter::new().interpret(expr)
     );
 }

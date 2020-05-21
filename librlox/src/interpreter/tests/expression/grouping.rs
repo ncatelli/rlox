@@ -1,5 +1,5 @@
-use crate::interpreter::expression::ExpressionInterpreter;
-use crate::interpreter::Interpreter;
+use crate::interpreter::InterpreterMut;
+use crate::interpreter::StatefulInterpreter;
 use crate::parser::expression::{AdditionExpr, Expr, MultiplicationExpr, PrimaryExpr};
 
 macro_rules! primary_number {
@@ -26,7 +26,7 @@ fn grouping_expr_should_interpret_to_equivalent_primary() {
 
     assert_eq!(
         Ok(PrimaryExpr::Number(5.0)),
-        ExpressionInterpreter::new().interpret(expr)
+        StatefulInterpreter::new().interpret(expr)
     );
 }
 
@@ -42,6 +42,6 @@ fn grouping_expr_should_maintain_operator_precedence() {
 
     assert_eq!(
         Ok(PrimaryExpr::Number(5.0)),
-        ExpressionInterpreter::new().interpret(expr)
+        StatefulInterpreter::new().interpret(expr)
     );
 }

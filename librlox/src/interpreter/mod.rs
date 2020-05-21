@@ -1,15 +1,15 @@
 use std::fmt;
 mod interpreter;
 
+#[cfg(test)]
+mod tests;
+
 //use crate::parser::expression::Expr;
 pub use interpreter::StatefulInterpreter;
 
 // Export Error and Result
 pub use interpreter::ExprInterpreterErr;
 pub use interpreter::StmtInterpreterResult;
-
-#[cfg(tests)]
-mod tests;
 
 #[derive(PartialEq, Debug)]
 pub enum InterpreterErr {

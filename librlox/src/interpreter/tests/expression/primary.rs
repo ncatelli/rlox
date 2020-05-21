@@ -1,5 +1,5 @@
-use crate::interpreter::expression::ExpressionInterpreter;
-use crate::interpreter::Interpreter;
+use crate::interpreter::InterpreterMut;
+use crate::interpreter::StatefulInterpreter;
 use crate::parser::expression::{Expr, PrimaryExpr};
 
 #[test]
@@ -8,6 +8,6 @@ fn primary_expr_should_interpret_to_equivalent_primary() {
 
     assert_eq!(
         Ok(PrimaryExpr::Number(5.0)),
-        ExpressionInterpreter::new().interpret(expr)
+        StatefulInterpreter::new().interpret(expr)
     );
 }
