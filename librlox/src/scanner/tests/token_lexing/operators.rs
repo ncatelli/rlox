@@ -19,10 +19,10 @@ fn scan_tokens_should_lex_single_character_lexemes() {
     compare_single_token_source_helper("*", TokenType::Star);
 
     compare_single_token_source_helper("!", TokenType::Bang);
-    compare_single_token_source_helper("=", TokenType::Equal);
-    compare_single_token_source_helper("<", TokenType::Less);
+    compare_single_token_source_helper("= ", TokenType::Equal);
+    compare_single_token_source_helper("< ", TokenType::Less);
     compare_single_token_source_helper(">", TokenType::Greater);
-    compare_single_token_source_helper("/", TokenType::Slash);
+    compare_single_token_source_helper(" /", TokenType::Slash);
 }
 
 #[test]

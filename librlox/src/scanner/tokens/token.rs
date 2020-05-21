@@ -22,21 +22,22 @@ const RESERVED_KEYWORDS: &[(&str, TokenType)] = &[
     ("else", TokenType::Else),
 ];
 
-/// Literal functions to encapsulate literal values to be embedded in their
-/// corresponding Token type.
+/// Value functions to encapsulate values to be embedded in their
+/// corresponding Token type. Which can either be a Literal or an Identifier
+/// (variable).
 #[derive(Debug, PartialEq, Clone)]
-pub enum Literal {
+pub enum Value {
     Identifier(String),
     Str(String),
     Number(f64),
 }
 
-impl fmt::Display for Literal {
+impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Literal::Identifier(s) => write!(f, "{}", &s),
-            Literal::Str(s) => write!(f, "{}", &s),
-            Literal::Number(n) => write!(f, "{}", n),
+            Value::Identifier(s) => write!(f, "{}", &s),
+            Value::Str(s) => write!(f, "{}", &s),
+            Value::Number(n) => write!(f, "{}", n),
         }
     }
 }
@@ -44,21 +45,18 @@ impl fmt::Display for Literal {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub token_type: TokenType,
-    pub literal: Option<Literal>,
+    pub value: Option<Value>,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, literal: Option<Literal>) -> Token {
-        Token {
-            token_type,
-            literal,
-        }
+    pub fn new(token_type: TokenType, value: Option<Value>) -> Token {
+        Token { token_type, value }
     }
 
     pub fn is_reserved_keyword(&self) -> Option<TokenType> {
         match self.token_type {
-            TokenType::Literal => match self.literal {
-                Some(Literal::Identifier(ref id)) => {
+            TokenType::Identifier => match self.value {
+                Some(Value::Identifier(ref id)) => {
                     for kw in RESERVED_KEYWORDS.iter() {
                         if kw.0 == id {
                             return Some(kw.1);
@@ -75,7 +73,7 @@ impl Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.literal.as_ref() {
+        match self.value.as_ref() {
             Some(lit) => write!(f, "{}", lit),
             None => write!(f, "{}", self.token_type),
         }

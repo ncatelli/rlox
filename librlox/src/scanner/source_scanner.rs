@@ -3,7 +3,7 @@ use std::option::Option::{None, Some};
 
 use std::iter::Iterator;
 
-use super::tokens::{Literal, Token, TokenType};
+use super::tokens::{Token, TokenType, Value};
 
 type LexError = String;
 
@@ -187,14 +187,15 @@ impl Scanner {
     fn match_next_or(
         &self,
         start: Cursor,
-        _expected_next: char,
+        expected_next: char,
         if_matches: TokenType,
         if_no_match: TokenType,
     ) -> (LexResult, Cursor) {
         let current = Cursor::advance(start);
-
         match self.char_at(current) {
-            Some(_expected_next) => (Ok(Token::new(if_matches, None)), current),
+            Some(_) if self.char_at(current).unwrap() == expected_next => {
+                (Ok(Token::new(if_matches, None)), current)
+            }
             _ => (Ok(Token::new(if_no_match, None)), start),
         }
     }
@@ -252,7 +253,7 @@ impl Scanner {
                     return (
                         Ok(Token::new(
                             TokenType::Literal,
-                            Some(Literal::Str(literal_str)),
+                            Some(Value::Str(literal_str)),
                         )),
                         current,
                     );
@@ -310,7 +311,7 @@ impl Scanner {
 
                     return match literal_num.parse() {
                         Ok(n) => (
-                            Ok(Token::new(TokenType::Literal, Some(Literal::Number(n)))),
+                            Ok(Token::new(TokenType::Literal, Some(Value::Number(n)))),
                             current,
                         ),
                         Err(_) => (
@@ -333,11 +334,10 @@ impl Scanner {
             match self.char_at(current) {
                 Some('a'..='z') | Some('A'..='Z') | Some('0'..='9') | Some('_') => continue,
                 _ => {
-                    let literal_str: String = self
-                        .substring(start, Cursor::reverse(current))
-                        .iter()
-                        .collect();
-                    let t = Token::new(TokenType::Literal, Some(Literal::Identifier(literal_str)));
+                    // rewind cursor to not eat next token.
+                    let current = Cursor::reverse(current);
+                    let literal_str: String = self.substring(start, current).iter().collect();
+                    let t = Token::new(TokenType::Identifier, Some(Value::Identifier(literal_str)));
 
                     return match t.is_reserved_keyword() {
                         Some(token_type) => (Ok(Token::new(token_type, None)), current),

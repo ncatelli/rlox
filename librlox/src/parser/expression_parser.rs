@@ -1,28 +1,9 @@
 extern crate parcel;
+use crate::parser::combinators::{token_type, unzip};
 use crate::parser::expression::*;
 use crate::scanner::tokens::{Token, TokenType};
 use parcel::*;
 use std::convert::TryFrom;
-use std::option::Option::Some;
-
-fn unzip<A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
-    let mut left_vec: Vec<A> = vec![];
-    let mut right_vec: Vec<B> = vec![];
-    pair.into_iter().for_each(|(left, right)| {
-        left_vec.push(left);
-        right_vec.push(right);
-    });
-    (left_vec, right_vec)
-}
-
-fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], Token> {
-    move |input: &'a [Token]| match input.get(0) {
-        Some(next) if next.token_type == expected => {
-            Ok(parcel::MatchStatus::Match((&input[1..], next.clone())))
-        }
-        _ => Ok(parcel::MatchStatus::NoMatch(input)),
-    }
-}
 
 /// Represents the entrypoint for expression parsing within the lox parser and
 /// yields an Expr object after recursively descending through the expression
@@ -32,7 +13,7 @@ fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], T
 /// ```
 /// extern crate librlox;
 /// extern crate parcel;
-/// use librlox::scanner::tokens::{Literal, TokenType, Token};
+/// use librlox::scanner::tokens::{Value, TokenType, Token};
 /// use librlox::parser::expression::*;
 /// use librlox::parser::expression_parser::*;
 /// use std::option::Option;
@@ -40,7 +21,7 @@ fn token_type<'a>(expected: TokenType) -> impl parcel::Parser<'a, &'a [Token], T
 /// use parcel::*;
 ///
 ///
-/// let literal_token = Token::new(TokenType::Literal, Option::Some(Literal::Number(1.0)));
+/// let literal_token = Token::new(TokenType::Literal, Option::Some(Value::Number(1.0)));
 /// let seed_vec = vec![
 ///     literal_token.clone(),
 /// ];
@@ -222,6 +203,10 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         .or(|| token_type(TokenType::Nil))
         .or(|| token_type(TokenType::Literal))
         .map(|token| Expr::Primary(PrimaryExpr::try_from(token).unwrap()))
+        .or(|| {
+            token_type(TokenType::Identifier)
+                .map(|token| Expr::Variable(Identifier::try_from(token).unwrap()))
+        })
         .or(|| {
             right(join(
                 token_type(TokenType::LeftParen),

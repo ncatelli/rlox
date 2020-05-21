@@ -5,3 +5,4 @@ mod grouping;
 mod multiplication;
 mod primary;
 mod unary;
+mod variable;

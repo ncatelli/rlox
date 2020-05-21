@@ -1,4 +1,15 @@
 use std::fmt;
+mod interpreter;
+
+#[cfg(test)]
+mod tests;
+
+//use crate::parser::expression::Expr;
+pub use interpreter::StatefulInterpreter;
+
+// Export Error and Result
+pub use interpreter::ExprInterpreterErr;
+pub use interpreter::StmtInterpreterResult;
 
 #[derive(PartialEq, Debug)]
 pub enum InterpreterErr {
@@ -19,4 +30,8 @@ pub trait Interpreter<A, B> {
     fn interpret(&self, input: A) -> Result<B, Self::Error>;
 }
 
-pub mod expression;
+pub trait InterpreterMut<A, B> {
+    type Error;
+
+    fn interpret(&mut self, input: A) -> Result<B, Self::Error>;
+}

@@ -1,5 +1,6 @@
-use crate::interpreter::expression::{ExprInterpreterErr, ExpressionInterpreter};
-use crate::interpreter::Interpreter;
+use crate::interpreter::ExprInterpreterErr;
+use crate::interpreter::InterpreterMut;
+use crate::interpreter::StatefulInterpreter;
 use crate::parser::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
 
 macro_rules! primary_number {
@@ -16,7 +17,7 @@ macro_rules! primary_string {
 
 macro_rules! expr_interpret {
     ($x:expr) => {
-        ExpressionInterpreter::new().interpret($x)
+        StatefulInterpreter::new().interpret($x)
     };
 }
 

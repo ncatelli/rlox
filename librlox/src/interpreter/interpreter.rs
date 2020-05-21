@@ -1,6 +1,8 @@
-use crate::interpreter::Interpreter;
+use crate::environment::Environment;
+use crate::interpreter::InterpreterMut;
 use crate::parser::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, Identifier, MultiplicationExpr, PrimaryExpr,
+    UnaryExpr,
 };
 use std::fmt;
 
@@ -21,6 +23,7 @@ pub enum ExprInterpreterErr {
     Unspecified,
     Type(&'static str),
     BinaryExpr(&'static str, PrimaryExpr, PrimaryExpr),
+    Lookup(Identifier),
 }
 
 impl fmt::Display for ExprInterpreterErr {
@@ -33,21 +36,34 @@ impl fmt::Display for ExprInterpreterErr {
                 "invalid operand for operators: {} {} {}",
                 left, op, right
             ),
+            Self::Lookup(id) => write!(f, "undefined symbol: {}", id),
         }
     }
 }
 
-pub type InterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
+pub type ExprInterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 
-#[derive(Default)]
-pub struct ExpressionInterpreter {}
+pub struct StatefulInterpreter {
+    pub globals: Environment,
+}
 
-impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
+impl StatefulInterpreter {
+    pub fn new() -> StatefulInterpreter {
+        StatefulInterpreter {
+            globals: Environment::new(),
+        }
+    }
+}
+
+/// InterpreterMut<Expr, PrimaryExpr> begins implemententing the required state
+/// for interpreting Expressions in a stateful way.
+impl InterpreterMut<Expr, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
 
-    fn interpret(&self, expr: Expr) -> InterpreterResult {
+    fn interpret(&mut self, expr: Expr) -> ExprInterpreterResult {
         match expr {
             Expr::Grouping(expr) => self.interpret(expr),
+            Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(expr) => self.interpret_primary(expr),
             Expr::Unary(expr) => self.interpret_unary(expr),
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
@@ -59,19 +75,15 @@ impl Interpreter<Expr, PrimaryExpr> for ExpressionInterpreter {
 }
 
 /// This functions only to unpack an Expr and dispatch to the upstream Interpreter<Expr, PrimaryExpr> implementation
-impl Interpreter<Box<Expr>, PrimaryExpr> for ExpressionInterpreter {
+impl InterpreterMut<Box<Expr>, PrimaryExpr> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
-    fn interpret(&self, expr: Box<Expr>) -> InterpreterResult {
+    fn interpret(&mut self, expr: Box<Expr>) -> ExprInterpreterResult {
         self.interpret(*expr)
     }
 }
 
-impl ExpressionInterpreter {
-    pub fn new() -> ExpressionInterpreter {
-        ExpressionInterpreter::default()
-    }
-
-    fn interpret_equality(&self, expr: EqualityExpr) -> Result<PrimaryExpr, ExprInterpreterErr> {
+impl StatefulInterpreter {
+    fn interpret_equality(&mut self, expr: EqualityExpr) -> ExprInterpreterResult {
         match expr {
             EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
             {
@@ -99,10 +111,7 @@ impl ExpressionInterpreter {
         }
     }
 
-    fn interpret_comparison(
-        &self,
-        expr: ComparisonExpr,
-    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_comparison(&mut self, expr: ComparisonExpr) -> ExprInterpreterResult {
         match expr {
             ComparisonExpr::Less(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
@@ -143,7 +152,7 @@ impl ExpressionInterpreter {
         }
     }
 
-    fn interpret_addition(&self, expr: AdditionExpr) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_addition(&mut self, expr: AdditionExpr) -> ExprInterpreterResult {
         match expr {
             AdditionExpr::Add(left, right) => match (self.interpret(left), self.interpret(right)) {
                 (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
@@ -167,10 +176,7 @@ impl ExpressionInterpreter {
         }
     }
 
-    fn interpret_multiplication(
-        &self,
-        expr: MultiplicationExpr,
-    ) -> Result<PrimaryExpr, ExprInterpreterErr> {
+    fn interpret_multiplication(&mut self, expr: MultiplicationExpr) -> ExprInterpreterResult {
         match expr {
             MultiplicationExpr::Multiply(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
@@ -193,7 +199,7 @@ impl ExpressionInterpreter {
         }
     }
 
-    fn interpret_unary(&self, expr: UnaryExpr) -> InterpreterResult {
+    fn interpret_unary(&mut self, expr: UnaryExpr) -> ExprInterpreterResult {
         match expr {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
                 Ok(expr) => Ok(PrimaryExpr::from(!is_true(expr))),
@@ -207,8 +213,21 @@ impl ExpressionInterpreter {
         }
     }
 
-    fn interpret_primary(&self, expr: PrimaryExpr) -> InterpreterResult {
-        Ok(expr)
+    fn interpret_primary(&mut self, expr: PrimaryExpr) -> ExprInterpreterResult {
+        match expr {
+            PrimaryExpr::Identifier(id) => self.interpret_variable(id),
+            _ => Ok(expr),
+        }
+    }
+
+    fn interpret_variable(&mut self, id: Identifier) -> ExprInterpreterResult {
+        match self.globals.get(&id) {
+            Some(v) => {
+                let expr = v.to_owned();
+                self.interpret(expr)
+            }
+            None => Err(ExprInterpreterErr::Lookup(id.clone())),
+        }
     }
 }
 
@@ -217,5 +236,91 @@ fn is_true(expr: PrimaryExpr) -> bool {
         PrimaryExpr::Nil => false,
         PrimaryExpr::False => false,
         _ => true,
+    }
+}
+
+use crate::parser::statement::Stmt;
+
+#[derive(PartialEq, Debug)]
+pub enum StmtInterpreterErr {
+    Unspecified,
+    Expression(ExprInterpreterErr),
+}
+
+impl fmt::Display for StmtInterpreterErr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unspecified => write!(f, "unspecified statement error"),
+            Self::Expression(e) => write!(f, "Expression Error: {}", e),
+        }
+    }
+}
+
+pub type StmtInterpreterResult = Result<(), StmtInterpreterErr>;
+
+impl InterpreterMut<Vec<Stmt>, ()> for StatefulInterpreter {
+    type Error = StmtInterpreterErr;
+
+    fn interpret(&mut self, input: Vec<Stmt>) -> StmtInterpreterResult {
+        for stmt in input {
+            match self.interpret(stmt) {
+                Ok(()) => continue,
+                Err(e) => return Err(e),
+            };
+        }
+        Ok(())
+    }
+}
+
+impl InterpreterMut<Stmt, ()> for StatefulInterpreter {
+    type Error = StmtInterpreterErr;
+
+    fn interpret(&mut self, input: Stmt) -> StmtInterpreterResult {
+        match input {
+            Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
+            Stmt::Print(expr) => self.interpret_print_stmt(expr),
+            Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
+        }
+    }
+}
+
+/// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, ())> implementation
+impl InterpreterMut<Box<Stmt>, ()> for StatefulInterpreter {
+    type Error = StmtInterpreterErr;
+    fn interpret(&mut self, input: Box<Stmt>) -> StmtInterpreterResult {
+        self.interpret(*input)
+    }
+}
+
+impl StatefulInterpreter {
+    fn interpret_expression_stmt(&mut self, expr: Expr) -> StmtInterpreterResult {
+        match self.interpret(expr) {
+            Ok(_) => Ok(()),
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+        }
+    }
+
+    fn interpret_print_stmt(&mut self, expr: Expr) -> StmtInterpreterResult {
+        match self.interpret(expr) {
+            Ok(expr) => {
+                println!("{}", expr);
+                Ok(())
+            }
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+        }
+    }
+
+    fn interpret_declaration_stmt(
+        &mut self,
+        name: Identifier,
+        expr: Expr,
+    ) -> StmtInterpreterResult {
+        match self.interpret(expr) {
+            Ok(expr) => {
+                self.globals.define(name, Expr::Primary(expr));
+                Ok(())
+            }
+            Err(e) => Err(StmtInterpreterErr::Expression(e)),
+        }
     }
 }
