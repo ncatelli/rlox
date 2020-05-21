@@ -23,6 +23,7 @@ pub enum ExprInterpreterErr {
     Unspecified,
     Type(&'static str),
     BinaryExpr(&'static str, PrimaryExpr, PrimaryExpr),
+    Lookup(Identifier),
 }
 
 impl fmt::Display for ExprInterpreterErr {
@@ -35,6 +36,7 @@ impl fmt::Display for ExprInterpreterErr {
                 "invalid operand for operators: {} {} {}",
                 left, op, right
             ),
+            Self::Lookup(id) => write!(f, "undefined symbol: {}", id),
         }
     }
 }
@@ -61,6 +63,7 @@ impl InterpreterMut<Expr, PrimaryExpr> for StatefulInterpreter {
     fn interpret(&mut self, expr: Expr) -> ExprInterpreterResult {
         match expr {
             Expr::Grouping(expr) => self.interpret(expr),
+            Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(expr) => self.interpret_primary(expr),
             Expr::Unary(expr) => self.interpret_unary(expr),
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
@@ -210,8 +213,21 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_primary(&self, expr: PrimaryExpr) -> ExprInterpreterResult {
-        Ok(expr)
+    fn interpret_primary(&mut self, expr: PrimaryExpr) -> ExprInterpreterResult {
+        match expr {
+            PrimaryExpr::Identifier(id) => self.interpret_variable(id),
+            _ => Ok(expr),
+        }
+    }
+
+    fn interpret_variable(&mut self, id: Identifier) -> ExprInterpreterResult {
+        match self.globals.get(&id) {
+            Some(v) => {
+                let expr = v.to_owned();
+                self.interpret(expr)
+            }
+            None => Err(ExprInterpreterErr::Lookup(id.clone())),
+        }
     }
 }
 

@@ -3,7 +3,7 @@ use std::fmt;
 
 /// Represents, and encapsulates one of the four types of expressions possible in
 /// lox currently. Further information can be found on each sub-type.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     Equality(EqualityExpr),
     Comparison(ComparisonExpr),
@@ -12,6 +12,7 @@ pub enum Expr {
     Unary(UnaryExpr),
     Primary(PrimaryExpr),
     Grouping(Box<Expr>),
+    Variable(Identifier),
 }
 
 impl fmt::Display for Expr {
@@ -24,6 +25,7 @@ impl fmt::Display for Expr {
             Self::Unary(e) => write!(f, "{}", &e),
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "(Grouping {})", &e),
+            Self::Variable(i) => write!(f, "(Var {})", &i),
         }
     }
 }
@@ -50,7 +52,7 @@ impl fmt::Display for Expr {
 ///     )
 /// );
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum EqualityExpr {
     Equal(Box<Expr>, Box<Expr>),
     NotEqual(Box<Expr>, Box<Expr>),
@@ -87,7 +89,7 @@ impl fmt::Display for EqualityExpr {
 ///     )
 /// );
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ComparisonExpr {
     Less(Box<Expr>, Box<Expr>),
     LessEqual(Box<Expr>, Box<Expr>),
@@ -128,7 +130,7 @@ impl fmt::Display for ComparisonExpr {
 ///     )
 /// );
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum AdditionExpr {
     Add(Box<Expr>, Box<Expr>),
     Subtract(Box<Expr>, Box<Expr>),
@@ -165,7 +167,7 @@ impl fmt::Display for AdditionExpr {
 ///     )
 /// );
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum MultiplicationExpr {
     Multiply(Box<Expr>, Box<Expr>),
     Divide(Box<Expr>, Box<Expr>),
@@ -197,7 +199,7 @@ impl fmt::Display for MultiplicationExpr {
 ///     )
 /// );
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum UnaryExpr {
     Bang(Box<Expr>),
     Minus(Box<Expr>),
@@ -215,6 +217,18 @@ impl fmt::Display for UnaryExpr {
 /// Identifier represents a type alias for Identifier types used in the
 /// below PrimaryExpr.
 pub type Identifier = String;
+
+impl std::convert::TryFrom<tokens::Token> for Identifier {
+    type Error = String;
+
+    fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
+        match (t.token_type, t.value) {
+            (tokens::TokenType::Identifier, Some(tokens::Value::Identifier(v))) => Ok(v),
+            // Placeholder
+            _ => Err(format!("invalid token: {}", t.token_type)),
+        }
+    }
+}
 
 /// Represents Literal Lox expressions and stores a single.
 ///
