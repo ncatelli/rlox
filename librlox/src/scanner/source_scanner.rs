@@ -187,14 +187,15 @@ impl Scanner {
     fn match_next_or(
         &self,
         start: Cursor,
-        _expected_next: char,
+        expected_next: char,
         if_matches: TokenType,
         if_no_match: TokenType,
     ) -> (LexResult, Cursor) {
         let current = Cursor::advance(start);
-
         match self.char_at(current) {
-            Some(_expected_next) => (Ok(Token::new(if_matches, None)), current),
+            Some(_) if self.char_at(current).unwrap() == expected_next => {
+                (Ok(Token::new(if_matches, None)), current)
+            }
             _ => (Ok(Token::new(if_no_match, None)), start),
         }
     }
