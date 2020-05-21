@@ -2,8 +2,7 @@ use std::fmt;
 mod interpreter;
 
 //use crate::parser::expression::Expr;
-use crate::parser::statement::Stmt;
-use interpreter::StatefulInterpreter;
+pub use interpreter::StatefulInterpreter;
 
 // Export Error and Result
 pub use interpreter::ExprInterpreterErr;
@@ -35,18 +34,4 @@ pub trait InterpreterMut<A, B> {
     type Error;
 
     fn interpret(&mut self, input: A) -> Result<B, Self::Error>;
-}
-
-/// Handles interpreting an arbitrarily Statements
-pub fn interpret(statements: Vec<Stmt>) -> StmtInterpreterResult {
-    let mut interpreter = StatefulInterpreter::new();
-
-    for stmt in statements {
-        match interpreter.interpret(stmt) {
-            Ok(()) => continue,
-            Err(e) => return Err(e),
-        };
-    }
-
-    Ok(())
 }

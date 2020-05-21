@@ -1,7 +1,8 @@
 use crate::environment::Environment;
 use crate::interpreter::InterpreterMut;
 use crate::parser::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, Identifier, MultiplicationExpr, PrimaryExpr,
+    UnaryExpr,
 };
 use std::fmt;
 
@@ -41,7 +42,7 @@ impl fmt::Display for ExprInterpreterErr {
 pub type ExprInterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
 
 pub struct StatefulInterpreter {
-    globals: Environment,
+    pub globals: Environment,
 }
 
 impl StatefulInterpreter {
@@ -241,6 +242,20 @@ impl fmt::Display for StmtInterpreterErr {
 
 pub type StmtInterpreterResult = Result<(), StmtInterpreterErr>;
 
+impl InterpreterMut<Vec<Stmt>, ()> for StatefulInterpreter {
+    type Error = StmtInterpreterErr;
+
+    fn interpret(&mut self, input: Vec<Stmt>) -> StmtInterpreterResult {
+        for stmt in input {
+            match self.interpret(stmt) {
+                Ok(()) => continue,
+                Err(e) => return Err(e),
+            };
+        }
+        Ok(())
+    }
+}
+
 impl InterpreterMut<Stmt, ()> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
 
@@ -248,7 +263,7 @@ impl InterpreterMut<Stmt, ()> for StatefulInterpreter {
         match input {
             Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
             Stmt::Print(expr) => self.interpret_print_stmt(expr),
-            Stmt::Declaration(_, _) => todo!(),
+            Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
         }
     }
 }
@@ -276,6 +291,20 @@ impl StatefulInterpreter {
                 Ok(())
             }
             Err(err) => Err(StmtInterpreterErr::Expression(err)),
+        }
+    }
+
+    fn interpret_declaration_stmt(
+        &mut self,
+        name: Identifier,
+        expr: Expr,
+    ) -> StmtInterpreterResult {
+        match self.interpret(expr) {
+            Ok(expr) => {
+                self.globals.define(name, Expr::Primary(expr));
+                Ok(())
+            }
+            Err(e) => Err(StmtInterpreterErr::Expression(e)),
         }
     }
 }

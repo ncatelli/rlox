@@ -13,7 +13,9 @@ pub fn statements<'a>() -> impl parcel::Parser<'a, &'a [Token], Vec<Stmt>> {
 
 #[allow(clippy::redundant_closure)]
 fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
-    print_stmt().or(|| expression_stmt())
+    declaration_stmt()
+        .or(|| print_stmt())
+        .or(|| expression_stmt())
 }
 
 #[allow(clippy::redundant_closure)]
