@@ -1,6 +1,6 @@
+use crate::ast::expression::{Expr, PrimaryExpr, UnaryExpr};
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
-use crate::parser::expression::{Expr, PrimaryExpr, UnaryExpr};
 
 #[test]
 fn unary_expr_should_invert_bool_with_bang_operator() {

@@ -1,6 +1,6 @@
+use crate::ast::expression::{Expr, PrimaryExpr};
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
-use crate::parser::expression::{Expr, PrimaryExpr};
 
 #[test]
 fn primary_expr_should_interpret_to_equivalent_primary() {

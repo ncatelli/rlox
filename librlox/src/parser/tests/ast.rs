@@ -1,5 +1,4 @@
-use crate::parser::expression::MultiplicationExpr;
-use crate::parser::expression::{Expr, PrimaryExpr, UnaryExpr};
+use crate::ast::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
 use crate::scanner::tokens::{Token, TokenType, Value};
 use std::convert::TryFrom;
 use std::option::Option;

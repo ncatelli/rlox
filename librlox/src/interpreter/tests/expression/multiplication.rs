@@ -1,7 +1,7 @@
+use crate::ast::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
 use crate::interpreter::ExprInterpreterErr;
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
-use crate::parser::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
 
 macro_rules! primary_number {
     ($x:literal) => {

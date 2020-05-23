@@ -1,6 +1,6 @@
+use crate::ast::expression::{Expr, PrimaryExpr};
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
-use crate::parser::expression::{Expr, PrimaryExpr};
 use crate::parser::statement::Stmt;
 
 #[test]

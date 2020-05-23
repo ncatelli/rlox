@@ -35,7 +35,7 @@ impl fmt::Display for Expr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let comparison = Expr::Equality(
 ///     EqualityExpr::NotEqual(
@@ -72,7 +72,7 @@ impl fmt::Display for EqualityExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let comparison = Expr::Comparison(
 ///     ComparisonExpr::GreaterEqual(
@@ -113,7 +113,7 @@ impl fmt::Display for ComparisonExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let addition = Expr::Addition(
 ///     AdditionExpr::Add(
@@ -150,7 +150,7 @@ impl fmt::Display for AdditionExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let multiplication = Expr::Multiplication(
 ///     MultiplicationExpr::Multiply(
@@ -187,7 +187,7 @@ impl fmt::Display for MultiplicationExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let unary = Expr::Unary(
 ///     UnaryExpr::Minus(
@@ -235,7 +235,7 @@ impl std::convert::TryFrom<tokens::Token> for Identifier {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let primary = Expr::Primary(
 ///     PrimaryExpr::Number(5.0)

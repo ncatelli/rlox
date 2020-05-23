@@ -1,9 +1,9 @@
-use crate::environment::Environment;
-use crate::interpreter::InterpreterMut;
-use crate::parser::expression::{
+use crate::ast::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, Identifier, MultiplicationExpr, PrimaryExpr,
     UnaryExpr,
 };
+use crate::environment::Environment;
+use crate::interpreter::InterpreterMut;
 use std::fmt;
 
 macro_rules! type_error {

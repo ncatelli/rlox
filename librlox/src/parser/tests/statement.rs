@@ -1,5 +1,5 @@
 extern crate parcel;
-use crate::parser::expression::{Expr, PrimaryExpr, UnaryExpr};
+use crate::ast::expression::{Expr, PrimaryExpr, UnaryExpr};
 use crate::parser::statement::Stmt;
 use crate::parser::statement_parser::statements;
 use crate::scanner::tokens::{Token, TokenType, Value};

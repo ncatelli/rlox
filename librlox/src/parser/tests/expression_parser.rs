@@ -1,5 +1,5 @@
 extern crate parcel;
-use crate::parser::expression::{
+use crate::ast::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
 use crate::parser::expression_parser::expression;
