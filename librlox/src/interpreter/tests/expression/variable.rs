@@ -1,7 +1,7 @@
 use crate::ast::expression::{AdditionExpr, Expr, PrimaryExpr};
+use crate::ast::statement::Stmt;
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
-use crate::parser::statement::Stmt;
 
 #[test]
 fn declaration_statement_should_set_persistent_global_symbol() {

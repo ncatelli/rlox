@@ -239,7 +239,7 @@ fn is_true(expr: PrimaryExpr) -> bool {
     }
 }
 
-use crate::parser::statement::Stmt;
+use crate::ast::statement::Stmt;
 
 #[derive(PartialEq, Debug)]
 pub enum StmtInterpreterErr {
