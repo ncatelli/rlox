@@ -6,6 +6,7 @@ use std::process;
 
 extern crate librlox;
 extern crate parcel;
+use librlox::ast::token;
 use librlox::interpreter::InterpreterMut;
 use librlox::interpreter::StatefulInterpreter;
 use librlox::parser::statement_parser::statements;
@@ -58,7 +59,7 @@ fn run(interpreter: &mut StatefulInterpreter, source: String) -> RuntimeResult<u
     let token_iter = scanner::Scanner::new(source).scan_tokens().into_iter();
     let token_count = token_iter.len();
 
-    let tokens: Vec<scanner::Token> = token_iter
+    let tokens: Vec<token::Token> = token_iter
         .map(|tok| match tok {
             Ok(tok) => tok,
             Err(e) => panic!("{}", e),

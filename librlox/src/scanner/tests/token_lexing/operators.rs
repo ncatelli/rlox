@@ -1,4 +1,4 @@
-use crate::scanner::tokens::TokenType;
+use crate::ast::token::TokenType;
 use crate::scanner::*;
 
 use super::helpers::{

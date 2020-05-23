@@ -1,6 +1,6 @@
 use crate::ast::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
 use crate::ast::statement::Stmt;
-use crate::scanner::tokens::{Token, TokenType, Value};
+use crate::ast::token::{Token, TokenType, Value};
 use std::convert::TryFrom;
 use std::option::Option;
 

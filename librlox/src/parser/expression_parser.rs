@@ -1,7 +1,7 @@
 extern crate parcel;
 use crate::ast::expression::*;
+use crate::ast::token::{Token, TokenType};
 use crate::parser::combinators::{token_type, unzip};
-use crate::scanner::tokens::{Token, TokenType};
 use parcel::*;
 use std::convert::TryFrom;
 
@@ -13,7 +13,7 @@ use std::convert::TryFrom;
 /// ```
 /// extern crate librlox;
 /// extern crate parcel;
-/// use librlox::scanner::tokens::{Value, TokenType, Token};
+/// use librlox::ast::token::{Value, TokenType, Token};
 /// use librlox::ast::expression::*;
 /// use librlox::parser::expression_parser::*;
 /// use std::option::Option;

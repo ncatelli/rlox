@@ -3,7 +3,7 @@ use std::option::Option::{None, Some};
 
 use std::iter::Iterator;
 
-use super::tokens::{Token, TokenType, Value};
+use crate::ast::token::{Token, TokenType, Value};
 
 type LexError = String;
 

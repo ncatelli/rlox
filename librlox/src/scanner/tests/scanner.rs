@@ -1,5 +1,5 @@
+use crate::ast::token::{Token, TokenType};
 use crate::scanner::source_scanner::{LexResult, Scanner};
-use crate::scanner::tokens::{Token, TokenType};
 
 use std::option::Option::{None, Some};
 

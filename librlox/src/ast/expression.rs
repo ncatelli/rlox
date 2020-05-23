@@ -1,4 +1,4 @@
-use crate::scanner::tokens;
+use crate::ast::token;
 use std::fmt;
 
 /// Represents, and encapsulates one of the four types of expressions possible in
@@ -218,12 +218,12 @@ impl fmt::Display for UnaryExpr {
 /// below PrimaryExpr.
 pub type Identifier = String;
 
-impl std::convert::TryFrom<tokens::Token> for Identifier {
+impl std::convert::TryFrom<token::Token> for Identifier {
     type Error = String;
 
-    fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
+    fn try_from(t: token::Token) -> Result<Self, Self::Error> {
         match (t.token_type, t.value) {
-            (tokens::TokenType::Identifier, Some(tokens::Value::Identifier(v))) => Ok(v),
+            (token::TokenType::Identifier, Some(token::Value::Identifier(v))) => Ok(v),
             // Placeholder
             _ => Err(format!("invalid token: {}", t.token_type)),
         }
@@ -261,19 +261,19 @@ impl std::convert::From<bool> for PrimaryExpr {
     }
 }
 
-impl std::convert::TryFrom<tokens::Token> for PrimaryExpr {
+impl std::convert::TryFrom<token::Token> for PrimaryExpr {
     type Error = String;
 
-    fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
+    fn try_from(t: token::Token) -> Result<Self, Self::Error> {
         match (t.token_type, t.value) {
-            (tokens::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
-            (tokens::TokenType::True, None) => Ok(PrimaryExpr::True),
-            (tokens::TokenType::False, None) => Ok(PrimaryExpr::False),
-            (tokens::TokenType::Literal, Some(tokens::Value::Identifier(v))) => {
+            (token::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
+            (token::TokenType::True, None) => Ok(PrimaryExpr::True),
+            (token::TokenType::False, None) => Ok(PrimaryExpr::False),
+            (token::TokenType::Literal, Some(token::Value::Identifier(v))) => {
                 Ok(PrimaryExpr::Identifier(v))
             }
-            (tokens::TokenType::Literal, Some(tokens::Value::Str(v))) => Ok(PrimaryExpr::Str(v)),
-            (tokens::TokenType::Literal, Some(tokens::Value::Number(v))) => {
+            (token::TokenType::Literal, Some(token::Value::Str(v))) => Ok(PrimaryExpr::Str(v)),
+            (token::TokenType::Literal, Some(token::Value::Number(v))) => {
                 Ok(PrimaryExpr::Number(v))
             }
             // Placeholder

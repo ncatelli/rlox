@@ -1,4 +1,4 @@
-use crate::scanner::tokens::{Token, TokenType, Value};
+use crate::ast::token::{Token, TokenType, Value};
 use crate::scanner::*;
 
 pub fn compare_single_token_source_helper(

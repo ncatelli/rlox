@@ -1,8 +1,8 @@
 extern crate parcel;
 use crate::ast::expression::{Expr, PrimaryExpr};
 use crate::ast::statement::Stmt;
+use crate::ast::token::{Token, TokenType, Value};
 use crate::parser::statement_parser::statements;
-use crate::scanner::tokens::{Token, TokenType, Value};
 use parcel::prelude::v1::*;
 use parcel::MatchStatus;
 use std::option::Option;

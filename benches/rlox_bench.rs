@@ -1,8 +1,10 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 extern crate librlox;
 extern crate parcel;
+use librlox::ast::token::Token;
 use librlox::parser::expression_parser::expression;
-use librlox::scanner::{Scanner, Token};
+use librlox::scanner::Scanner;
+
 use parcel::prelude::v1::*;
 
 fn scan_tokens_benchmark(c: &mut Criterion) {

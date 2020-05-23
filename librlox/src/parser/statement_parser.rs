@@ -1,8 +1,8 @@
 extern crate parcel;
 use super::combinators::token_type;
 use crate::ast::statement::Stmt;
+use crate::ast::token::{Token, TokenType, Value};
 use crate::parser::expression_parser::expression;
-use crate::scanner::tokens::{Token, TokenType, Value};
 use parcel::*;
 
 /// Represents the entrypoint for statement parsing within the lox parser and
