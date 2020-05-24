@@ -9,7 +9,7 @@ fn scan_tokens_should_lex_digit() {
         "123",
         "123",
         obj_number!(123.0),
-        TokenType::Literal,
+        TokenType::Number,
     );
 }
 
@@ -19,7 +19,7 @@ fn scan_tokens_should_lex_floating_point() {
         "123.45",
         "123.45",
         obj_number!(123.45),
-        TokenType::Literal,
+        TokenType::Number,
     );
 }
 
@@ -45,7 +45,7 @@ fn scan_tokens_should_allow_numbers_to_include_operators() {
         token_results,
         vec![
             LexResult::Ok(Token {
-                token_type: TokenType::Literal,
+                token_type: TokenType::Number,
                 line: 1,
                 lexeme: Some("5".to_string()),
                 object: Some(obj_number!(5.0)),
@@ -57,7 +57,7 @@ fn scan_tokens_should_allow_numbers_to_include_operators() {
                 object: None,
             }),
             LexResult::Ok(Token {
-                token_type: TokenType::Literal,
+                token_type: TokenType::Number,
                 line: 1,
                 lexeme: Some("5".to_string()),
                 object: Some(obj_number!(5.0)),

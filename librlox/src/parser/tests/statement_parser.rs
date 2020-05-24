@@ -16,7 +16,7 @@ fn test_parser_can_parse_declaration_stmt() {
         Option::Some(obj_identifier!("test".to_string())),
     );
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("5.0".to_string()),
         Option::Some(obj_number!(5.0)),

@@ -9,6 +9,6 @@ fn scan_tokens_should_lex_full_string() {
         "\"test\"",
         "\"test\"",
         object::Object::Literal(object::Literal::Str("test".to_string())),
-        TokenType::Literal,
+        TokenType::Str,
     )
 }

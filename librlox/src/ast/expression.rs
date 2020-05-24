@@ -254,14 +254,14 @@ impl std::convert::TryFrom<token::Token> for PrimaryExpr {
             (token::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
             (token::TokenType::True, None) => Ok(PrimaryExpr::True),
             (token::TokenType::False, None) => Ok(PrimaryExpr::False),
-            (token::TokenType::Literal, Some(object::Object::Identifier(i))) => {
+            (token::TokenType::Identifier, Some(object::Object::Identifier(i))) => {
                 Ok(PrimaryExpr::Identifier(i))
             }
-            (token::TokenType::Literal, Some(object::Object::Literal(object::Literal::Str(s)))) => {
+            (token::TokenType::Str, Some(object::Object::Literal(object::Literal::Str(s)))) => {
                 Ok(PrimaryExpr::Str(s))
             }
             (
-                token::TokenType::Literal,
+                token::TokenType::Number,
                 Some(object::Object::Literal(object::Literal::Number(n))),
             ) => Ok(PrimaryExpr::Number(n)),
             // Placeholder

@@ -314,7 +314,7 @@ impl Scanner {
                         .collect();
                     return (
                         Ok(Token::new(
-                            TokenType::Literal,
+                            TokenType::Str,
                             current.line,
                             Some(format!("\"{}\"", literal_str.clone())), // TODO remove clone
                             Some(obj_str!(literal_str)),
@@ -376,7 +376,7 @@ impl Scanner {
                     return match literal_num.parse() {
                         Ok(n) => (
                             Ok(Token::new(
-                                TokenType::Literal,
+                                TokenType::Number,
                                 current.line,
                                 Some(literal_num),
                                 Some(obj_number!(n)),

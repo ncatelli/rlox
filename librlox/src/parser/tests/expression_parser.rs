@@ -23,7 +23,7 @@ fn match_literal_helper(token: Token) {
 fn validate_parser_should_parse_equality_expression() {
     let op_token = Token::new(TokenType::EqualEqual, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -54,7 +54,7 @@ fn validate_parser_should_parse_equality_expression() {
 fn validate_parser_should_parse_many_equality_expression() {
     let op_token = Token::new(TokenType::EqualEqual, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -92,7 +92,7 @@ fn validate_parser_should_parse_many_equality_expression() {
 fn validate_parser_should_parse_comparison_expression() {
     let op_token = Token::new(TokenType::GreaterEqual, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -123,7 +123,7 @@ fn validate_parser_should_parse_comparison_expression() {
 fn validate_parser_should_parse_many_comparison_expression() {
     let op_token = Token::new(TokenType::GreaterEqual, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -161,7 +161,7 @@ fn validate_parser_should_parse_many_comparison_expression() {
 fn validate_parser_should_parse_addition_expression() {
     let op_token = Token::new(TokenType::Plus, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -192,7 +192,7 @@ fn validate_parser_should_parse_addition_expression() {
 fn validate_parser_should_parse_many_addition_expression() {
     let op_token = Token::new(TokenType::Plus, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -230,7 +230,7 @@ fn validate_parser_should_parse_many_addition_expression() {
 fn validate_parser_should_parse_multiplication_expression() {
     let op_token = Token::new(TokenType::Star, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -261,7 +261,7 @@ fn validate_parser_should_parse_multiplication_expression() {
 fn validate_parser_should_parse_many_multiplication_expression() {
     let op_token = Token::new(TokenType::Star, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -299,7 +299,7 @@ fn validate_parser_should_parse_many_multiplication_expression() {
 fn validate_parser_should_parse_unary_expression() {
     let op_token = Token::new(TokenType::Bang, 1, Option::None, Option::None);
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -320,7 +320,7 @@ fn validate_parser_should_parse_unary_expression() {
 #[test]
 fn validate_parser_should_parse_primary_expression() {
     match_literal_helper(Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -330,7 +330,7 @@ fn validate_parser_should_parse_primary_expression() {
 #[test]
 fn validate_parser_should_parse_grouping_expression() {
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
@@ -355,7 +355,7 @@ fn validate_parser_should_parse_grouping_expression() {
 #[test]
 fn validate_parser_should_throw_error_on_invalid_expression() {
     let literal_token = Token::new(
-        TokenType::Literal,
+        TokenType::Number,
         1,
         Option::Some("1.0".to_string()),
         Option::Some(obj_number!(1.0)),
