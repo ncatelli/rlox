@@ -32,10 +32,10 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, object: Option<object::Object>) -> Token {
+    pub fn new(token_type: TokenType, line: usize, object: Option<object::Object>) -> Token {
         Token {
             token_type: token_type,
-            line: 0,
+            line: line,
             lexeme: "".to_string(),
             object: object,
         }

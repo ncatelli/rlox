@@ -23,7 +23,7 @@ use std::convert::TryFrom;
 /// use parcel::*;
 ///
 ///
-/// let literal_token = Token::new(TokenType::Literal, Option::Some(object::Object::Literal(object::Literal::Number(1.0))));
+/// let literal_token = Token::new(TokenType::Literal, 0, Option::Some(object::Object::Literal(object::Literal::Number(1.0))));
 /// let seed_vec = vec![
 ///     literal_token.clone(),
 /// ];

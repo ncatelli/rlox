@@ -10,6 +10,7 @@ fn test_expression_formatter_should_pretty_print_an_ast() {
         Box::new(Expr::Unary(UnaryExpr::Minus(Box::new(Expr::Primary(
             PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,
+                1,
                 Option::Some(obj_number!(123.0)),
             ))
             .unwrap(),
@@ -17,6 +18,7 @@ fn test_expression_formatter_should_pretty_print_an_ast() {
         Box::new(Expr::Grouping(Box::new(Expr::Primary(
             PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,
+                1,
                 Option::Some(obj_number!(45.7)),
             ))
             .unwrap(),
@@ -34,6 +36,7 @@ fn test_statement_formatter_should_pretty_print_an_ast() {
     let expr = Stmt::Expression(Expr::Unary(UnaryExpr::Minus(Box::new(Expr::Primary(
         PrimaryExpr::try_from(Token::new(
             TokenType::Literal,
+            1,
             Option::Some(obj_number!(123.0)),
         ))
         .unwrap(),
