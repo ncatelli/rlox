@@ -1,6 +1,5 @@
 use crate::ast::token::{Token, TokenType};
 use crate::scanner::source_scanner::{LexResult, Scanner};
-
 use std::option::Option::{None, Some};
 
 #[test]
@@ -12,28 +11,28 @@ fn into_iter_should_return_characters_from_iterators() {
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Semicolon,
-            value: None,
+            object: None,
         }))
     );
     assert_eq!(
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Plus,
-            value: None,
+            object: None,
         }))
     );
     assert_eq!(
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Minus,
-            value: None,
+            object: None,
         }))
     );
     assert_eq!(
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::EOF,
-            value: None,
+            object: None,
         }))
     );
     assert_eq!(iter.next(), None);

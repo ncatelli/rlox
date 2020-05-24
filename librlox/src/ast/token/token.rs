@@ -1,4 +1,5 @@
-use super::token_type::TokenType;
+use crate::ast::token::token_type::TokenType;
+use crate::object;
 use std::fmt;
 use std::option::Option;
 use std::option::Option::{None, Some};
@@ -22,41 +23,21 @@ const RESERVED_KEYWORDS: &[(&str, TokenType)] = &[
     ("else", TokenType::Else),
 ];
 
-/// Value functions to encapsulate values to be embedded in their
-/// corresponding Token type. Which can either be a Literal or an Identifier
-/// (variable).
-#[derive(Debug, PartialEq, Clone)]
-pub enum Value {
-    Identifier(String),
-    Str(String),
-    Number(f64),
-}
-
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Value::Identifier(s) => write!(f, "{}", &s),
-            Value::Str(s) => write!(f, "{}", &s),
-            Value::Number(n) => write!(f, "{}", n),
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub token_type: TokenType,
-    pub value: Option<Value>,
+    pub object: Option<object::Object>,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, value: Option<Value>) -> Token {
-        Token { token_type, value }
+    pub fn new(token_type: TokenType, object: Option<object::Object>) -> Token {
+        Token { token_type, object }
     }
 
     pub fn is_reserved_keyword(&self) -> Option<TokenType> {
         match self.token_type {
-            TokenType::Identifier => match self.value {
-                Some(Value::Identifier(ref id)) => {
+            TokenType::Identifier => match self.object {
+                Some(object::Object::Identifier(ref id)) => {
                     for kw in RESERVED_KEYWORDS.iter() {
                         if kw.0 == id {
                             return Some(kw.1);
@@ -73,7 +54,7 @@ impl Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.value.as_ref() {
+        match self.object.as_ref() {
             Some(lit) => write!(f, "{}", lit),
             None => write!(f, "{}", self.token_type),
         }

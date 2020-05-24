@@ -1,6 +1,7 @@
 use crate::ast::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
 use crate::ast::statement::Stmt;
-use crate::ast::token::{Token, TokenType, Value};
+use crate::ast::token::{Token, TokenType};
+use crate::object;
 use std::convert::TryFrom;
 use std::option::Option;
 
@@ -10,14 +11,14 @@ fn test_expression_formatter_should_pretty_print_an_ast() {
         Box::new(Expr::Unary(UnaryExpr::Minus(Box::new(Expr::Primary(
             PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,
-                Option::Some(Value::Number(123.0)),
+                Option::Some(object::Object::Literal(object::Literal::Number(123.0))),
             ))
             .unwrap(),
         ))))),
         Box::new(Expr::Grouping(Box::new(Expr::Primary(
             PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,
-                Option::Some(Value::Number(45.7)),
+                Option::Some(object::Object::Literal(object::Literal::Number(45.7))),
             ))
             .unwrap(),
         )))),
@@ -34,7 +35,7 @@ fn test_statement_formatter_should_pretty_print_an_ast() {
     let expr = Stmt::Expression(Expr::Unary(UnaryExpr::Minus(Box::new(Expr::Primary(
         PrimaryExpr::try_from(Token::new(
             TokenType::Literal,
-            Option::Some(Value::Number(123.0)),
+            Option::Some(object::Object::Literal(object::Literal::Number(123.0))),
         ))
         .unwrap(),
     )))));

@@ -1,7 +1,8 @@
 extern crate parcel;
 use crate::ast::expression::{Expr, PrimaryExpr};
 use crate::ast::statement::Stmt;
-use crate::ast::token::{Token, TokenType, Value};
+use crate::ast::token::{Token, TokenType};
+use crate::object;
 use crate::parser::statement_parser::statements;
 use parcel::prelude::v1::*;
 use parcel::MatchStatus;
@@ -11,9 +12,12 @@ use std::option::Option;
 fn test_parser_can_parse_declaration_stmt() {
     let identifier_token = Token::new(
         TokenType::Identifier,
-        Option::Some(Value::Identifier("test".to_string())),
+        Option::Some(object::Object::Identifier("test".to_string())),
     );
-    let literal_token = Token::new(TokenType::Literal, Option::Some(Value::Number(5.0)));
+    let literal_token = Token::new(
+        TokenType::Literal,
+        Option::Some(object::Object::Literal(object::Literal::Number(5.0))),
+    );
     let input = vec![
         Token::new(TokenType::Var, Option::None),
         identifier_token.clone(),

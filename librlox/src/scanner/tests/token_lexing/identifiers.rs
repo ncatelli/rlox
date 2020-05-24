@@ -1,4 +1,5 @@
-use crate::ast::token::{TokenType, Value};
+use crate::ast::token::TokenType;
+use crate::object;
 
 use super::helpers::{
     compare_single_token_source_helper, compare_single_token_source_with_literal_helper,
@@ -9,7 +10,7 @@ fn scan_tokens_should_lex_identifiers() {
     let identifier = "test_identifier_1_alpha";
     compare_single_token_source_with_literal_helper(
         identifier,
-        Value::Identifier(identifier.to_string()),
+        object::Object::Identifier(identifier.to_string()),
         TokenType::Identifier,
     )
 }
@@ -19,7 +20,7 @@ fn scan_tokens_should_separate_identifier_on_non_alpha() {
     let identifier = "test_identifier_1_alpha\n";
     compare_single_token_source_with_literal_helper(
         identifier,
-        Value::Identifier(identifier.trim().to_string()),
+        object::Object::Identifier(identifier.trim().to_string()),
         TokenType::Identifier,
     )
 }

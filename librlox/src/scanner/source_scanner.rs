@@ -3,7 +3,8 @@ use std::option::Option::{None, Some};
 
 use std::iter::Iterator;
 
-use crate::ast::token::{Token, TokenType, Value};
+use crate::ast::token::{Token, TokenType};
+use crate::object;
 
 type LexError = String;
 
@@ -253,7 +254,7 @@ impl Scanner {
                     return (
                         Ok(Token::new(
                             TokenType::Literal,
-                            Some(Value::Str(literal_str)),
+                            Some(object::Object::Literal(object::Literal::Str(literal_str))),
                         )),
                         current,
                     );
@@ -311,7 +312,10 @@ impl Scanner {
 
                     return match literal_num.parse() {
                         Ok(n) => (
-                            Ok(Token::new(TokenType::Literal, Some(Value::Number(n)))),
+                            Ok(Token::new(
+                                TokenType::Literal,
+                                Some(object::Object::Literal(object::Literal::Number(n))),
+                            )),
                             current,
                         ),
                         Err(_) => (
@@ -336,8 +340,11 @@ impl Scanner {
                 _ => {
                     // rewind cursor to not eat next token.
                     let current = Cursor::reverse(current);
-                    let literal_str: String = self.substring(start, current).iter().collect();
-                    let t = Token::new(TokenType::Identifier, Some(Value::Identifier(literal_str)));
+                    let ident_literal: String = self.substring(start, current).iter().collect();
+                    let t = Token::new(
+                        TokenType::Identifier,
+                        Some(object::Object::Identifier(ident_literal)),
+                    );
 
                     return match t.is_reserved_keyword() {
                         Some(token_type) => (Ok(Token::new(token_type, None)), current),
