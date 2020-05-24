@@ -11,6 +11,8 @@ fn into_iter_should_return_characters_from_iterators() {
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Semicolon,
+            line: 0,
+            lexeme: "".to_string(),
             object: None,
         }))
     );
@@ -18,6 +20,8 @@ fn into_iter_should_return_characters_from_iterators() {
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Plus,
+            line: 0,
+            lexeme: "".to_string(),
             object: None,
         }))
     );
@@ -25,6 +29,8 @@ fn into_iter_should_return_characters_from_iterators() {
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::Minus,
+            line: 0,
+            lexeme: "".to_string(),
             object: None,
         }))
     );
@@ -32,6 +38,8 @@ fn into_iter_should_return_characters_from_iterators() {
         iter.next(),
         Some(LexResult::Ok(Token {
             token_type: TokenType::EOF,
+            line: 0,
+            lexeme: "".to_string(),
             object: None,
         }))
     );

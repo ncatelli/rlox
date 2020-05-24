@@ -40,18 +40,26 @@ fn scan_tokens_should_allow_numbers_to_include_operators() {
         vec![
             LexResult::Ok(Token {
                 token_type: TokenType::Literal,
+                line: 0,
+                lexeme: "".to_string(),
                 object: Some(obj_number!(5.0)),
             }),
             LexResult::Ok(Token {
                 token_type: TokenType::Plus,
+                line: 0,
+                lexeme: "".to_string(),
                 object: None,
             }),
             LexResult::Ok(Token {
                 token_type: TokenType::Literal,
+                line: 0,
+                lexeme: "".to_string(),
                 object: Some(obj_number!(5.0)),
             }),
             LexResult::Ok(Token {
                 token_type: TokenType::EOF,
+                line: 0,
+                lexeme: "".to_string(),
                 object: None,
             })
         ]

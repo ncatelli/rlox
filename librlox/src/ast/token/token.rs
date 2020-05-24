@@ -26,12 +26,19 @@ const RESERVED_KEYWORDS: &[(&str, TokenType)] = &[
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub token_type: TokenType,
+    pub line: usize,
+    pub lexeme: String,
     pub object: Option<object::Object>,
 }
 
 impl Token {
     pub fn new(token_type: TokenType, object: Option<object::Object>) -> Token {
-        Token { token_type, object }
+        Token {
+            token_type: token_type,
+            line: 0,
+            lexeme: "".to_string(),
+            object: object,
+        }
     }
 
     pub fn is_reserved_keyword(&self) -> Option<TokenType> {
