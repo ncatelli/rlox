@@ -5,15 +5,21 @@ use super::helpers::compare_single_token_source_with_literal_helper;
 
 #[test]
 fn scan_tokens_should_lex_digit() {
-    compare_single_token_source_with_literal_helper("123", obj_number!(123.0), TokenType::Literal);
+    compare_single_token_source_with_literal_helper(
+        "123",
+        "123",
+        obj_number!(123.0),
+        TokenType::Number,
+    );
 }
 
 #[test]
 fn scan_tokens_should_lex_floating_point() {
     compare_single_token_source_with_literal_helper(
         "123.45",
+        "123.45",
         obj_number!(123.45),
-        TokenType::Literal,
+        TokenType::Number,
     );
 }
 
@@ -39,27 +45,27 @@ fn scan_tokens_should_allow_numbers_to_include_operators() {
         token_results,
         vec![
             LexResult::Ok(Token {
-                token_type: TokenType::Literal,
+                token_type: TokenType::Number,
                 line: 1,
-                lexeme: "".to_string(),
+                lexeme: Some("5".to_string()),
                 object: Some(obj_number!(5.0)),
             }),
             LexResult::Ok(Token {
                 token_type: TokenType::Plus,
                 line: 1,
-                lexeme: "".to_string(),
+                lexeme: None,
                 object: None,
             }),
             LexResult::Ok(Token {
-                token_type: TokenType::Literal,
+                token_type: TokenType::Number,
                 line: 1,
-                lexeme: "".to_string(),
+                lexeme: Some("5".to_string()),
                 object: Some(obj_number!(5.0)),
             }),
             LexResult::Ok(Token {
                 token_type: TokenType::EOF,
                 line: 1,
-                lexeme: "".to_string(),
+                lexeme: None,
                 object: None,
             })
         ]

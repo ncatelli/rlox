@@ -18,12 +18,12 @@ use std::convert::TryFrom;
 /// use librlox::ast::expression::*;
 /// use librlox::parser::expression_parser::*;
 /// use librlox::object;
-/// use std::option::Option;
+/// use std::option::Option::Some;
 /// use std::convert::TryFrom;
 /// use parcel::*;
 ///
 ///
-/// let literal_token = Token::new(TokenType::Literal, 0, Option::Some(object::Object::Literal(object::Literal::Number(1.0))));
+/// let literal_token = Token::new(TokenType::Number, 0, Some("1.0".to_string()), Some(object::Object::Literal(object::Literal::Number(1.0))));
 /// let seed_vec = vec![
 ///     literal_token.clone(),
 /// ];
@@ -203,7 +203,8 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     token_type(TokenType::True)
         .or(|| token_type(TokenType::False))
         .or(|| token_type(TokenType::Nil))
-        .or(|| token_type(TokenType::Literal))
+        .or(|| token_type(TokenType::Number))
+        .or(|| token_type(TokenType::Str))
         .map(|token| Expr::Primary(PrimaryExpr::try_from(token).unwrap()))
         .or(|| {
             token_type(TokenType::Identifier).map(|token| match token.object {

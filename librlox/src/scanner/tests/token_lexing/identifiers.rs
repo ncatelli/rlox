@@ -9,6 +9,7 @@ fn scan_tokens_should_lex_identifiers() {
     let identifier = "test_identifier_1_alpha";
     compare_single_token_source_with_literal_helper(
         identifier,
+        identifier,
         obj_identifier!(identifier.to_string()),
         TokenType::Identifier,
     )
@@ -18,6 +19,7 @@ fn scan_tokens_should_lex_identifiers() {
 fn scan_tokens_should_separate_identifier_on_non_alpha() {
     let identifier = "test_identifier_1_alpha\n";
     compare_single_token_source_with_literal_helper(
+        identifier,
         identifier,
         obj_identifier!(identifier.trim().to_string()),
         TokenType::Identifier,
