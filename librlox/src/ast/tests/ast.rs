@@ -11,7 +11,7 @@ fn test_expression_formatter_should_pretty_print_an_ast() {
         Box::new(Expr::Unary(UnaryExpr::Minus(Box::new(Expr::Primary(
             PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,
-                Option::Some(object::Object::Literal(object::Literal::Number(123.0))),
+                Option::Some(obj_number!(123.0)),
             ))
             .unwrap(),
         ))))),

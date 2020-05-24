@@ -35,3 +35,38 @@ impl fmt::Display for Literal {
         }
     }
 }
+
+#[allow(unused_macros)]
+macro_rules! obj_number {
+    ($n:expr) => {
+        $crate::object::Object::Literal($crate::object::Literal::Number($n))
+    };
+}
+
+#[allow(unused_macros)]
+macro_rules! obj_str {
+    ($s:expr) => {
+        $crate::object::Object::Literal($crate::object::Literal::Str($s))
+    };
+}
+
+#[allow(unused_macros)]
+macro_rules! obj_bool {
+    ($b:expr) => {
+        $crate::object::Object::Literal($crate::object::Literal::Bool($b))
+    };
+}
+
+#[allow(unused_macros)]
+macro_rules! obj_nil {
+    () => {
+        $crate::object::Object::Literal($crate::object::Literal::Nil)
+    };
+}
+
+#[allow(unused_macros)]
+macro_rules! obj_identifier {
+    ($i:expr) => {
+        $crate::object::Object::Identifier($i)
+    };
+}
