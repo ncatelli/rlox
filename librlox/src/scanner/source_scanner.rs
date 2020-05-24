@@ -92,7 +92,7 @@ impl Scanner {
             tokens.push(t);
         }
 
-        tokens.push(Ok(Token::new(TokenType::EOF, cursor.line, None)));
+        tokens.push(Ok(Token::new(TokenType::EOF, cursor.line, None, None)));
         tokens
     }
 
@@ -103,43 +103,68 @@ impl Scanner {
         match current {
             // Single character lexemes
             '(' => (
-                Some(Ok(Token::new(TokenType::LeftParen, cursor.line, None))),
+                Some(Ok(Token::new(
+                    TokenType::LeftParen,
+                    cursor.line,
+                    None,
+                    None,
+                ))),
                 cursor,
             ),
             ')' => (
-                Some(Ok(Token::new(TokenType::RightParen, cursor.line, None))),
+                Some(Ok(Token::new(
+                    TokenType::RightParen,
+                    cursor.line,
+                    None,
+                    None,
+                ))),
                 cursor,
             ),
             '{' => (
-                Some(Ok(Token::new(TokenType::LeftBrace, cursor.line, None))),
+                Some(Ok(Token::new(
+                    TokenType::LeftBrace,
+                    cursor.line,
+                    None,
+                    None,
+                ))),
                 cursor,
             ),
             '}' => (
-                Some(Ok(Token::new(TokenType::RightBrace, cursor.line, None))),
+                Some(Ok(Token::new(
+                    TokenType::RightBrace,
+                    cursor.line,
+                    None,
+                    None,
+                ))),
                 cursor,
             ),
             ',' => (
-                Some(Ok(Token::new(TokenType::Comma, cursor.line, None))),
+                Some(Ok(Token::new(TokenType::Comma, cursor.line, None, None))),
                 cursor,
             ),
             '.' => (
-                Some(Ok(Token::new(TokenType::Dot, cursor.line, None))),
+                Some(Ok(Token::new(TokenType::Dot, cursor.line, None, None))),
                 cursor,
             ),
             '-' => (
-                Some(Ok(Token::new(TokenType::Minus, cursor.line, None))),
+                Some(Ok(Token::new(TokenType::Minus, cursor.line, None, None))),
                 cursor,
             ),
             '+' => (
-                Some(Ok(Token::new(TokenType::Plus, cursor.line, None))),
+                Some(Ok(Token::new(TokenType::Plus, cursor.line, None, None))),
                 cursor,
             ),
             ';' => (
-                Some(Ok(Token::new(TokenType::Semicolon, cursor.line, None))),
+                Some(Ok(Token::new(
+                    TokenType::Semicolon,
+                    cursor.line,
+                    None,
+                    None,
+                ))),
                 cursor,
             ),
             '*' => (
-                Some(Ok(Token::new(TokenType::Star, cursor.line, None))),
+                Some(Ok(Token::new(TokenType::Star, cursor.line, None, None))),
                 cursor,
             ),
 
@@ -178,7 +203,7 @@ impl Scanner {
                         (Err(e), next_cursor) => (Some(Err(e)), next_cursor),
                     },
                     _ => (
-                        Some(Ok(Token::new(TokenType::Slash, cursor.line, None))),
+                        Some(Ok(Token::new(TokenType::Slash, cursor.line, None, None))),
                         cursor,
                     ),
                 }
@@ -226,10 +251,11 @@ impl Scanner {
     ) -> (LexResult, Cursor) {
         let current = Cursor::advance(start);
         match self.char_at(current) {
-            Some(_) if self.char_at(current).unwrap() == expected_next => {
-                (Ok(Token::new(if_matches, current.line, None)), current)
-            }
-            _ => (Ok(Token::new(if_no_match, current.line, None)), start),
+            Some(_) if self.char_at(current).unwrap() == expected_next => (
+                Ok(Token::new(if_matches, current.line, None, None)),
+                current,
+            ),
+            _ => (Ok(Token::new(if_no_match, current.line, None, None)), start),
         }
     }
 
@@ -239,7 +265,7 @@ impl Scanner {
             current = Cursor::advance(current);
             if let Some('\n') = self.char_at(current) {
                 return (
-                    Ok(Token::new(TokenType::Comment, start.line, None)),
+                    Ok(Token::new(TokenType::Comment, start.line, None, None)),
                     Cursor::newline(current),
                 );
             }
@@ -254,7 +280,10 @@ impl Scanner {
                 let peek = Cursor::advance(current);
                 match self.char_at(peek) {
                     Some('/') => {
-                        return (Ok(Token::new(TokenType::Comment, peek.line, None)), peek);
+                        return (
+                            Ok(Token::new(TokenType::Comment, peek.line, None, None)),
+                            peek,
+                        );
                     }
                     _ => {
                         return (
@@ -279,7 +308,7 @@ impl Scanner {
             match self.char_at(current) {
                 Some('"') => {
                     //reverse reader one step to negate quote
-                    let literal_str = self
+                    let literal_str: String = self
                         .substring(start, Cursor::reverse(current))
                         .iter()
                         .collect();
@@ -287,6 +316,7 @@ impl Scanner {
                         Ok(Token::new(
                             TokenType::Literal,
                             current.line,
+                            Some(format!("\"{}\"", literal_str.clone())), // TODO remove clone
                             Some(obj_str!(literal_str)),
                         )),
                         current,
@@ -348,6 +378,7 @@ impl Scanner {
                             Ok(Token::new(
                                 TokenType::Literal,
                                 current.line,
+                                Some(literal_num),
                                 Some(obj_number!(n)),
                             )),
                             current,
@@ -378,13 +409,15 @@ impl Scanner {
                     let t = Token::new(
                         TokenType::Identifier,
                         current.line,
+                        Some(ident_literal.trim().to_string()), // TODO Remove clone
                         Some(obj_identifier!(ident_literal)),
                     );
 
                     return match t.is_reserved_keyword() {
-                        Some(token_type) => {
-                            (Ok(Token::new(token_type, current.line, None)), current)
-                        }
+                        Some(token_type) => (
+                            Ok(Token::new(token_type, current.line, None, None)),
+                            current,
+                        ),
                         None => (Ok(t), current),
                     };
                 }

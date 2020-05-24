@@ -15,7 +15,7 @@ pub fn compare_single_token_source_helper(
         LexResult::Ok(Token {
             token_type: expected_token_type,
             line: 1,
-            lexeme: "".to_string(),
+            lexeme: None,
             object: None,
         })
     );
@@ -23,6 +23,7 @@ pub fn compare_single_token_source_helper(
 
 pub fn compare_single_token_source_with_literal_helper(
     single_token_source: &str,
+    lexeme: &str,
     obj: object::Object,
     expected_token_type: TokenType,
 ) {
@@ -35,7 +36,7 @@ pub fn compare_single_token_source_with_literal_helper(
         LexResult::Ok(Token {
             token_type: expected_token_type,
             line: 1,
-            lexeme: "".to_string(),
+            lexeme: Some(lexeme.trim().to_string()),
             object: Some(obj),
         })
     );
@@ -52,7 +53,7 @@ pub fn compare_single_token_source_returns_none_helper(single_token_source: &str
         LexResult::Ok(Token {
             token_type: TokenType::EOF,
             line: line,
-            lexeme: "".to_string(),
+            lexeme: None,
             object: None,
         })
     );

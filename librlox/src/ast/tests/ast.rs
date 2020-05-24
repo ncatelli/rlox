@@ -11,6 +11,7 @@ fn test_expression_formatter_should_pretty_print_an_ast() {
             PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,
                 1,
+                Option::Some("123.0".to_string()),
                 Option::Some(obj_number!(123.0)),
             ))
             .unwrap(),
@@ -19,6 +20,7 @@ fn test_expression_formatter_should_pretty_print_an_ast() {
             PrimaryExpr::try_from(Token::new(
                 TokenType::Literal,
                 1,
+                Option::Some("45.7".to_string()),
                 Option::Some(obj_number!(45.7)),
             ))
             .unwrap(),
@@ -37,6 +39,7 @@ fn test_statement_formatter_should_pretty_print_an_ast() {
         PrimaryExpr::try_from(Token::new(
             TokenType::Literal,
             1,
+            Option::Some("123.0".to_string()),
             Option::Some(obj_number!(123.0)),
         ))
         .unwrap(),

@@ -27,16 +27,21 @@ const RESERVED_KEYWORDS: &[(&str, TokenType)] = &[
 pub struct Token {
     pub token_type: TokenType,
     pub line: usize,
-    pub lexeme: String,
+    pub lexeme: Option<String>,
     pub object: Option<object::Object>,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, line: usize, object: Option<object::Object>) -> Token {
+    pub fn new(
+        token_type: TokenType,
+        line: usize,
+        lexeme: Option<String>,
+        object: Option<object::Object>,
+    ) -> Token {
         Token {
             token_type: token_type,
             line: line,
-            lexeme: "".to_string(),
+            lexeme: lexeme,
             object: object,
         }
     }

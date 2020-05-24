@@ -12,15 +12,21 @@ fn test_parser_can_parse_declaration_stmt() {
     let identifier_token = Token::new(
         TokenType::Identifier,
         1,
+        Option::Some("test".to_string()),
         Option::Some(obj_identifier!("test".to_string())),
     );
-    let literal_token = Token::new(TokenType::Literal, 1, Option::Some(obj_number!(5.0)));
+    let literal_token = Token::new(
+        TokenType::Literal,
+        1,
+        Option::Some("5.0".to_string()),
+        Option::Some(obj_number!(5.0)),
+    );
     let input = vec![
-        Token::new(TokenType::Var, 1, Option::None),
+        Token::new(TokenType::Var, 1, Option::None, Option::None),
         identifier_token.clone(),
-        Token::new(TokenType::Equal, 1, Option::None),
+        Token::new(TokenType::Equal, 1, Option::None, Option::None),
         literal_token.clone(),
-        Token::new(TokenType::Semicolon, 1, Option::None),
+        Token::new(TokenType::Semicolon, 1, Option::None, Option::None),
     ];
 
     assert_eq!(
