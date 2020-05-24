@@ -4,7 +4,6 @@ mod interpreter;
 #[cfg(test)]
 mod tests;
 
-//use crate::parser::expression::Expr;
 pub use interpreter::StatefulInterpreter;
 
 // Export Error and Result

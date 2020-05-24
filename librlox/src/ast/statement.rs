@@ -1,4 +1,4 @@
-use crate::parser::expression::{Expr, Identifier};
+use crate::ast::expression::Expr;
 use std::fmt;
 
 /// Represents, and encapsulates statement types possiblepossible in
@@ -7,7 +7,7 @@ use std::fmt;
 pub enum Stmt {
     Expression(Expr),
     Print(Expr),
-    Declaration(Identifier, Expr),
+    Declaration(String, Expr),
 }
 
 impl fmt::Display for Stmt {

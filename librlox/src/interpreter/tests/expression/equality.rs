@@ -1,6 +1,6 @@
+use crate::ast::expression::{EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr};
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
-use crate::parser::expression::{EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr};
 
 macro_rules! primary_number {
     ($x:literal) => {

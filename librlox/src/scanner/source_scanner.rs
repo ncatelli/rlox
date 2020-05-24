@@ -3,7 +3,7 @@ use std::option::Option::{None, Some};
 
 use std::iter::Iterator;
 
-use super::tokens::{Token, TokenType, Value};
+use crate::ast::token::{Token, TokenType};
 
 type LexError = String;
 
@@ -92,7 +92,7 @@ impl Scanner {
             tokens.push(t);
         }
 
-        tokens.push(Ok(Token::new(TokenType::EOF, None)));
+        tokens.push(Ok(Token::new(TokenType::EOF, cursor.line, None)));
         tokens
     }
 
@@ -102,16 +102,46 @@ impl Scanner {
 
         match current {
             // Single character lexemes
-            '(' => (Some(Ok(Token::new(TokenType::LeftParen, None))), cursor),
-            ')' => (Some(Ok(Token::new(TokenType::RightParen, None))), cursor),
-            '{' => (Some(Ok(Token::new(TokenType::LeftBrace, None))), cursor),
-            '}' => (Some(Ok(Token::new(TokenType::RightBrace, None))), cursor),
-            ',' => (Some(Ok(Token::new(TokenType::Comma, None))), cursor),
-            '.' => (Some(Ok(Token::new(TokenType::Dot, None))), cursor),
-            '-' => (Some(Ok(Token::new(TokenType::Minus, None))), cursor),
-            '+' => (Some(Ok(Token::new(TokenType::Plus, None))), cursor),
-            ';' => (Some(Ok(Token::new(TokenType::Semicolon, None))), cursor),
-            '*' => (Some(Ok(Token::new(TokenType::Star, None))), cursor),
+            '(' => (
+                Some(Ok(Token::new(TokenType::LeftParen, cursor.line, None))),
+                cursor,
+            ),
+            ')' => (
+                Some(Ok(Token::new(TokenType::RightParen, cursor.line, None))),
+                cursor,
+            ),
+            '{' => (
+                Some(Ok(Token::new(TokenType::LeftBrace, cursor.line, None))),
+                cursor,
+            ),
+            '}' => (
+                Some(Ok(Token::new(TokenType::RightBrace, cursor.line, None))),
+                cursor,
+            ),
+            ',' => (
+                Some(Ok(Token::new(TokenType::Comma, cursor.line, None))),
+                cursor,
+            ),
+            '.' => (
+                Some(Ok(Token::new(TokenType::Dot, cursor.line, None))),
+                cursor,
+            ),
+            '-' => (
+                Some(Ok(Token::new(TokenType::Minus, cursor.line, None))),
+                cursor,
+            ),
+            '+' => (
+                Some(Ok(Token::new(TokenType::Plus, cursor.line, None))),
+                cursor,
+            ),
+            ';' => (
+                Some(Ok(Token::new(TokenType::Semicolon, cursor.line, None))),
+                cursor,
+            ),
+            '*' => (
+                Some(Ok(Token::new(TokenType::Star, cursor.line, None))),
+                cursor,
+            ),
 
             // Operators lexemes with optional additional characters
             '!' => {
@@ -147,7 +177,10 @@ impl Scanner {
                         (Ok(_), next_cursor) => (None, next_cursor),
                         (Err(e), next_cursor) => (Some(Err(e)), next_cursor),
                     },
-                    _ => (Some(Ok(Token::new(TokenType::Slash, None))), cursor),
+                    _ => (
+                        Some(Ok(Token::new(TokenType::Slash, cursor.line, None))),
+                        cursor,
+                    ),
                 }
             }
 
@@ -194,9 +227,9 @@ impl Scanner {
         let current = Cursor::advance(start);
         match self.char_at(current) {
             Some(_) if self.char_at(current).unwrap() == expected_next => {
-                (Ok(Token::new(if_matches, None)), current)
+                (Ok(Token::new(if_matches, current.line, None)), current)
             }
-            _ => (Ok(Token::new(if_no_match, None)), start),
+            _ => (Ok(Token::new(if_no_match, current.line, None)), start),
         }
     }
 
@@ -206,7 +239,7 @@ impl Scanner {
             current = Cursor::advance(current);
             if let Some('\n') = self.char_at(current) {
                 return (
-                    Ok(Token::new(TokenType::Comment, None)),
+                    Ok(Token::new(TokenType::Comment, start.line, None)),
                     Cursor::newline(current),
                 );
             }
@@ -221,7 +254,7 @@ impl Scanner {
                 let peek = Cursor::advance(current);
                 match self.char_at(peek) {
                     Some('/') => {
-                        return (Ok(Token::new(TokenType::Comment, None)), peek);
+                        return (Ok(Token::new(TokenType::Comment, peek.line, None)), peek);
                     }
                     _ => {
                         return (
@@ -253,7 +286,8 @@ impl Scanner {
                     return (
                         Ok(Token::new(
                             TokenType::Literal,
-                            Some(Value::Str(literal_str)),
+                            current.line,
+                            Some(obj_str!(literal_str)),
                         )),
                         current,
                     );
@@ -311,7 +345,11 @@ impl Scanner {
 
                     return match literal_num.parse() {
                         Ok(n) => (
-                            Ok(Token::new(TokenType::Literal, Some(Value::Number(n)))),
+                            Ok(Token::new(
+                                TokenType::Literal,
+                                current.line,
+                                Some(obj_number!(n)),
+                            )),
                             current,
                         ),
                         Err(_) => (
@@ -336,11 +374,17 @@ impl Scanner {
                 _ => {
                     // rewind cursor to not eat next token.
                     let current = Cursor::reverse(current);
-                    let literal_str: String = self.substring(start, current).iter().collect();
-                    let t = Token::new(TokenType::Identifier, Some(Value::Identifier(literal_str)));
+                    let ident_literal: String = self.substring(start, current).iter().collect();
+                    let t = Token::new(
+                        TokenType::Identifier,
+                        current.line,
+                        Some(obj_identifier!(ident_literal)),
+                    );
 
                     return match t.is_reserved_keyword() {
-                        Some(token_type) => (Ok(Token::new(token_type, None)), current),
+                        Some(token_type) => {
+                            (Ok(Token::new(token_type, current.line, None)), current)
+                        }
                         None => (Ok(t), current),
                     };
                 }

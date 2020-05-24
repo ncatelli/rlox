@@ -1,5 +1,5 @@
 extern crate parcel;
-use crate::scanner::tokens::{Token, TokenType};
+use crate::ast::token::{Token, TokenType};
 
 pub fn unzip<A, B>(pair: Vec<(A, B)>) -> (Vec<A>, Vec<B>) {
     let mut left_vec: Vec<A> = vec![];

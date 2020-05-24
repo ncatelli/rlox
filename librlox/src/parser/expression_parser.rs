@@ -1,7 +1,8 @@
 extern crate parcel;
+use crate::ast::expression::*;
+use crate::ast::token::{Token, TokenType};
+use crate::object;
 use crate::parser::combinators::{token_type, unzip};
-use crate::parser::expression::*;
-use crate::scanner::tokens::{Token, TokenType};
 use parcel::*;
 use std::convert::TryFrom;
 
@@ -13,15 +14,16 @@ use std::convert::TryFrom;
 /// ```
 /// extern crate librlox;
 /// extern crate parcel;
-/// use librlox::scanner::tokens::{Value, TokenType, Token};
-/// use librlox::parser::expression::*;
+/// use librlox::ast::token::{TokenType, Token};
+/// use librlox::ast::expression::*;
 /// use librlox::parser::expression_parser::*;
+/// use librlox::object;
 /// use std::option::Option;
 /// use std::convert::TryFrom;
 /// use parcel::*;
 ///
 ///
-/// let literal_token = Token::new(TokenType::Literal, Option::Some(Value::Number(1.0)));
+/// let literal_token = Token::new(TokenType::Literal, 0, Option::Some(object::Object::Literal(object::Literal::Number(1.0))));
 /// let seed_vec = vec![
 ///     literal_token.clone(),
 /// ];
@@ -204,8 +206,10 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         .or(|| token_type(TokenType::Literal))
         .map(|token| Expr::Primary(PrimaryExpr::try_from(token).unwrap()))
         .or(|| {
-            token_type(TokenType::Identifier)
-                .map(|token| Expr::Variable(Identifier::try_from(token).unwrap()))
+            token_type(TokenType::Identifier).map(|token| match token.object {
+                Some(object::Object::Identifier(i)) => Expr::Variable(i),
+                _ => panic!(format!("object not an Identifier: {:?}", token.object)),
+            })
         })
         .or(|| {
             right(join(

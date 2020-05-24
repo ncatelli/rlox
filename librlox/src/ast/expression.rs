@@ -1,4 +1,5 @@
-use crate::scanner::tokens;
+use crate::ast::token;
+use crate::object;
 use std::fmt;
 
 /// Represents, and encapsulates one of the four types of expressions possible in
@@ -12,7 +13,7 @@ pub enum Expr {
     Unary(UnaryExpr),
     Primary(PrimaryExpr),
     Grouping(Box<Expr>),
-    Variable(Identifier),
+    Variable(String),
 }
 
 impl fmt::Display for Expr {
@@ -35,7 +36,7 @@ impl fmt::Display for Expr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let comparison = Expr::Equality(
 ///     EqualityExpr::NotEqual(
@@ -72,7 +73,7 @@ impl fmt::Display for EqualityExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let comparison = Expr::Comparison(
 ///     ComparisonExpr::GreaterEqual(
@@ -113,7 +114,7 @@ impl fmt::Display for ComparisonExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let addition = Expr::Addition(
 ///     AdditionExpr::Add(
@@ -150,7 +151,7 @@ impl fmt::Display for AdditionExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let multiplication = Expr::Multiplication(
 ///     MultiplicationExpr::Multiply(
@@ -187,7 +188,7 @@ impl fmt::Display for MultiplicationExpr {
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let unary = Expr::Unary(
 ///     UnaryExpr::Minus(
@@ -214,28 +215,12 @@ impl fmt::Display for UnaryExpr {
     }
 }
 
-/// Identifier represents a type alias for Identifier types used in the
-/// below PrimaryExpr.
-pub type Identifier = String;
-
-impl std::convert::TryFrom<tokens::Token> for Identifier {
-    type Error = String;
-
-    fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
-        match (t.token_type, t.value) {
-            (tokens::TokenType::Identifier, Some(tokens::Value::Identifier(v))) => Ok(v),
-            // Placeholder
-            _ => Err(format!("invalid token: {}", t.token_type)),
-        }
-    }
-}
-
 /// Represents Literal Lox expressions and stores a single.
 ///
 /// # Examples
 /// ```
 /// extern crate librlox;
-/// use librlox::parser::expression::*;
+/// use librlox::ast::expression::*;
 ///
 /// let primary = Expr::Primary(
 ///     PrimaryExpr::Number(5.0)
@@ -246,7 +231,7 @@ pub enum PrimaryExpr {
     Nil,
     True,
     False,
-    Identifier(Identifier),
+    Identifier(String),
     Str(String),
     Number(f64),
 }
@@ -261,21 +246,24 @@ impl std::convert::From<bool> for PrimaryExpr {
     }
 }
 
-impl std::convert::TryFrom<tokens::Token> for PrimaryExpr {
+impl std::convert::TryFrom<token::Token> for PrimaryExpr {
     type Error = String;
 
-    fn try_from(t: tokens::Token) -> Result<Self, Self::Error> {
-        match (t.token_type, t.value) {
-            (tokens::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
-            (tokens::TokenType::True, None) => Ok(PrimaryExpr::True),
-            (tokens::TokenType::False, None) => Ok(PrimaryExpr::False),
-            (tokens::TokenType::Literal, Some(tokens::Value::Identifier(v))) => {
-                Ok(PrimaryExpr::Identifier(v))
+    fn try_from(t: token::Token) -> Result<Self, Self::Error> {
+        match (t.token_type, t.object) {
+            (token::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
+            (token::TokenType::True, None) => Ok(PrimaryExpr::True),
+            (token::TokenType::False, None) => Ok(PrimaryExpr::False),
+            (token::TokenType::Literal, Some(object::Object::Identifier(i))) => {
+                Ok(PrimaryExpr::Identifier(i))
             }
-            (tokens::TokenType::Literal, Some(tokens::Value::Str(v))) => Ok(PrimaryExpr::Str(v)),
-            (tokens::TokenType::Literal, Some(tokens::Value::Number(v))) => {
-                Ok(PrimaryExpr::Number(v))
+            (token::TokenType::Literal, Some(object::Object::Literal(object::Literal::Str(s)))) => {
+                Ok(PrimaryExpr::Str(s))
             }
+            (
+                token::TokenType::Literal,
+                Some(object::Object::Literal(object::Literal::Number(n))),
+            ) => Ok(PrimaryExpr::Number(n)),
             // Placeholder
             _ => Err(format!("invalid token: {}", t.token_type)),
         }

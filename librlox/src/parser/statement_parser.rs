@@ -1,8 +1,9 @@
 extern crate parcel;
 use super::combinators::token_type;
+use crate::ast::statement::Stmt;
+use crate::ast::token::{Token, TokenType};
+use crate::object;
 use crate::parser::expression_parser::expression;
-use crate::parser::statement::Stmt;
-use crate::scanner::tokens::{Token, TokenType, Value};
 use parcel::*;
 
 /// Represents the entrypoint for statement parsing within the lox parser and
@@ -45,9 +46,9 @@ fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         ),
     ))
     .map(|(id_tok, expr)| {
-        let id = match id_tok.value {
-            Some(Value::Identifier(v)) => v,
-            _ => panic!("Unknown value specified"),
+        let id = match id_tok.object {
+            Some(object::Object::Identifier(i)) => i,
+            _ => panic!("invalid Object specified in place of Identifier"),
         };
 
         Stmt::Declaration(id, expr)

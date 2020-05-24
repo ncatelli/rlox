@@ -1,22 +1,18 @@
-use crate::scanner::tokens::{TokenType, Value};
+use crate::ast::token::{Token, TokenType};
 use crate::scanner::*;
 
 use super::helpers::compare_single_token_source_with_literal_helper;
 
 #[test]
 fn scan_tokens_should_lex_digit() {
-    compare_single_token_source_with_literal_helper(
-        "123",
-        Value::Number(123.0),
-        TokenType::Literal,
-    );
+    compare_single_token_source_with_literal_helper("123", obj_number!(123.0), TokenType::Literal);
 }
 
 #[test]
 fn scan_tokens_should_lex_floating_point() {
     compare_single_token_source_with_literal_helper(
         "123.45",
-        Value::Number(123.45),
+        obj_number!(123.45),
         TokenType::Literal,
     );
 }
@@ -44,19 +40,27 @@ fn scan_tokens_should_allow_numbers_to_include_operators() {
         vec![
             LexResult::Ok(Token {
                 token_type: TokenType::Literal,
-                value: Some(Value::Number(5.0)),
+                line: 1,
+                lexeme: "".to_string(),
+                object: Some(obj_number!(5.0)),
             }),
             LexResult::Ok(Token {
                 token_type: TokenType::Plus,
-                value: None,
+                line: 1,
+                lexeme: "".to_string(),
+                object: None,
             }),
             LexResult::Ok(Token {
                 token_type: TokenType::Literal,
-                value: Some(Value::Number(5.0)),
+                line: 1,
+                lexeme: "".to_string(),
+                object: Some(obj_number!(5.0)),
             }),
             LexResult::Ok(Token {
                 token_type: TokenType::EOF,
-                value: None,
+                line: 1,
+                lexeme: "".to_string(),
+                object: None,
             })
         ]
     );

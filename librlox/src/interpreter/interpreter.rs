@@ -1,9 +1,8 @@
+use crate::ast::expression::{
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
+};
 use crate::environment::Environment;
 use crate::interpreter::InterpreterMut;
-use crate::parser::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, Identifier, MultiplicationExpr, PrimaryExpr,
-    UnaryExpr,
-};
 use std::fmt;
 
 macro_rules! type_error {
@@ -23,7 +22,7 @@ pub enum ExprInterpreterErr {
     Unspecified,
     Type(&'static str),
     BinaryExpr(&'static str, PrimaryExpr, PrimaryExpr),
-    Lookup(Identifier),
+    Lookup(String),
 }
 
 impl fmt::Display for ExprInterpreterErr {
@@ -220,7 +219,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_variable(&mut self, id: Identifier) -> ExprInterpreterResult {
+    fn interpret_variable(&mut self, id: String) -> ExprInterpreterResult {
         match self.globals.get(&id) {
             Some(v) => {
                 let expr = v.to_owned();
@@ -239,7 +238,7 @@ fn is_true(expr: PrimaryExpr) -> bool {
     }
 }
 
-use crate::parser::statement::Stmt;
+use crate::ast::statement::Stmt;
 
 #[derive(PartialEq, Debug)]
 pub enum StmtInterpreterErr {
@@ -310,11 +309,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_declaration_stmt(
-        &mut self,
-        name: Identifier,
-        expr: Expr,
-    ) -> StmtInterpreterResult {
+    fn interpret_declaration_stmt(&mut self, name: String, expr: Expr) -> StmtInterpreterResult {
         match self.interpret(expr) {
             Ok(expr) => {
                 self.globals.define(name, Expr::Primary(expr));

@@ -1,4 +1,4 @@
-use crate::scanner::tokens::TokenType;
+use crate::ast::token::TokenType;
 use crate::scanner::*;
 
 use super::helpers::{
@@ -35,20 +35,20 @@ fn scan_tokens_should_lex_multiple_character_operator_lexemes() {
 
 #[test]
 fn scan_tokens_should_lex_comments() {
-    compare_single_token_source_returns_none_helper("// this is a test comment\n");
-    compare_single_token_source_returns_none_helper("/* this is a test comment */");
+    compare_single_token_source_returns_none_helper("// this is a test comment\n", 2);
+    compare_single_token_source_returns_none_helper("/* this is a test comment */", 1);
 }
 
 #[test]
 fn scan_tokens_should_lex_whitespace() {
-    compare_single_token_source_returns_none_helper(" ");
-    compare_single_token_source_returns_none_helper("\r");
-    compare_single_token_source_returns_none_helper("\t");
+    compare_single_token_source_returns_none_helper(" ", 1);
+    compare_single_token_source_returns_none_helper("\r", 1);
+    compare_single_token_source_returns_none_helper("\t", 1);
 }
 
 #[test]
 fn scan_tokens_should_lex_newlines() {
-    compare_single_token_source_returns_none_helper("\n");
+    compare_single_token_source_returns_none_helper("\n", 2);
 }
 
 #[test]
