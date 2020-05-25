@@ -1,6 +1,7 @@
 use crate::ast::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
 };
+use crate::ast::token;
 use crate::environment::Environment;
 use crate::interpreter::InterpreterMut;
 use std::fmt;
@@ -213,19 +214,18 @@ impl StatefulInterpreter {
     }
 
     fn interpret_primary(&mut self, expr: PrimaryExpr) -> ExprInterpreterResult {
-        match expr {
-            PrimaryExpr::Identifier(id) => self.interpret_variable(id),
-            _ => Ok(expr),
-        }
+        Ok(expr)
     }
 
-    fn interpret_variable(&mut self, id: String) -> ExprInterpreterResult {
-        match self.globals.get(&id) {
+    fn interpret_variable(&mut self, identifier: token::Token) -> ExprInterpreterResult {
+        let var = identifier.lexeme.unwrap();
+
+        match self.globals.get(&var) {
             Some(v) => {
                 let expr = v.to_owned();
                 self.interpret(expr)
             }
-            None => Err(ExprInterpreterErr::Lookup(id.clone())),
+            None => Err(ExprInterpreterErr::Lookup(var.clone())),
         }
     }
 }

@@ -13,7 +13,7 @@ fn test_parser_can_parse_declaration_stmt() {
         TokenType::Identifier,
         1,
         Option::Some("test".to_string()),
-        Option::Some(obj_identifier!("test".to_string())),
+        None,
     );
     let literal_token = Token::new(
         TokenType::Number,

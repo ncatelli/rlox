@@ -1,7 +1,6 @@
 extern crate parcel;
 use crate::ast::expression::*;
 use crate::ast::token::{Token, TokenType};
-use crate::object;
 use crate::parser::combinators::{token_type, unzip};
 use parcel::*;
 use std::convert::TryFrom;
@@ -206,12 +205,7 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         .or(|| token_type(TokenType::Number))
         .or(|| token_type(TokenType::Str))
         .map(|token| Expr::Primary(PrimaryExpr::try_from(token).unwrap()))
-        .or(|| {
-            token_type(TokenType::Identifier).map(|token| match token.object {
-                Some(object::Object::Identifier(i)) => Expr::Variable(i),
-                _ => panic!(format!("object not an Identifier: {:?}", token.object)),
-            })
-        })
+        .or(|| token_type(TokenType::Identifier).map(|token| Expr::Variable(token)))
         .or(|| {
             right(join(
                 token_type(TokenType::LeftParen),

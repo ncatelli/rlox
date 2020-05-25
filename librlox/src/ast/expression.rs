@@ -13,7 +13,7 @@ pub enum Expr {
     Unary(UnaryExpr),
     Primary(PrimaryExpr),
     Grouping(Box<Expr>),
-    Variable(String),
+    Variable(token::Token),
 }
 
 impl fmt::Display for Expr {
@@ -26,7 +26,7 @@ impl fmt::Display for Expr {
             Self::Unary(e) => write!(f, "{}", &e),
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "(Grouping {})", &e),
-            Self::Variable(i) => write!(f, "(Var {})", &i),
+            Self::Variable(i) => write!(f, "(Var {})", &i.lexeme.clone().unwrap()),
         }
     }
 }
@@ -254,9 +254,6 @@ impl std::convert::TryFrom<token::Token> for PrimaryExpr {
             (token::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
             (token::TokenType::True, None) => Ok(PrimaryExpr::True),
             (token::TokenType::False, None) => Ok(PrimaryExpr::False),
-            (token::TokenType::Identifier, Some(object::Object::Identifier(i))) => {
-                Ok(PrimaryExpr::Identifier(i))
-            }
             (token::TokenType::Str, Some(object::Object::Literal(object::Literal::Str(s)))) => {
                 Ok(PrimaryExpr::Str(s))
             }

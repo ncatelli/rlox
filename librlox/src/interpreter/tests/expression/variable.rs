@@ -16,8 +16,8 @@ fn declaration_statement_should_set_persistent_global_symbol() {
     assert_eq!(
         Ok(()),
         interpreter.interpret(vec![Stmt::Expression(Expr::Addition(AdditionExpr::Add(
-            Box::new(Expr::Variable("a".to_string())),
-            Box::new(Expr::Variable("b".to_string())),
+            Box::new(Expr::Variable(tok_identifier!("a"))),
+            Box::new(Expr::Variable(tok_identifier!("b"))),
         )))])
     );
 }

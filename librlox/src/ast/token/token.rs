@@ -48,8 +48,8 @@ impl Token {
 
     pub fn is_reserved_keyword(&self) -> Option<TokenType> {
         match self.token_type {
-            TokenType::Identifier => match self.object {
-                Some(object::Object::Identifier(ref id)) => {
+            TokenType::Identifier => match self.lexeme {
+                Some(ref id) => {
                     for kw in RESERVED_KEYWORDS.iter() {
                         if kw.0 == id {
                             return Some(kw.1);
@@ -71,4 +71,25 @@ impl fmt::Display for Token {
             None => write!(f, "{}", self.token_type),
         }
     }
+}
+
+#[allow(unused_macros)]
+macro_rules! tok_identifier {
+    ($id:expr) => {
+        $crate::ast::token::Token {
+            token_type: $crate::ast::token::TokenType::Identifier,
+            line: 1,
+            lexeme: Option::Some($id.to_string()),
+            object: Option::None,
+        }
+    };
+
+    ($line:literal, $id:expr) => {
+        $crate::ast::token::Token {
+            token_type: $crate::ast::token::TokenType::Identifier,
+            line: $line,
+            lexeme: Option::Some($id.to_string()),
+            object: Option::None,
+        }
+    };
 }

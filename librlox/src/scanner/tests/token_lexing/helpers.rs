@@ -24,7 +24,7 @@ pub fn compare_single_token_source_helper(
 pub fn compare_single_token_source_with_literal_helper(
     single_token_source: &str,
     lexeme: &str,
-    obj: object::Object,
+    obj: Option<object::Object>,
     expected_token_type: TokenType,
 ) {
     let source = single_token_source.to_string();
@@ -37,7 +37,7 @@ pub fn compare_single_token_source_with_literal_helper(
             token_type: expected_token_type,
             line: 1,
             lexeme: Some(lexeme.trim().to_string()),
-            object: Some(obj),
+            object: obj,
         })
     );
 }

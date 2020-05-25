@@ -409,8 +409,8 @@ impl Scanner {
                     let t = Token::new(
                         TokenType::Identifier,
                         current.line,
-                        Some(ident_literal.trim().to_string()), // TODO Remove clone
-                        Some(obj_identifier!(ident_literal)),
+                        Some(ident_literal.trim().to_string()),
+                        None,
                     );
 
                     return match t.is_reserved_keyword() {

@@ -1,4 +1,5 @@
 use crate::ast::token::TokenType;
+use std::option::Option;
 
 use super::helpers::{
     compare_single_token_source_helper, compare_single_token_source_with_literal_helper,
@@ -10,7 +11,7 @@ fn scan_tokens_should_lex_identifiers() {
     compare_single_token_source_with_literal_helper(
         identifier,
         identifier,
-        obj_identifier!(identifier.to_string()),
+        Option::None,
         TokenType::Identifier,
     )
 }
@@ -21,7 +22,7 @@ fn scan_tokens_should_separate_identifier_on_non_alpha() {
     compare_single_token_source_with_literal_helper(
         identifier,
         identifier,
-        obj_identifier!(identifier.trim().to_string()),
+        Option::None,
         TokenType::Identifier,
     )
 }
