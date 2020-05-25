@@ -1,9 +1,11 @@
 use crate::ast::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, UnaryExpr,
 };
 use crate::ast::token;
 use crate::environment::Environment;
 use crate::interpreter::InterpreterMut;
+use crate::object::Truthy;
+use crate::object::{Literal, Object};
 use std::fmt;
 
 macro_rules! type_error {
@@ -22,7 +24,7 @@ macro_rules! type_error {
 pub enum ExprInterpreterErr {
     Unspecified,
     Type(&'static str),
-    BinaryExpr(&'static str, PrimaryExpr, PrimaryExpr),
+    BinaryExpr(&'static str, Object, Object),
     Lookup(String),
 }
 
@@ -41,7 +43,7 @@ impl fmt::Display for ExprInterpreterErr {
     }
 }
 
-pub type ExprInterpreterResult = Result<PrimaryExpr, ExprInterpreterErr>;
+pub type ExprInterpreterResult = Result<Object, ExprInterpreterErr>;
 
 pub struct StatefulInterpreter {
     pub globals: Environment,
@@ -55,16 +57,16 @@ impl StatefulInterpreter {
     }
 }
 
-/// InterpreterMut<Expr, PrimaryExpr> begins implemententing the required state
+/// InterpreterMut<Expr, object::Object> begins implemententing the required state
 /// for interpreting Expressions in a stateful way.
-impl InterpreterMut<Expr, PrimaryExpr> for StatefulInterpreter {
+impl InterpreterMut<Expr, Object> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
 
     fn interpret(&mut self, expr: Expr) -> ExprInterpreterResult {
         match expr {
             Expr::Grouping(expr) => self.interpret(expr),
             Expr::Variable(id) => self.interpret_variable(id),
-            Expr::Primary(expr) => self.interpret_primary(expr),
+            Expr::Primary(obj) => self.interpret_primary(obj),
             Expr::Unary(expr) => self.interpret_unary(expr),
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
             Expr::Addition(expr) => self.interpret_addition(expr),
@@ -74,8 +76,9 @@ impl InterpreterMut<Expr, PrimaryExpr> for StatefulInterpreter {
     }
 }
 
-/// This functions only to unpack an Expr and dispatch to the upstream Interpreter<Expr, PrimaryExpr> implementation
-impl InterpreterMut<Box<Expr>, PrimaryExpr> for StatefulInterpreter {
+/// This functions only to unpack an Expr and dispatch to the upstream
+/// Interpreter<Expr, object::Object> implementation.
+impl InterpreterMut<Box<Expr>, Object> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
     fn interpret(&mut self, expr: Box<Expr>) -> ExprInterpreterResult {
         self.interpret(*expr)
@@ -87,23 +90,27 @@ impl StatefulInterpreter {
         match expr {
             EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
             {
-                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => Ok(
-                    PrimaryExpr::from((left_val - right_val).abs() < std::f64::EPSILON),
-                ),
-                (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
-                    Ok(PrimaryExpr::from(left_val == right_val))
-                }
+                (
+                    Ok(Object::Literal(Literal::Number(l_val))),
+                    Ok(Object::Literal(Literal::Number(r_val))),
+                ) => Ok(obj_bool!((l_val - r_val).abs() < std::f64::EPSILON)),
+                (
+                    Ok(Object::Literal(Literal::Str(l_val))),
+                    Ok(Object::Literal(Literal::Str(r_val))),
+                ) => Ok(obj_bool!(l_val == r_val)),
                 (Ok(l), Ok(r)) => type_error!(l, "==", r),
                 _ => type_error!(),
             },
             EqualityExpr::NotEqual(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => Ok(
-                        PrimaryExpr::from((left_val - right_val).abs() > std::f64::EPSILON),
-                    ),
-                    (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
-                        Ok(PrimaryExpr::from(left_val != right_val))
-                    }
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_bool!((l_val - r_val).abs() > std::f64::EPSILON)),
+                    (
+                        Ok(Object::Literal(Literal::Str(l_val))),
+                        Ok(Object::Literal(Literal::Str(r_val))),
+                    ) => Ok(obj_bool!(l_val != r_val)),
                     (Ok(l), Ok(r)) => type_error!(l, "!=", r),
                     _ => type_error!(),
                 }
@@ -115,36 +122,40 @@ impl StatefulInterpreter {
         match expr {
             ComparisonExpr::Less(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(PrimaryExpr::from(left_val < right_val))
-                    }
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_bool!(l_val < r_val)),
                     (Ok(l), Ok(r)) => type_error!(l, "<", r),
                     _ => type_error!(),
                 }
             }
             ComparisonExpr::LessEqual(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(PrimaryExpr::from(left_val <= right_val))
-                    }
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_bool!(l_val <= r_val)),
                     (Ok(l), Ok(r)) => type_error!(l, "<=", r),
                     _ => type_error!(),
                 }
             }
             ComparisonExpr::Greater(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(PrimaryExpr::from(left_val > right_val))
-                    }
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_bool!(l_val > r_val)),
                     (Ok(l), Ok(r)) => type_error!(l, ">", r),
                     _ => type_error!(),
                 }
             }
             ComparisonExpr::GreaterEqual(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(PrimaryExpr::from(left_val >= right_val))
-                    }
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_bool!(l_val >= r_val)),
                     (Ok(l), Ok(r)) => type_error!(l, ">=", r),
                     _ => type_error!(),
                 }
@@ -155,20 +166,23 @@ impl StatefulInterpreter {
     fn interpret_addition(&mut self, expr: AdditionExpr) -> ExprInterpreterResult {
         match expr {
             AdditionExpr::Add(left, right) => match (self.interpret(left), self.interpret(right)) {
-                (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                    Ok(PrimaryExpr::Number(left_val + right_val))
-                }
-                (Ok(PrimaryExpr::Str(left_val)), Ok(PrimaryExpr::Str(right_val))) => {
-                    Ok(PrimaryExpr::Str(format!("{}{}", left_val, right_val)))
-                }
+                (
+                    Ok(Object::Literal(Literal::Number(l_val))),
+                    Ok(Object::Literal(Literal::Number(r_val))),
+                ) => Ok(obj_number!(l_val + r_val)),
+                (
+                    Ok(Object::Literal(Literal::Str(l_val))),
+                    Ok(Object::Literal(Literal::Str(r_val))),
+                ) => Ok(obj_str!(format!("{}{}", l_val, r_val))),
                 (Ok(l), Ok(r)) => type_error!(l, "+", r),
                 _ => type_error!(),
             },
             AdditionExpr::Subtract(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(PrimaryExpr::Number(left_val - right_val))
-                    }
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_number!(l_val - r_val)),
                     (Ok(l), Ok(r)) => type_error!(l, "-", r),
                     _ => type_error!(),
                 }
@@ -180,18 +194,20 @@ impl StatefulInterpreter {
         match expr {
             MultiplicationExpr::Multiply(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(PrimaryExpr::Number(left_val * right_val))
-                    }
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_number!(l_val * r_val)),
                     (Ok(l), Ok(r)) => type_error!(l, "*", r),
                     _ => type_error!(),
                 }
             }
             MultiplicationExpr::Divide(left, right) => {
                 match (self.interpret(left), self.interpret(right)) {
-                    (Ok(PrimaryExpr::Number(left_val)), Ok(PrimaryExpr::Number(right_val))) => {
-                        Ok(PrimaryExpr::Number(left_val / right_val))
-                    }
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_number!(l_val / r_val)),
                     (Ok(l), Ok(r)) => type_error!(l, "/", r),
                     _ => type_error!(),
                 }
@@ -202,19 +218,19 @@ impl StatefulInterpreter {
     fn interpret_unary(&mut self, expr: UnaryExpr) -> ExprInterpreterResult {
         match expr {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
-                Ok(expr) => Ok(PrimaryExpr::from(!is_true(expr))),
+                Ok(obj) => Ok(obj_bool!(!obj.is_truthy())),
                 e @ Err(_) => e,
             },
             UnaryExpr::Minus(ue) => match self.interpret(ue) {
-                Ok(PrimaryExpr::Number(v)) => Ok(PrimaryExpr::Number(v * -1.0)),
+                Ok(Object::Literal(Literal::Number(n))) => Ok(obj_number!(n * -1.0)),
                 e @ Err(_) => e,
                 _ => type_error!(),
             },
         }
     }
 
-    fn interpret_primary(&mut self, expr: PrimaryExpr) -> ExprInterpreterResult {
-        Ok(expr)
+    fn interpret_primary(&mut self, obj: Object) -> ExprInterpreterResult {
+        Ok(obj)
     }
 
     fn interpret_variable(&mut self, identifier: token::Token) -> ExprInterpreterResult {
@@ -227,14 +243,6 @@ impl StatefulInterpreter {
             }
             None => Err(ExprInterpreterErr::Lookup(var.clone())),
         }
-    }
-}
-
-fn is_true(expr: PrimaryExpr) -> bool {
-    match expr {
-        PrimaryExpr::Nil => false,
-        PrimaryExpr::False => false,
-        _ => true,
     }
 }
 

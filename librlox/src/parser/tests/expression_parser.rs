@@ -1,11 +1,10 @@
 extern crate parcel;
 use crate::ast::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, UnaryExpr,
 };
 use crate::ast::token::{Token, TokenType};
 use crate::parser::expression_parser::expression;
 use parcel::*;
-use std::convert::TryFrom;
 
 fn match_literal_helper(token: Token) {
     let seed_vec = vec![token.clone()];
@@ -13,7 +12,7 @@ fn match_literal_helper(token: Token) {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[1..],
-            Expr::Primary(PrimaryExpr::try_from(token).unwrap())
+            Expr::Primary(token.object.unwrap())
         ))),
         expression().parse(&seed_vec)
     );
@@ -38,12 +37,8 @@ fn validate_parser_should_parse_equality_expression() {
         Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Equality(EqualityExpr::Equal(
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                )),
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                ))
+                Box::new(Expr::Primary(obj_number!(1.0))),
+                Box::new(Expr::Primary(obj_number!(1.0)))
             ))
         ))),
         expression().parse(&seed_vec)
@@ -71,16 +66,10 @@ fn validate_parser_should_parse_many_equality_expression() {
         Ok(MatchStatus::Match((
             &seed_vec[5..],
             Expr::Equality(EqualityExpr::Equal(
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                )),
+                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Equality(EqualityExpr::Equal(
-                    Box::new(Expr::Primary(
-                        PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                    )),
-                    Box::new(Expr::Primary(
-                        PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                    ))
+                    Box::new(Expr::Primary(obj_number!(1.0))),
+                    Box::new(Expr::Primary(obj_number!(1.0)))
                 )))
             ))
         ))),
@@ -107,12 +96,8 @@ fn validate_parser_should_parse_comparison_expression() {
         Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Comparison(ComparisonExpr::GreaterEqual(
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                )),
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                ))
+                Box::new(Expr::Primary(obj_number!(1.0))),
+                Box::new(Expr::Primary(obj_number!(1.0)))
             ))
         ))),
         expression().parse(&seed_vec)
@@ -140,16 +125,10 @@ fn validate_parser_should_parse_many_comparison_expression() {
         Ok(MatchStatus::Match((
             &seed_vec[5..],
             Expr::Comparison(ComparisonExpr::GreaterEqual(
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                )),
+                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Comparison(ComparisonExpr::GreaterEqual(
-                    Box::new(Expr::Primary(
-                        PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                    )),
-                    Box::new(Expr::Primary(
-                        PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                    ))
+                    Box::new(Expr::Primary(obj_number!(1.0))),
+                    Box::new(Expr::Primary(obj_number!(1.0)))
                 )))
             ))
         ))),
@@ -176,12 +155,8 @@ fn validate_parser_should_parse_addition_expression() {
         Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Addition(AdditionExpr::Add(
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                )),
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                ))
+                Box::new(Expr::Primary(obj_number!(1.0))),
+                Box::new(Expr::Primary(obj_number!(1.0)))
             ))
         ))),
         expression().parse(&seed_vec)
@@ -209,16 +184,10 @@ fn validate_parser_should_parse_many_addition_expression() {
         Ok(MatchStatus::Match((
             &seed_vec[5..],
             Expr::Addition(AdditionExpr::Add(
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                )),
+                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Addition(AdditionExpr::Add(
-                    Box::new(Expr::Primary(
-                        PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                    )),
-                    Box::new(Expr::Primary(
-                        PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                    ))
+                    Box::new(Expr::Primary(obj_number!(1.0))),
+                    Box::new(Expr::Primary(obj_number!(1.0)))
                 )))
             ))
         ))),
@@ -245,12 +214,8 @@ fn validate_parser_should_parse_multiplication_expression() {
         Ok(MatchStatus::Match((
             &seed_vec[3..],
             Expr::Multiplication(MultiplicationExpr::Multiply(
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                )),
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                ))
+                Box::new(Expr::Primary(obj_number!(1.0))),
+                Box::new(Expr::Primary(obj_number!(1.0)))
             ))
         ))),
         expression().parse(&seed_vec)
@@ -278,16 +243,10 @@ fn validate_parser_should_parse_many_multiplication_expression() {
         Ok(MatchStatus::Match((
             &seed_vec[5..],
             Expr::Multiplication(MultiplicationExpr::Multiply(
-                Box::new(Expr::Primary(
-                    PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                )),
+                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Multiplication(MultiplicationExpr::Multiply(
-                    Box::new(Expr::Primary(
-                        PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                    )),
-                    Box::new(Expr::Primary(
-                        PrimaryExpr::try_from(literal_token.clone()).unwrap()
-                    ))
+                    Box::new(Expr::Primary(obj_number!(1.0))),
+                    Box::new(Expr::Primary(obj_number!(1.0)))
                 )))
             ))
         ))),
@@ -309,9 +268,7 @@ fn validate_parser_should_parse_unary_expression() {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[2..],
-            Expr::Unary(UnaryExpr::Bang(Box::new(Expr::Primary(
-                PrimaryExpr::try_from(literal_token).unwrap()
-            ))))
+            Expr::Unary(UnaryExpr::Bang(Box::new(Expr::Primary(obj_number!(1.0)))))
         ))),
         expression().parse(&seed_vec)
     );
@@ -344,9 +301,7 @@ fn validate_parser_should_parse_grouping_expression() {
     assert_eq!(
         Ok(MatchStatus::Match((
             &seed_vec[3..],
-            Expr::Grouping(Box::new(Expr::Primary(
-                PrimaryExpr::try_from(literal_token).unwrap()
-            )))
+            Expr::Grouping(Box::new(Expr::Primary(obj_number!(1.0))))
         ))),
         expression().parse(&seed_vec)
     );

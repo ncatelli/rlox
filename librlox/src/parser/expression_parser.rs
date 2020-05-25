@@ -3,7 +3,6 @@ use crate::ast::expression::*;
 use crate::ast::token::{Token, TokenType};
 use crate::parser::combinators::{token_type, unzip};
 use parcel::*;
-use std::convert::TryFrom;
 
 /// Represents the entrypoint for expression parsing within the lox parser and
 /// yields an Expr object after recursively descending through the expression
@@ -30,10 +29,7 @@ use std::convert::TryFrom;
 /// assert_eq!(
 ///     Ok(MatchStatus::Match((
 ///         &seed_vec[1..],
-///         Expr::Primary(
-///             PrimaryExpr::try_from(
-///                 literal_token.clone()
-///             ).unwrap()
+///         Expr::Primary(object::Object::Literal(object::Literal::Number(1.0))
 ///         )
 ///     ))),
 ///     expression().parse(&seed_vec)
@@ -204,7 +200,7 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         .or(|| token_type(TokenType::Nil))
         .or(|| token_type(TokenType::Number))
         .or(|| token_type(TokenType::Str))
-        .map(|token| Expr::Primary(PrimaryExpr::try_from(token).unwrap()))
+        .map(|token| Expr::Primary(token.object.unwrap()))
         .or(|| token_type(TokenType::Identifier).map(|token| Expr::Variable(token)))
         .or(|| {
             right(join(

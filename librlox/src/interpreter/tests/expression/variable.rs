@@ -1,4 +1,4 @@
-use crate::ast::expression::{AdditionExpr, Expr, PrimaryExpr};
+use crate::ast::expression::{AdditionExpr, Expr};
 use crate::ast::statement::Stmt;
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
@@ -8,10 +8,10 @@ fn declaration_statement_should_set_persistent_global_symbol() {
     let mut interpreter = StatefulInterpreter::new();
     interpreter
         .globals
-        .define("a".to_string(), Expr::Primary(PrimaryExpr::Number(1.0)));
+        .define("a".to_string(), Expr::Primary(obj_number!(1.0)));
     interpreter
         .globals
-        .define("b".to_string(), Expr::Primary(PrimaryExpr::Number(2.0)));
+        .define("b".to_string(), Expr::Primary(obj_number!(2.0)));
 
     assert_eq!(
         Ok(()),

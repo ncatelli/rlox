@@ -1,17 +1,21 @@
-use crate::ast::expression::{Expr, MultiplicationExpr, PrimaryExpr, UnaryExpr};
+use crate::ast::expression::{Expr, MultiplicationExpr, UnaryExpr};
 use crate::interpreter::ExprInterpreterErr;
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
 
 macro_rules! primary_number {
     ($x:literal) => {
-        Expr::Primary(PrimaryExpr::Number($x))
+        Expr::Primary($crate::object::Object::Literal(
+            $crate::object::Literal::Number($x),
+        ))
     };
 }
 
 macro_rules! primary_string {
-    ($s:literal) => {
-        Expr::Primary(PrimaryExpr::Str($s.to_string()))
+    ($x:literal) => {
+        Expr::Primary($crate::object::Object::Literal(
+            $crate::object::Literal::Str($x.to_string()),
+        ))
     };
 }
 
@@ -32,8 +36,8 @@ fn multiplication_expr_should_evaluate_when_both_operands_are_numbers() {
         Box::new(primary_number!(2.0)),
     ));
 
-    assert_eq!(Ok(PrimaryExpr::Number(10.0)), expr_interpret!(product_expr));
-    assert_eq!(Ok(PrimaryExpr::Number(5.0)), expr_interpret!(division_expr));
+    assert_eq!(Ok(obj_number!(10.0)), expr_interpret!(product_expr));
+    assert_eq!(Ok(obj_number!(5.0)), expr_interpret!(division_expr));
 }
 
 #[test]
@@ -45,8 +49,8 @@ fn multiplication_expr_should_err_when_operands_are_not_numbers() {
     assert_eq!(
         Err(ExprInterpreterErr::BinaryExpr(
             "*",
-            PrimaryExpr::Str("hello".to_string()),
-            PrimaryExpr::Str("world".to_string()),
+            obj_str!("hello".to_string()),
+            obj_str!("world".to_string()),
         )),
         expr_interpret!(expr)
     );
@@ -61,5 +65,5 @@ fn multiplication_expr_should_maintain_operator_precedence() {
         ))))),
     ));
 
-    assert_eq!(Ok(PrimaryExpr::Number(-5.0)), expr_interpret!(expr));
+    assert_eq!(Ok(obj_number!(-5.0)), expr_interpret!(expr));
 }

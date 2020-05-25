@@ -1,5 +1,5 @@
 extern crate parcel;
-use crate::ast::expression::{Expr, PrimaryExpr};
+use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
 use crate::ast::token::{Token, TokenType};
 use crate::parser::statement_parser::statements;
@@ -34,7 +34,7 @@ fn test_parser_can_parse_declaration_stmt() {
             &input[5..],
             vec![Stmt::Declaration(
                 "test".to_string(),
-                Expr::Primary(PrimaryExpr::Number(5.0))
+                Expr::Primary(obj_number!(5.0))
             )]
         ))),
         statements().parse(&input)

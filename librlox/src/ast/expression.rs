@@ -11,7 +11,7 @@ pub enum Expr {
     Addition(AdditionExpr),
     Multiplication(MultiplicationExpr),
     Unary(UnaryExpr),
-    Primary(PrimaryExpr),
+    Primary(object::Object),
     Grouping(Box<Expr>),
     Variable(token::Token),
 }
@@ -37,17 +37,22 @@ impl fmt::Display for Expr {
 /// ```
 /// extern crate librlox;
 /// use librlox::ast::expression::*;
+/// use librlox::object;
 ///
 /// let comparison = Expr::Equality(
 ///     EqualityExpr::NotEqual(
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(
+///                     object::Literal::Number(5.0)
+///                 )
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(
+///                     object::Literal::Number(5.0)
+///                 )
 ///             )
 ///         ),
 ///     )
@@ -74,17 +79,22 @@ impl fmt::Display for EqualityExpr {
 /// ```
 /// extern crate librlox;
 /// use librlox::ast::expression::*;
+/// use librlox::object;
 ///
 /// let comparison = Expr::Comparison(
 ///     ComparisonExpr::GreaterEqual(
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(
+///                     object::Literal::Number(5.0)
+///                 )
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(
+///                     object::Literal::Number(5.0)
+///                 )
 ///             )
 ///         ),
 ///     )
@@ -115,17 +125,22 @@ impl fmt::Display for ComparisonExpr {
 /// ```
 /// extern crate librlox;
 /// use librlox::ast::expression::*;
+/// use librlox::object;
 ///
 /// let addition = Expr::Addition(
 ///     AdditionExpr::Add(
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(
+///                     object::Literal::Number(5.0)
+///                 )
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(
+///                     object::Literal::Number(5.0)
+///                 )
 ///             )
 ///         ),
 ///     )
@@ -152,17 +167,18 @@ impl fmt::Display for AdditionExpr {
 /// ```
 /// extern crate librlox;
 /// use librlox::ast::expression::*;
+/// use librlox::object;
 ///
 /// let multiplication = Expr::Multiplication(
 ///     MultiplicationExpr::Multiply(
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(object::Literal::Number(5.0))
 ///             )
 ///         ),
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(object::Literal::Number(5.0))
 ///             )
 ///         ),
 ///     )
@@ -189,12 +205,13 @@ impl fmt::Display for MultiplicationExpr {
 /// ```
 /// extern crate librlox;
 /// use librlox::ast::expression::*;
+/// use librlox::object;
 ///
 /// let unary = Expr::Unary(
 ///     UnaryExpr::Minus(
 ///         Box::new(
 ///             Expr::Primary(
-///                 PrimaryExpr::Number(5.0)
+///                 object::Object::Literal(object::Literal::Number(5.0))
 ///             )
 ///         )
 ///     )
@@ -212,74 +229,5 @@ impl fmt::Display for UnaryExpr {
             Self::Bang(expr) => write!(f, "(! {})", expr),
             Self::Minus(expr) => write!(f, "(- {})", expr),
         }
-    }
-}
-
-/// Represents Literal Lox expressions and stores a single.
-///
-/// # Examples
-/// ```
-/// extern crate librlox;
-/// use librlox::ast::expression::*;
-///
-/// let primary = Expr::Primary(
-///     PrimaryExpr::Number(5.0)
-/// );
-/// ```
-#[derive(Debug, PartialEq, Clone)]
-pub enum PrimaryExpr {
-    Nil,
-    True,
-    False,
-    Identifier(String),
-    Str(String),
-    Number(f64),
-}
-
-impl std::convert::From<bool> for PrimaryExpr {
-    fn from(b: bool) -> Self {
-        if b {
-            PrimaryExpr::True
-        } else {
-            PrimaryExpr::False
-        }
-    }
-}
-
-impl std::convert::TryFrom<token::Token> for PrimaryExpr {
-    type Error = String;
-
-    fn try_from(t: token::Token) -> Result<Self, Self::Error> {
-        match (t.token_type, t.object) {
-            (token::TokenType::Nil, None) => Ok(PrimaryExpr::Nil),
-            (token::TokenType::True, None) => Ok(PrimaryExpr::True),
-            (token::TokenType::False, None) => Ok(PrimaryExpr::False),
-            (token::TokenType::Str, Some(object::Object::Literal(object::Literal::Str(s)))) => {
-                Ok(PrimaryExpr::Str(s))
-            }
-            (
-                token::TokenType::Number,
-                Some(object::Object::Literal(object::Literal::Number(n))),
-            ) => Ok(PrimaryExpr::Number(n)),
-            // Placeholder
-            _ => Err(format!("invalid token: {}", t.token_type)),
-        }
-    }
-}
-
-impl fmt::Display for PrimaryExpr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Nil => "nil".to_string(),
-                Self::False => "false".to_string(),
-                Self::True => "true".to_string(),
-                Self::Identifier(v) => v.clone(),
-                Self::Str(v) => v.clone(),
-                Self::Number(v) => format!("{}", v),
-            }
-        )
     }
 }
