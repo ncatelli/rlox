@@ -1,10 +1,12 @@
-use crate::ast::expression::{AdditionExpr, Expr, MultiplicationExpr, PrimaryExpr};
+use crate::ast::expression::{AdditionExpr, Expr, MultiplicationExpr};
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
 
 macro_rules! primary_number {
     ($x:literal) => {
-        Expr::Primary(PrimaryExpr::Number($x))
+        Expr::Primary($crate::object::Object::Literal(
+            $crate::object::Literal::Number($x),
+        ))
     };
 }
 
@@ -25,11 +27,8 @@ fn addition_expr_should_evaluate_when_both_operands_are_numbers() {
         Box::new(primary_number!(2.0)),
     ));
 
-    assert_eq!(Ok(PrimaryExpr::Number(7.0)), expr_interpret!(addition_expr));
-    assert_eq!(
-        Ok(PrimaryExpr::Number(5.0)),
-        expr_interpret!(subtraction_expr)
-    );
+    assert_eq!(Ok(obj_number!(7.0)), expr_interpret!(addition_expr));
+    assert_eq!(Ok(obj_number!(5.0)), expr_interpret!(subtraction_expr));
 }
 
 #[test]
@@ -42,18 +41,15 @@ fn addition_expr_should_maintain_operator_precedence() {
         Box::new(primary_number!(1.0)),
     ));
 
-    assert_eq!(Ok(PrimaryExpr::Number(-4.0)), expr_interpret!(expr));
+    assert_eq!(Ok(obj_number!(-4.0)), expr_interpret!(expr));
 }
 
 #[test]
 fn addition_expr_should_concatenate_strings() {
     let expr = Expr::Addition(AdditionExpr::Add(
-        Box::new(Expr::Primary(PrimaryExpr::Str("hello".to_string()))),
-        Box::new(Expr::Primary(PrimaryExpr::Str("world".to_string()))),
+        Box::new(Expr::Primary(obj_str!("hello".to_string()))),
+        Box::new(Expr::Primary(obj_str!("world".to_string()))),
     ));
 
-    assert_eq!(
-        Ok(PrimaryExpr::Str(format!("helloworld"))),
-        expr_interpret!(expr)
-    );
+    assert_eq!(Ok(obj_str!(format!("helloworld"))), expr_interpret!(expr));
 }

@@ -1,16 +1,20 @@
-use crate::ast::expression::{EqualityExpr, Expr, MultiplicationExpr, PrimaryExpr};
+use crate::ast::expression::{EqualityExpr, Expr, MultiplicationExpr};
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
 
 macro_rules! primary_number {
     ($x:literal) => {
-        Expr::Primary(PrimaryExpr::Number($x))
+        Expr::Primary($crate::object::Object::Literal(
+            $crate::object::Literal::Number($x),
+        ))
     };
 }
 
 macro_rules! primary_string {
     ($x:literal) => {
-        Expr::Primary(PrimaryExpr::Str($x.to_string()))
+        Expr::Primary($crate::object::Object::Literal(
+            $crate::object::Literal::Str($x.to_string()),
+        ))
     };
 }
 
@@ -39,10 +43,10 @@ fn equality_expr_should_evaluate_when_both_operands_are_numbers() {
         Box::new(primary_number!(5.0)),
     ));
 
-    assert_eq!(Ok(PrimaryExpr::True), expr_interpret!(less_expr));
-    assert_eq!(Ok(PrimaryExpr::False), expr_interpret!(less_equal_expr));
-    assert_eq!(Ok(PrimaryExpr::True), expr_interpret!(greater_expr));
-    assert_eq!(Ok(PrimaryExpr::False), expr_interpret!(greater_equal_expr));
+    assert_eq!(Ok(obj_bool!(true)), expr_interpret!(less_expr));
+    assert_eq!(Ok(obj_bool!(false)), expr_interpret!(less_equal_expr));
+    assert_eq!(Ok(obj_bool!(true)), expr_interpret!(greater_expr));
+    assert_eq!(Ok(obj_bool!(false)), expr_interpret!(greater_equal_expr));
 }
 
 #[test]
@@ -64,10 +68,10 @@ fn equality_expr_should_evaluate_when_both_operands_are_strings() {
         Box::new(primary_string!("hello")),
     ));
 
-    assert_eq!(Ok(PrimaryExpr::True), expr_interpret!(less_expr));
-    assert_eq!(Ok(PrimaryExpr::False), expr_interpret!(less_equal_expr));
-    assert_eq!(Ok(PrimaryExpr::True), expr_interpret!(greater_expr));
-    assert_eq!(Ok(PrimaryExpr::False), expr_interpret!(greater_equal_expr));
+    assert_eq!(Ok(obj_bool!(true)), expr_interpret!(less_expr));
+    assert_eq!(Ok(obj_bool!(false)), expr_interpret!(less_equal_expr));
+    assert_eq!(Ok(obj_bool!(true)), expr_interpret!(greater_expr));
+    assert_eq!(Ok(obj_bool!(false)), expr_interpret!(greater_equal_expr));
 }
 
 #[test]
@@ -80,5 +84,5 @@ fn equality_expr_should_maintain_operator_precedence() {
         Box::new(primary_number!(1.0)),
     ));
 
-    assert_eq!(Ok(PrimaryExpr::True), expr_interpret!(expr));
+    assert_eq!(Ok(obj_bool!(true)), expr_interpret!(expr));
 }

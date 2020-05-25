@@ -1,10 +1,12 @@
-use crate::ast::expression::{AdditionExpr, Expr, MultiplicationExpr, PrimaryExpr};
+use crate::ast::expression::{AdditionExpr, Expr, MultiplicationExpr};
 use crate::interpreter::InterpreterMut;
 use crate::interpreter::StatefulInterpreter;
 
 macro_rules! primary_number {
     ($x:literal) => {
-        Expr::Primary(PrimaryExpr::Number($x))
+        Expr::Primary($crate::object::Object::Literal(
+            $crate::object::Literal::Number($x),
+        ))
     };
 }
 
@@ -25,7 +27,7 @@ fn grouping_expr_should_interpret_to_equivalent_primary() {
     let expr = Expr::Grouping(Box::new(primary_number!(5.0)));
 
     assert_eq!(
-        Ok(PrimaryExpr::Number(5.0)),
+        Ok(obj_number!(5.0)),
         StatefulInterpreter::new().interpret(expr)
     );
 }
@@ -41,7 +43,7 @@ fn grouping_expr_should_maintain_operator_precedence() {
     );
 
     assert_eq!(
-        Ok(PrimaryExpr::Number(5.0)),
+        Ok(obj_number!(5.0)),
         StatefulInterpreter::new().interpret(expr)
     );
 }
