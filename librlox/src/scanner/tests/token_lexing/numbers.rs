@@ -8,7 +8,7 @@ fn scan_tokens_should_lex_digit() {
     compare_single_token_source_with_literal_helper(
         "123",
         "123",
-        obj_number!(123.0),
+        Option::Some(obj_number!(123.0)),
         TokenType::Number,
     );
 }
@@ -18,7 +18,7 @@ fn scan_tokens_should_lex_floating_point() {
     compare_single_token_source_with_literal_helper(
         "123.45",
         "123.45",
-        obj_number!(123.45),
+        Option::Some(obj_number!(123.45)),
         TokenType::Number,
     );
 }

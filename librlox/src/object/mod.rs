@@ -3,14 +3,12 @@ use std::fmt;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Object {
     Literal(Literal),
-    Identifier(String),
 }
 
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Object::Literal(l) => write!(f, "{}", &l),
-            Object::Identifier(i) => write!(f, "{}", &i),
         }
     }
 }
@@ -61,12 +59,5 @@ macro_rules! obj_bool {
 macro_rules! obj_nil {
     () => {
         $crate::object::Object::Literal($crate::object::Literal::Nil)
-    };
-}
-
-#[allow(unused_macros)]
-macro_rules! obj_identifier {
-    ($i:expr) => {
-        $crate::object::Object::Identifier($i)
     };
 }

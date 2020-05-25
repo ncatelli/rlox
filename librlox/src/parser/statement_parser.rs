@@ -2,7 +2,6 @@ extern crate parcel;
 use super::combinators::token_type;
 use crate::ast::statement::Stmt;
 use crate::ast::token::{Token, TokenType};
-use crate::object;
 use crate::parser::expression_parser::expression;
 use parcel::*;
 
@@ -46,8 +45,8 @@ fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         ),
     ))
     .map(|(id_tok, expr)| {
-        let id = match id_tok.object {
-            Some(object::Object::Identifier(i)) => i,
+        let id = match id_tok.lexeme {
+            Some(i) => i,
             _ => panic!("invalid Object specified in place of Identifier"),
         };
 

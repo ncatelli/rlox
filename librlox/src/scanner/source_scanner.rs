@@ -410,7 +410,7 @@ impl Scanner {
                         TokenType::Identifier,
                         current.line,
                         Some(ident_literal.trim().to_string()),
-                        Some(obj_identifier!(ident_literal)),
+                        None,
                     );
 
                     return match t.is_reserved_keyword() {
