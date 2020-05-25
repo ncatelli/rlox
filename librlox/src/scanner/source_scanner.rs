@@ -409,7 +409,7 @@ impl Scanner {
                     let t = Token::new(
                         TokenType::Identifier,
                         current.line,
-                        Some(ident_literal.trim().to_string()), // TODO Remove clone
+                        Some(ident_literal.trim().to_string()),
                         Some(obj_identifier!(ident_literal)),
                     );
 

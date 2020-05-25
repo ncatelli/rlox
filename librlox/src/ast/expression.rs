@@ -13,7 +13,7 @@ pub enum Expr {
     Unary(UnaryExpr),
     Primary(PrimaryExpr),
     Grouping(Box<Expr>),
-    Variable(String),
+    Variable(token::Token),
 }
 
 impl fmt::Display for Expr {
@@ -26,7 +26,7 @@ impl fmt::Display for Expr {
             Self::Unary(e) => write!(f, "{}", &e),
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "(Grouping {})", &e),
-            Self::Variable(i) => write!(f, "(Var {})", &i),
+            Self::Variable(i) => write!(f, "(Var {})", &i.lexeme.clone().unwrap()),
         }
     }
 }
