@@ -231,7 +231,6 @@ pub enum PrimaryExpr {
     Nil,
     True,
     False,
-    Identifier(String),
     Str(String),
     Number(f64),
 }
@@ -276,7 +275,6 @@ impl fmt::Display for PrimaryExpr {
                 Self::Nil => "nil".to_string(),
                 Self::False => "false".to_string(),
                 Self::True => "true".to_string(),
-                Self::Identifier(v) => v.clone(),
                 Self::Str(v) => v.clone(),
                 Self::Number(v) => format!("{}", v),
             }

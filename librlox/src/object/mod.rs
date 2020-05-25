@@ -1,8 +1,20 @@
 use std::fmt;
 
+pub trait Truthy {
+    fn is_truthy(&self) -> bool;
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Object {
     Literal(Literal),
+}
+
+impl Truthy for Object {
+    fn is_truthy(&self) -> bool {
+        match self {
+            Self::Literal(l) => l.is_truthy(),
+        }
+    }
 }
 
 impl fmt::Display for Object {
@@ -21,6 +33,35 @@ pub enum Literal {
     Bool(bool),
     Str(String),
     Number(f64),
+}
+
+impl std::convert::From<bool> for Literal {
+    fn from(b: bool) -> Self {
+        Literal::Bool(b)
+    }
+}
+
+impl std::convert::From<String> for Literal {
+    fn from(s: String) -> Self {
+        Literal::Str(s)
+    }
+}
+
+impl std::convert::From<f64> for Literal {
+    fn from(f: f64) -> Self {
+        Literal::Number(f)
+    }
+}
+
+impl Truthy for Literal {
+    fn is_truthy(&self) -> bool {
+        match self {
+            Self::Nil => false,
+            Self::Bool(b) => *b,
+            Self::Str(s) => !s.is_empty(),
+            Self::Number(n) => n.abs() < std::f64::EPSILON,
+        }
+    }
 }
 
 impl fmt::Display for Literal {
