@@ -237,10 +237,7 @@ impl StatefulInterpreter {
         let var = identifier.lexeme.unwrap();
 
         match self.globals.get(&var) {
-            Some(v) => {
-                let expr = v.to_owned();
-                self.interpret(expr)
-            }
+            Some(v) => Ok(v.to_owned()),
             None => Err(ExprInterpreterErr::Lookup(var.clone())),
         }
     }
@@ -319,8 +316,8 @@ impl StatefulInterpreter {
 
     fn interpret_declaration_stmt(&mut self, name: String, expr: Expr) -> StmtInterpreterResult {
         match self.interpret(expr) {
-            Ok(expr) => {
-                self.globals.define(name, Expr::Primary(expr));
+            Ok(obj) => {
+                self.globals.define(name, obj);
                 Ok(())
             }
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
