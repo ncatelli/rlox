@@ -4,7 +4,6 @@ use crate::ast::expression::{
 use crate::ast::token;
 use crate::environment::Environment;
 use crate::interpreter::InterpreterMut;
-use crate::object::Truthy;
 use crate::object::{Literal, Object};
 use std::fmt;
 
@@ -218,7 +217,10 @@ impl StatefulInterpreter {
     fn interpret_unary(&mut self, expr: UnaryExpr) -> ExprInterpreterResult {
         match expr {
             UnaryExpr::Bang(ue) => match self.interpret(ue) {
-                Ok(obj) => Ok(obj_bool!(!obj.is_truthy())),
+                Ok(obj) => {
+                    let ob: bool = obj.into();
+                    Ok(obj_bool!(!ob))
+                }
                 e @ Err(_) => e,
             },
             UnaryExpr::Minus(ue) => match self.interpret(ue) {
