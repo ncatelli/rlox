@@ -71,6 +71,7 @@ impl InterpreterMut<Expr, Object> for StatefulInterpreter {
             Expr::Addition(expr) => self.interpret_addition(expr),
             Expr::Comparison(expr) => self.interpret_comparison(expr),
             Expr::Equality(expr) => self.interpret_equality(expr),
+            Expr::Assignment(id, expr) => self.interpret_assignment(id, expr),
         }
     }
 }
@@ -85,6 +86,13 @@ impl InterpreterMut<Box<Expr>, Object> for StatefulInterpreter {
 }
 
 impl StatefulInterpreter {
+    fn interpret_assignment(&mut self, id: token::Token, expr: Box<Expr>) -> ExprInterpreterResult {
+        let _lhv = id.lexeme.unwrap();
+        let _rhv = self.interpret(expr)?;
+
+        todo!()
+    }
+
     fn interpret_equality(&mut self, expr: EqualityExpr) -> ExprInterpreterResult {
         match expr {
             EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
