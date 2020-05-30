@@ -24,7 +24,7 @@ pub enum ExprInterpreterErr {
     Unspecified,
     Type(&'static str),
     BinaryExpr(&'static str, Object, Object),
-    Lookup(String),
+    UndefinedVariable(String),
 }
 
 impl fmt::Display for ExprInterpreterErr {
@@ -37,7 +37,7 @@ impl fmt::Display for ExprInterpreterErr {
                 "invalid operand for operators: {} {} {}",
                 left, op, right
             ),
-            Self::Lookup(id) => write!(f, "undefined symbol: {}", id),
+            Self::UndefinedVariable(id) => write!(f, "undefined symbol: {}", id),
         }
     }
 }
@@ -87,10 +87,13 @@ impl InterpreterMut<Box<Expr>, Object> for StatefulInterpreter {
 
 impl StatefulInterpreter {
     fn interpret_assignment(&mut self, id: token::Token, expr: Box<Expr>) -> ExprInterpreterResult {
-        let _lhv = id.lexeme.unwrap();
-        let _rhv = self.interpret(expr)?;
+        let lhv = id.lexeme.unwrap();
+        let rhv = self.interpret(expr)?;
 
-        todo!()
+        match self.globals.assign(lhv, rhv) {
+            Some(v) => Ok(v),
+            None => Err(ExprInterpreterErr::UndefinedVariable("".to_string())),
+        }
     }
 
     fn interpret_equality(&mut self, expr: EqualityExpr) -> ExprInterpreterResult {
@@ -248,7 +251,7 @@ impl StatefulInterpreter {
 
         match self.globals.get(&var) {
             Some(v) => Ok(v.to_owned()),
-            None => Err(ExprInterpreterErr::Lookup(var.clone())),
+            None => Err(ExprInterpreterErr::UndefinedVariable(var.clone())),
         }
     }
 }
