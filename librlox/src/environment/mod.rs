@@ -15,8 +15,18 @@ impl Environment {
         Self::default()
     }
 
+    pub fn assign(&mut self, name: String, value: object::Object) -> Option<object::Object> {
+        if None == self.symbols_table.get(&name) {
+            return None;
+        }
+
+        self.define(name, value)
+    }
+
     pub fn define(&mut self, name: String, value: object::Object) -> Option<object::Object> {
-        self.symbols_table.insert(name, value)
+        self.symbols_table.insert(name, value.clone());
+
+        Some(value)
     }
 
     pub fn get(&mut self, name: &String) -> Option<&object::Object> {
