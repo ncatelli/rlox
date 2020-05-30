@@ -36,7 +36,17 @@ use parcel::*;
 /// );
 /// ```
 pub fn expression<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
-    equality()
+    assignment()
+}
+
+#[allow(clippy::redundant_closure)]
+fn assignment<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
+    join(
+        token_type(TokenType::Identifier),
+        right(join(token_type(TokenType::Equal), equality())),
+    )
+    .map(|(lhv, rhe)| Expr::Assignment(lhv, Box::new(rhe)))
+    .or(|| equality())
 }
 
 #[allow(clippy::redundant_closure)]
@@ -194,6 +204,7 @@ fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     .or(|| primary())
 }
 
+#[allow(clippy::redundant_closure)]
 fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     token_type(TokenType::True)
         .or(|| token_type(TokenType::False))

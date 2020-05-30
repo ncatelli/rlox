@@ -15,11 +15,22 @@ impl Environment {
         Self::default()
     }
 
-    pub fn define(&mut self, name: String, value: object::Object) -> Option<object::Object> {
-        self.symbols_table.insert(name, value)
+    pub fn assign(&mut self, name: &str, value: object::Object) -> Option<object::Object> {
+        let id = name.to_string();
+        if None == self.symbols_table.get(&id) {
+            return None;
+        }
+
+        self.define(&id, value)
     }
 
-    pub fn get(&mut self, name: &String) -> Option<&object::Object> {
+    pub fn define(&mut self, name: &str, value: object::Object) -> Option<object::Object> {
+        self.symbols_table.insert(name.to_string(), value.clone());
+
+        Some(value)
+    }
+
+    pub fn get(&mut self, name: &str) -> Option<&object::Object> {
         self.symbols_table.get(name)
     }
 }

@@ -6,6 +6,7 @@ use std::fmt;
 /// lox currently. Further information can be found on each sub-type.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
+    Assignment(token::Token, Box<Expr>),
     Equality(EqualityExpr),
     Comparison(ComparisonExpr),
     Addition(AdditionExpr),
@@ -19,6 +20,7 @@ pub enum Expr {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Assignment(i, e) => write!(f, "(= {} {})", &i.lexeme.clone().unwrap(), e),
             Self::Equality(e) => write!(f, "{}", &e),
             Self::Comparison(e) => write!(f, "{}", &e),
             Self::Addition(e) => write!(f, "{}", &e),

@@ -19,6 +19,32 @@ fn match_literal_helper(token: Token) {
 }
 
 #[test]
+fn validate_parser_should_parse_assignment_expression() {
+    let op_token = Token::new(TokenType::Equal, 1, Option::None, Option::None);
+    let id_token = Token::new(
+        TokenType::Identifier,
+        1,
+        Option::Some("test".to_string()),
+        Option::None,
+    );
+    let literal_token = Token::new(
+        TokenType::Number,
+        1,
+        Option::Some("1.0".to_string()),
+        Option::Some(obj_number!(1.0)),
+    );
+    let seed_vec = vec![id_token.clone(), op_token.clone(), literal_token.clone()];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &seed_vec[3..],
+            Expr::Assignment(id_token.clone(), Box::new(Expr::Primary(obj_number!(1.0))))
+        ))),
+        expression().parse(&seed_vec)
+    );
+}
+
+#[test]
 fn validate_parser_should_parse_equality_expression() {
     let op_token = Token::new(TokenType::EqualEqual, 1, Option::None, Option::None);
     let literal_token = Token::new(
