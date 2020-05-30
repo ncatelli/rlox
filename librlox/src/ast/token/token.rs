@@ -39,10 +39,10 @@ impl Token {
         object: Option<object::Object>,
     ) -> Token {
         Token {
-            token_type: token_type,
-            line: line,
-            lexeme: lexeme,
-            object: object,
+            token_type,
+            line,
+            lexeme,
+            object,
         }
     }
 

@@ -204,6 +204,7 @@ fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     .or(|| primary())
 }
 
+#[allow(clippy::redundant_closure)]
 fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     token_type(TokenType::True)
         .or(|| token_type(TokenType::False))
