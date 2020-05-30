@@ -90,9 +90,9 @@ impl StatefulInterpreter {
         let lhv = id.lexeme.unwrap();
         let rhv = self.interpret(expr)?;
 
-        match self.globals.assign(lhv, rhv) {
+        match self.globals.assign(&lhv, rhv) {
             Some(v) => Ok(v),
-            None => Err(ExprInterpreterErr::UndefinedVariable("".to_string())),
+            None => Err(ExprInterpreterErr::UndefinedVariable(lhv.to_string())),
         }
     }
 
@@ -330,7 +330,7 @@ impl StatefulInterpreter {
     fn interpret_declaration_stmt(&mut self, name: String, expr: Expr) -> StmtInterpreterResult {
         match self.interpret(expr) {
             Ok(obj) => {
-                self.globals.define(name, obj);
+                self.globals.define(&name, obj);
                 Ok(())
             }
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
