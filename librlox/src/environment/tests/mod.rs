@@ -51,3 +51,26 @@ fn environment_should_return_some_if_assign_of_undefined_symbol() {
         Option::Some(obj_bool!(false))
     );
 }
+
+#[test]
+fn new_environment_should_have_no_parent() {
+    let symtable = Environment::new();
+
+    // Subsequent returns previous value
+    match symtable.parent {
+        Some(_) => assert!(false),
+        None => assert!(true),
+    }
+}
+
+#[test]
+fn new_derived_environment_should_have_a_parent() {
+    let parent = Environment::new();
+    let child = Environment::from(&parent);
+
+    // Subsequent returns previous value
+    match child.parent {
+        Some(_) => assert!(true),
+        None => assert!(false),
+    }
+}

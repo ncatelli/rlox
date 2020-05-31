@@ -7,6 +7,7 @@ use std::rc::Rc;
 mod tests;
 
 type SymbolTable = HashMap<String, object::Object>;
+type Parent = Box<Rc<Environment>>;
 
 /// Functions as a symbols table for looking up variables assignments.
 #[derive(Default, Debug)]
@@ -19,6 +20,13 @@ impl Environment {
     pub fn new() -> Rc<Self> {
         Rc::new(Environment {
             parent: None,
+            symbols_table: RefCell::new(SymbolTable::new()),
+        })
+    }
+
+    pub fn from(parent: &Rc<Environment>) -> Rc<Self> {
+        Rc::new(Environment {
+            parent: Some(Box::new(parent.clone())),
             symbols_table: RefCell::new(SymbolTable::new()),
         })
     }
@@ -43,10 +51,4 @@ impl Environment {
     pub fn get(&self, name: &str) -> Option<object::Object> {
         self.symbols_table.borrow().get(name).cloned()
     }
-}
-
-// Wraps an environment for nesting
-#[derive(Default, Debug)]
-struct Parent {
-    parent: Rc<Environment>,
 }
