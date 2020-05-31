@@ -36,13 +36,31 @@ fn scan_tokens_should_lex_reserved_keywords() {
     compare_single_token_source_helper("super", TokenType::Super);
     compare_single_token_source_helper("class", TokenType::Class);
     compare_single_token_source_helper("this", TokenType::This);
-    compare_single_token_source_helper("nil", TokenType::Nil);
-    compare_single_token_source_helper("true", TokenType::True);
-    compare_single_token_source_helper("false", TokenType::False);
     compare_single_token_source_helper("var", TokenType::Var);
     compare_single_token_source_helper("fun", TokenType::Fun);
     compare_single_token_source_helper("while", TokenType::While);
     compare_single_token_source_helper("for", TokenType::For);
     compare_single_token_source_helper("if", TokenType::If);
     compare_single_token_source_helper("else", TokenType::Else);
+}
+#[test]
+fn scan_tokens_should_lex_runtime_object_keywords() {
+    compare_single_token_source_with_literal_helper(
+        "true",
+        "",
+        Option::Some(obj_bool!(true)),
+        TokenType::True,
+    );
+    compare_single_token_source_with_literal_helper(
+        "false",
+        "",
+        Option::Some(obj_bool!(false)),
+        TokenType::False,
+    );
+    compare_single_token_source_with_literal_helper(
+        "nil",
+        "",
+        Option::Some(obj_nil!()),
+        TokenType::Nil,
+    );
 }

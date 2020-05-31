@@ -414,6 +414,33 @@ impl Scanner {
                     );
 
                     return match t.is_reserved_keyword() {
+                        Some(TokenType::True) => (
+                            Ok(Token::new(
+                                TokenType::True,
+                                current.line,
+                                None,
+                                Some(obj_bool!(true)),
+                            )),
+                            current,
+                        ),
+                        Some(TokenType::False) => (
+                            Ok(Token::new(
+                                TokenType::False,
+                                current.line,
+                                None,
+                                Some(obj_bool!(false)),
+                            )),
+                            current,
+                        ),
+                        Some(TokenType::Nil) => (
+                            Ok(Token::new(
+                                TokenType::Nil,
+                                current.line,
+                                None,
+                                Some(obj_nil!()),
+                            )),
+                            current,
+                        ),
                         Some(token_type) => (
                             Ok(Token::new(token_type, current.line, None, None)),
                             current,
