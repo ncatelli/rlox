@@ -36,7 +36,11 @@ pub fn compare_single_token_source_with_literal_helper(
         LexResult::Ok(Token {
             token_type: expected_token_type,
             line: 1,
-            lexeme: Some(lexeme.trim().to_string()),
+            lexeme: if lexeme.len() > 0 {
+                Some(lexeme.trim().to_string())
+            } else {
+                None
+            },
             object: obj,
         })
     );
