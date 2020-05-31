@@ -7,7 +7,7 @@ use std::process;
 extern crate librlox;
 extern crate parcel;
 use librlox::ast::token;
-use librlox::interpreter::InterpreterMut;
+use librlox::interpreter::Interpreter;
 use librlox::interpreter::StatefulInterpreter;
 use librlox::parser::statement_parser::statements;
 use librlox::scanner;
