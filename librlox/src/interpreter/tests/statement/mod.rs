@@ -26,7 +26,7 @@ fn declaration_statement_should_set_persistent_global_symbol() {
     let mut interpreter = StatefulInterpreter::new();
     interpreter.interpret(vec![stmt]).unwrap();
     assert_eq!(
-        Some(&obj_bool!(true)),
+        Some(obj_bool!(true)),
         interpreter.globals.get(&"test".to_string())
     );
 }

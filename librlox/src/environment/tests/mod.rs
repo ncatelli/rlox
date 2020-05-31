@@ -28,7 +28,7 @@ fn environment_should_allow_getting_of_symbols() {
         Option::Some(obj_bool!(true))
     );
 
-    assert_eq!(symtable.get(&key), Option::Some(&obj_bool!(true)));
+    assert_eq!(symtable.get(&key), Option::Some(obj_bool!(true)));
 }
 
 #[test]
