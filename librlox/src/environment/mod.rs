@@ -33,11 +33,11 @@ impl Environment {
 
     pub fn assign(&self, name: &str, value: object::Object) -> Option<object::Object> {
         let id = name.to_string();
-        if None == self.symbols_table.borrow().get(&id) {
-            return None;
+        if self.symbols_table.borrow().contains_key(&id) {
+            self.define(&id, value)
+        } else {
+            None
         }
-
-        self.define(&id, value)
     }
 
     pub fn define(&self, name: &str, value: object::Object) -> Option<object::Object> {
