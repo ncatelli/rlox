@@ -33,10 +33,11 @@ impl Environment {
 
     pub fn assign(&self, name: &str, value: object::Object) -> Option<object::Object> {
         let id = name.to_string();
-        if self.symbols_table.borrow().contains_key(&id) {
-            self.define(&id, value)
-        } else {
-            None
+        let has_key = self.symbols_table.borrow().contains_key(&id);
+        match (has_key, self.parent.clone()) {
+            (true, _) => self.define(&id, value),
+            (false, Some(parent)) => parent.assign(&id, value),
+            (false, None) => None,
         }
     }
 
@@ -49,6 +50,11 @@ impl Environment {
     }
 
     pub fn get(&self, name: &str) -> Option<object::Object> {
-        self.symbols_table.borrow().get(name).cloned()
+        let val = self.symbols_table.borrow().get(name).cloned();
+        match (val, self.parent.clone()) {
+            (Some(v), _) => Some(v),
+            (None, Some(parent)) => parent.get(&name),
+            (None, None) => None,
+        }
     }
 }
