@@ -1,5 +1,5 @@
 use crate::ast::expression::{EqualityExpr, Expr, MultiplicationExpr};
-use crate::interpreter::InterpreterMut;
+use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
 
 macro_rules! primary_number {

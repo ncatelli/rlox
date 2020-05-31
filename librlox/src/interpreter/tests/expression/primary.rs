@@ -1,5 +1,5 @@
 use crate::ast::expression::Expr;
-use crate::interpreter::InterpreterMut;
+use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
 
 #[test]

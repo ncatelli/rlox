@@ -1,6 +1,6 @@
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
-use crate::interpreter::InterpreterMut;
+use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
 
 #[test]
@@ -23,10 +23,16 @@ fn print_stmt_should_return_ok() {
 #[test]
 fn declaration_statement_should_set_persistent_global_symbol() {
     let stmt = Stmt::Declaration("test".to_string(), Expr::Primary(obj_bool!(true)));
-    let mut interpreter = StatefulInterpreter::new();
+    let interpreter = StatefulInterpreter::new();
     interpreter.interpret(vec![stmt]).unwrap();
     assert_eq!(
-        Some(&obj_bool!(true)),
-        interpreter.globals.get(&"test".to_string())
+        Some(obj_bool!(true)),
+        interpreter.env.get(&"test".to_string())
     );
+}
+
+#[test]
+fn block_statement_should_set_persistent_global_symbol() {
+    let stmts = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
+    assert_eq!(Ok(()), StatefulInterpreter::new().interpret(stmts));
 }

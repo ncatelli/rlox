@@ -1,6 +1,6 @@
 use crate::ast::expression::{Expr, MultiplicationExpr, UnaryExpr};
 use crate::interpreter::ExprInterpreterErr;
-use crate::interpreter::InterpreterMut;
+use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
 
 macro_rules! primary_number {

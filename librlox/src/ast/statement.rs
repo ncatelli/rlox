@@ -8,6 +8,7 @@ pub enum Stmt {
     Expression(Expr),
     Print(Expr),
     Declaration(String, Expr),
+    Block(Vec<Stmt>),
 }
 
 impl fmt::Display for Stmt {
@@ -16,6 +17,7 @@ impl fmt::Display for Stmt {
             Self::Expression(e) => write!(f, "(Expression {})", &e),
             Self::Print(e) => write!(f, "(Print {})", &e),
             Self::Declaration(name, e) => write!(f, "(Declaration {} {}", &name, &e),
+            Self::Block(stmts) => write!(f, "(Block {:?})", stmts),
         }
     }
 }
