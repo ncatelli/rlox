@@ -5,6 +5,7 @@ use crate::ast::token;
 use crate::environment::Environment;
 use crate::object::{Literal, Object};
 use std::fmt;
+use std::rc::Rc;
 
 #[cfg(test)]
 mod tests;
@@ -73,7 +74,7 @@ pub type ExprInterpreterResult = Result<Object, ExprInterpreterErr>;
 
 #[derive(Default)]
 pub struct StatefulInterpreter {
-    pub globals: Environment,
+    pub globals: Rc<Environment>,
 }
 
 impl StatefulInterpreter {
@@ -274,11 +275,11 @@ impl StatefulInterpreter {
         Ok(obj)
     }
 
-    fn interpret_variable(&mut self, identifier: token::Token) -> ExprInterpreterResult {
+    fn interpret_variable(&self, identifier: token::Token) -> ExprInterpreterResult {
         let var = identifier.lexeme.unwrap();
 
         match self.globals.get(&var) {
-            Some(v) => Ok(v.to_owned()),
+            Some(v) => Ok(v),
             None => Err(ExprInterpreterErr::UndefinedVariable(var.clone())),
         }
     }

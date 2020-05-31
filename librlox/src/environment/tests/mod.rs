@@ -3,7 +3,7 @@ use std::option::Option;
 
 #[test]
 fn environment_should_allow_setting_of_symbols() {
-    let mut symtable = Environment::new();
+    let symtable = Environment::new();
     let key = "test";
 
     // unset var returns None
@@ -20,7 +20,7 @@ fn environment_should_allow_setting_of_symbols() {
 
 #[test]
 fn environment_should_allow_getting_of_symbols() {
-    let mut symtable = Environment::new();
+    let symtable = Environment::new();
     let key = "test";
 
     assert_eq!(
@@ -33,7 +33,7 @@ fn environment_should_allow_getting_of_symbols() {
 
 #[test]
 fn environment_should_return_none_if_assign_of_undefined_symbol() {
-    let mut symtable = Environment::new();
+    let symtable = Environment::new();
 
     // unset var returns None
     assert_eq!(symtable.assign(&"test", obj_bool!(true)), Option::None);
@@ -41,7 +41,7 @@ fn environment_should_return_none_if_assign_of_undefined_symbol() {
 
 #[test]
 fn environment_should_return_some_if_assign_of_undefined_symbol() {
-    let mut symtable = Environment::new();
+    let symtable = Environment::new();
 
     symtable.define(&"test", obj_bool!(true));
 
