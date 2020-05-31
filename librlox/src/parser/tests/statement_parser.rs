@@ -73,11 +73,11 @@ fn parser_can_parse_block_stmt() {
         Option::Some(obj_number!(5.0)),
     );
     let input = vec![
-        Token::new(TokenType::LeftParen, 1, Option::None, Option::None),
+        Token::new(TokenType::LeftBrace, 1, Option::None, Option::None),
         Token::new(TokenType::Print, 1, Option::None, Option::None),
         literal_token.clone(),
         Token::new(TokenType::Semicolon, 1, Option::None, Option::None),
-        Token::new(TokenType::RightParen, 1, Option::None, Option::None),
+        Token::new(TokenType::RightBrace, 1, Option::None, Option::None),
     ];
 
     assert_eq!(

@@ -58,8 +58,8 @@ fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
 #[allow(clippy::redundant_closure)]
 fn block<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     right(join(
-        token_type(TokenType::LeftParen),
-        left(join(statements(), token_type(TokenType::RightParen))),
+        token_type(TokenType::LeftBrace),
+        left(join(statements(), token_type(TokenType::RightBrace))),
     ))
     .map(|stmts| Stmt::Block(stmts))
 }

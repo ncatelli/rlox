@@ -30,3 +30,9 @@ fn declaration_statement_should_set_persistent_global_symbol() {
         interpreter.env.get(&"test".to_string())
     );
 }
+
+#[test]
+fn block_statement_should_set_persistent_global_symbol() {
+    let stmts = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
+    assert_eq!(Ok(()), StatefulInterpreter::new().interpret(stmts));
+}
