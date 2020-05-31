@@ -68,14 +68,18 @@ pub type ExprInterpreterResult = Result<Object, ExprInterpreterErr>;
 
 #[derive(Default)]
 pub struct StatefulInterpreter {
-    pub globals: Rc<Environment>,
+    pub env: Rc<Environment>,
 }
 
 impl StatefulInterpreter {
     pub fn new() -> StatefulInterpreter {
         StatefulInterpreter {
-            globals: Environment::new(),
+            env: Environment::new(),
         }
+    }
+
+    pub fn from(env: Rc<Environment>) -> StatefulInterpreter {
+        StatefulInterpreter { env }
     }
 }
 
@@ -113,7 +117,7 @@ impl StatefulInterpreter {
         let lhv = id.lexeme.unwrap();
         let rhv = self.interpret(expr)?;
 
-        match self.globals.assign(&lhv, rhv) {
+        match self.env.assign(&lhv, rhv) {
             Some(v) => Ok(v),
             None => Err(ExprInterpreterErr::UndefinedVariable(lhv.to_string())),
         }
@@ -272,7 +276,7 @@ impl StatefulInterpreter {
     fn interpret_variable(&self, identifier: token::Token) -> ExprInterpreterResult {
         let var = identifier.lexeme.unwrap();
 
-        match self.globals.get(&var) {
+        match self.env.get(&var) {
             Some(v) => Ok(v),
             None => Err(ExprInterpreterErr::UndefinedVariable(var.clone())),
         }
@@ -320,6 +324,7 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
             Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
             Stmt::Print(expr) => self.interpret_print_stmt(expr),
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
+            Stmt::Block(stmts) => self.interpret_block(stmts),
         }
     }
 }
@@ -353,10 +358,15 @@ impl StatefulInterpreter {
     fn interpret_declaration_stmt(&self, name: String, expr: Expr) -> StmtInterpreterResult {
         match self.interpret(expr) {
             Ok(obj) => {
-                self.globals.define(&name, obj);
+                self.env.define(&name, obj);
                 Ok(())
             }
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
         }
+    }
+
+    fn interpret_block(&self, stmts: Vec<Stmt>) -> StmtInterpreterResult {
+        let block_interpreter = StatefulInterpreter::from(Environment::from(&self.env));
+        block_interpreter.interpret(stmts)
     }
 }
