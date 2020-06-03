@@ -1,8 +1,0 @@
-[package]
-name = "librlox"
-version = "0.1.0"
-authors = ["Nate Catelli <ncatelli@packetfire.org>"]
-edition = "2018"
-
-[dependencies]
-parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.3.0" }

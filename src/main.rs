@@ -4,14 +4,13 @@ use std::io::prelude::*;
 use std::io::{stdin, stdout};
 use std::process;
 
-extern crate librlox;
 extern crate parcel;
-use librlox::ast::token;
-use librlox::interpreter::Interpreter;
-use librlox::interpreter::StatefulInterpreter;
-use librlox::parser::statement_parser::statements;
-use librlox::scanner;
 use parcel::prelude::v1::*;
+use rlox::ast::token;
+use rlox::interpreter::Interpreter;
+use rlox::interpreter::StatefulInterpreter;
+use rlox::parser::statement_parser::statements;
+use rlox::scanner;
 
 type RuntimeResult<T> = Result<T, String>;
 

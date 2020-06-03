@@ -37,9 +37,8 @@ impl fmt::Display for Expr {
 ///
 /// # Examples
 /// ```
-/// extern crate librlox;
-/// use librlox::ast::expression::*;
-/// use librlox::object;
+/// use rlox::ast::expression::*;
+/// use rlox::object;
 ///
 /// let comparison = Expr::Equality(
 ///     EqualityExpr::NotEqual(
@@ -79,9 +78,8 @@ impl fmt::Display for EqualityExpr {
 ///
 /// # Examples
 /// ```
-/// extern crate librlox;
-/// use librlox::ast::expression::*;
-/// use librlox::object;
+/// use rlox::ast::expression::*;
+/// use rlox::object;
 ///
 /// let comparison = Expr::Comparison(
 ///     ComparisonExpr::GreaterEqual(
@@ -125,9 +123,8 @@ impl fmt::Display for ComparisonExpr {
 ///
 /// # Examples
 /// ```
-/// extern crate librlox;
-/// use librlox::ast::expression::*;
-/// use librlox::object;
+/// use rlox::ast::expression::*;
+/// use rlox::object;
 ///
 /// let addition = Expr::Addition(
 ///     AdditionExpr::Add(
@@ -167,9 +164,8 @@ impl fmt::Display for AdditionExpr {
 ///
 /// # Examples
 /// ```
-/// extern crate librlox;
-/// use librlox::ast::expression::*;
-/// use librlox::object;
+/// use rlox::ast::expression::*;
+/// use rlox::object;
 ///
 /// let multiplication = Expr::Multiplication(
 ///     MultiplicationExpr::Multiply(
@@ -205,9 +201,8 @@ impl fmt::Display for MultiplicationExpr {
 ///
 /// # Examples
 /// ```
-/// extern crate librlox;
-/// use librlox::ast::expression::*;
-/// use librlox::object;
+/// use rlox::ast::expression::*;
+/// use rlox::object;
 ///
 /// let unary = Expr::Unary(
 ///     UnaryExpr::Minus(

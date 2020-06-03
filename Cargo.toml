@@ -13,9 +13,6 @@ criterion = "0.3"
 name = "rlox_bench"
 harness = false
 
-[workspace]
-members = ["librlox"]
 
 [dependencies]
 parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.3.0" }
-librlox = { path = "librlox" }

@@ -56,8 +56,7 @@ impl Cursor {
 ///
 /// # Examples
 /// ```
-/// extern crate librlox;
-/// use librlox::scanner;
+/// use rlox::scanner;
 /// let source = "* ; - \"hello world\" 1234.5".to_string();
 /// let s = scanner::Scanner::new(source);
 ///

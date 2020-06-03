@@ -10,12 +10,11 @@ use parcel::*;
 ///
 /// # Examples
 /// ```
-/// extern crate librlox;
 /// extern crate parcel;
-/// use librlox::ast::token::{TokenType, Token};
-/// use librlox::ast::expression::*;
-/// use librlox::parser::expression_parser::*;
-/// use librlox::object;
+/// use rlox::ast::token::{TokenType, Token};
+/// use rlox::ast::expression::*;
+/// use rlox::parser::expression_parser::*;
+/// use rlox::object;
 /// use std::option::Option::Some;
 /// use std::convert::TryFrom;
 /// use parcel::*;
