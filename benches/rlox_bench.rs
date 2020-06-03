@@ -1,10 +1,10 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-extern crate librlox;
 extern crate parcel;
-use librlox::ast::token::Token;
-use librlox::parser::expression_parser::expression;
-use librlox::parser::statement_parser::statements;
-use librlox::scanner::Scanner;
+extern crate rlox;
+use rlox::ast::token::Token;
+use rlox::parser::expression_parser::expression;
+use rlox::parser::statement_parser::statements;
+use rlox::scanner::Scanner;
 
 use parcel::prelude::v1::*;
 
