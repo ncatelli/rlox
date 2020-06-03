@@ -322,6 +322,7 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
     fn interpret(&self, input: Stmt) -> StmtInterpreterResult {
         match input {
             Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
+            Stmt::If(expr, tb, eb) => self.interpret_if_stmt(expr, tb, eb),
             Stmt::Print(expr) => self.interpret_print_stmt(expr),
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
             Stmt::Block(stmts) => self.interpret_block(stmts),
@@ -368,5 +369,19 @@ impl StatefulInterpreter {
     fn interpret_block(&self, stmts: Vec<Stmt>) -> StmtInterpreterResult {
         let block_interpreter = StatefulInterpreter::from(Environment::from(&self.env));
         block_interpreter.interpret(stmts)
+    }
+
+    fn interpret_if_stmt(
+        &self,
+        cond: Expr,
+        tb: Box<Stmt>,
+        eb: Option<Box<Stmt>>,
+    ) -> StmtInterpreterResult {
+        let condition = self.interpret(cond).unwrap();
+        match (condition.into(), eb) {
+            (true, _) => self.interpret(tb),
+            (false, None) => Ok(()),
+            (false, Some(stmt)) => self.interpret(stmt),
+        }
     }
 }

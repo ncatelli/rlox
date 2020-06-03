@@ -16,6 +16,7 @@ fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     declaration_stmt()
         .or(|| print_stmt())
         .or(|| expression_stmt())
+        .or(|| if_stmt())
         .or(|| block())
 }
 
@@ -62,4 +63,35 @@ fn block<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         left(join(statements(), token_type(TokenType::RightBrace))),
     ))
     .map(|stmts| Stmt::Block(stmts))
+}
+
+#[allow(clippy::redundant_closure)]
+fn if_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    join(
+        right(join(
+            token_type(TokenType::If),
+            left(join(
+                right(join(token_type(TokenType::LeftParen), expression())),
+                token_type(TokenType::RightParen),
+            )),
+        )),
+        join(
+            statement(),
+            zero_or_more(right(join(token_type(TokenType::Else), statement()))),
+        ),
+    )
+    .map(
+        |(condition, (primary_branch, secondary_branch))| match secondary_branch.len() {
+            0 => Stmt::If(condition, Box::new(primary_branch), None),
+            1 => Stmt::If(
+                condition,
+                Box::new(primary_branch),
+                Some(Box::new(secondary_branch[0].to_owned())),
+            ),
+            _ => panic!(
+                "More than one statement in else branch of if statement: {:?}",
+                secondary_branch
+            ),
+        },
+    )
 }
