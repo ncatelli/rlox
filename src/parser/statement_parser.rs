@@ -77,21 +77,13 @@ fn if_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         )),
         join(
             statement(),
-            zero_or_more(right(join(token_type(TokenType::Else), statement()))),
+            optional(right(join(token_type(TokenType::Else), statement()))),
         ),
     )
     .map(
-        |(condition, (primary_branch, secondary_branch))| match secondary_branch.len() {
-            0 => Stmt::If(condition, Box::new(primary_branch), None),
-            1 => Stmt::If(
-                condition,
-                Box::new(primary_branch),
-                Some(Box::new(secondary_branch[0].to_owned())),
-            ),
-            _ => panic!(
-                "More than one statement in else branch of if statement: {:?}",
-                secondary_branch
-            ),
+        |(condition, (primary_branch, secondary_branch))| match secondary_branch {
+            None => Stmt::If(condition, Box::new(primary_branch), None),
+            Some(b) => Stmt::If(condition, Box::new(primary_branch), Some(Box::new(b))),
         },
     )
 }
