@@ -1,32 +1,32 @@
 extern crate parcel;
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
-use crate::ast::token::{Token, TokenType};
+use crate::ast::token::TokenType;
 use crate::parser::statement_parser::statements;
 use parcel::prelude::v1::*;
 use parcel::MatchStatus;
 use std::option::Option;
 
+macro_rules! token_from_tt {
+    ($tt:expr) => {
+        $crate::ast::token::Token::new($tt, 1, Option::None, Option::None)
+    };
+    ($tt:expr, $lex:expr) => {
+        $crate::ast::token::Token::new($tt, 1, Option::Some($lex.to_string()), Option::None)
+    };
+    ($tt:expr, $lex:expr, $val:expr) => {
+        $crate::ast::token::Token::new($tt, 1, Option::Some($lex.to_string()), Option::Some($val))
+    };
+}
+
 #[test]
 fn parser_can_parse_declaration_stmt() {
-    let identifier_token = Token::new(
-        TokenType::Identifier,
-        1,
-        Option::Some("test".to_string()),
-        None,
-    );
-    let literal_token = Token::new(
-        TokenType::Number,
-        1,
-        Option::Some("5.0".to_string()),
-        Option::Some(obj_number!(5.0)),
-    );
     let input = vec![
-        Token::new(TokenType::Var, 1, Option::None, Option::None),
-        identifier_token.clone(),
-        Token::new(TokenType::Equal, 1, Option::None, Option::None),
-        literal_token.clone(),
-        Token::new(TokenType::Semicolon, 1, Option::None, Option::None),
+        token_from_tt!(TokenType::Var),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::Equal),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
     ];
 
     assert_eq!(
@@ -43,16 +43,10 @@ fn parser_can_parse_declaration_stmt() {
 
 #[test]
 fn parser_can_parse_print_stmt() {
-    let literal_token = Token::new(
-        TokenType::Number,
-        1,
-        Option::Some("5.0".to_string()),
-        Option::Some(obj_number!(5.0)),
-    );
     let input = vec![
-        Token::new(TokenType::Print, 1, Option::None, Option::None),
-        literal_token.clone(),
-        Token::new(TokenType::Semicolon, 1, Option::None, Option::None),
+        token_from_tt!(TokenType::Print),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
     ];
 
     assert_eq!(
@@ -66,18 +60,12 @@ fn parser_can_parse_print_stmt() {
 
 #[test]
 fn parser_can_parse_block_stmt() {
-    let literal_token = Token::new(
-        TokenType::Number,
-        1,
-        Option::Some("5.0".to_string()),
-        Option::Some(obj_number!(5.0)),
-    );
     let input = vec![
-        Token::new(TokenType::LeftBrace, 1, Option::None, Option::None),
-        Token::new(TokenType::Print, 1, Option::None, Option::None),
-        literal_token.clone(),
-        Token::new(TokenType::Semicolon, 1, Option::None, Option::None),
-        Token::new(TokenType::RightBrace, 1, Option::None, Option::None),
+        token_from_tt!(TokenType::LeftBrace),
+        token_from_tt!(TokenType::Print),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::RightBrace),
     ];
 
     assert_eq!(
@@ -86,6 +74,57 @@ fn parser_can_parse_block_stmt() {
             vec![Stmt::Block(vec![Stmt::Print(Expr::Primary(obj_number!(
                 5.0
             )))])]
+        ))),
+        statements().parse(&input)
+    );
+}
+
+#[test]
+fn parser_can_parse_if_stmt_with_no_else_clause() {
+    let input = vec![
+        token_from_tt!(TokenType::If),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[6..],
+            vec![Stmt::If(
+                Expr::Primary(obj_bool!(true)),
+                Box::new(Stmt::Expression(Expr::Primary(obj_number!(5.0)))),
+                Option::None
+            )]
+        ))),
+        statements().parse(&input)
+    );
+}
+
+#[test]
+fn parser_can_parse_if_stmt_with_else_clause() {
+    let input = vec![
+        token_from_tt!(TokenType::If),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::Else),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[9..],
+            vec![Stmt::If(
+                Expr::Primary(obj_bool!(true)),
+                Box::new(Stmt::Expression(Expr::Primary(obj_number!(5.0)))),
+                Option::Some(Box::new(Stmt::Expression(Expr::Primary(obj_number!(5.0)))))
+            )]
         ))),
         statements().parse(&input)
     );
