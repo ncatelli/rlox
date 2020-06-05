@@ -15,4 +15,4 @@ harness = false
 
 
 [dependencies]
-parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.3.0" }
+parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.4.0" }
