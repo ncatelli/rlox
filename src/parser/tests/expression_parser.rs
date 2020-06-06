@@ -1,6 +1,6 @@
 extern crate parcel;
 use crate::ast::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
 };
 use crate::ast::token::{Token, TokenType};
 use crate::parser::expression_parser::expression;
@@ -16,6 +16,18 @@ fn match_literal_helper(token: Token) {
         ))),
         expression().parse(&seed_vec)
     );
+}
+
+macro_rules! token_from_tt {
+    ($tt:expr) => {
+        $crate::ast::token::Token::new($tt, 1, Option::None, Option::None)
+    };
+    ($tt:expr, $lex:expr) => {
+        $crate::ast::token::Token::new($tt, 1, Option::Some($lex.to_string()), Option::None)
+    };
+    ($tt:expr, $lex:expr, $val:expr) => {
+        $crate::ast::token::Token::new($tt, 1, Option::Some($lex.to_string()), Option::Some($val))
+    };
 }
 
 #[test]
@@ -41,6 +53,96 @@ fn validate_parser_should_parse_assignment_expression() {
             Expr::Assignment(id_token.clone(), Box::new(Expr::Primary(obj_number!(1.0))))
         ))),
         expression().parse(&seed_vec)
+    );
+}
+
+#[test]
+fn validate_parser_should_parse_logical_or() {
+    let input = vec![
+        token_from_tt!(TokenType::False, "false", obj_bool!(false)),
+        token_from_tt!(TokenType::Or),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[3..],
+            Expr::Logical(LogicalExpr::Or(
+                Box::new(Expr::Primary(obj_bool!(false))),
+                Box::new(Expr::Primary(obj_bool!(true)))
+            ))
+        ))),
+        expression().parse(&input)
+    );
+}
+
+#[test]
+fn validate_parser_should_parse_multiple_logical_or() {
+    let input = vec![
+        token_from_tt!(TokenType::False, "false", obj_bool!(false)),
+        token_from_tt!(TokenType::Or),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+        token_from_tt!(TokenType::Or),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[5..],
+            Expr::Logical(LogicalExpr::Or(
+                Box::new(Expr::Primary(obj_bool!(false))),
+                Box::new(Expr::Logical(LogicalExpr::Or(
+                    Box::new(Expr::Primary(obj_bool!(true))),
+                    Box::new(Expr::Primary(obj_bool!(true)))
+                )))
+            ))
+        ))),
+        expression().parse(&input)
+    );
+}
+
+#[test]
+fn validate_parser_should_parse_logical_and() {
+    let input = vec![
+        token_from_tt!(TokenType::False, "false", obj_bool!(false)),
+        token_from_tt!(TokenType::And),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[3..],
+            Expr::Logical(LogicalExpr::And(
+                Box::new(Expr::Primary(obj_bool!(false))),
+                Box::new(Expr::Primary(obj_bool!(true)))
+            ))
+        ))),
+        expression().parse(&input)
+    );
+}
+
+#[test]
+fn validate_parser_should_parse_multiple_logical_and() {
+    let input = vec![
+        token_from_tt!(TokenType::False, "false", obj_bool!(false)),
+        token_from_tt!(TokenType::And),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+        token_from_tt!(TokenType::And),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[5..],
+            Expr::Logical(LogicalExpr::And(
+                Box::new(Expr::Primary(obj_bool!(false))),
+                Box::new(Expr::Logical(LogicalExpr::And(
+                    Box::new(Expr::Primary(obj_bool!(true))),
+                    Box::new(Expr::Primary(obj_bool!(true)))
+                )))
+            ))
+        ))),
+        expression().parse(&input)
     );
 }
 

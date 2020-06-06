@@ -1,5 +1,5 @@
 use crate::ast::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
 };
 use crate::ast::token;
 use crate::environment::Environment;
@@ -98,6 +98,7 @@ impl Interpreter<Expr, Object> for StatefulInterpreter {
             Expr::Addition(expr) => self.interpret_addition(expr),
             Expr::Comparison(expr) => self.interpret_comparison(expr),
             Expr::Equality(expr) => self.interpret_equality(expr),
+            Expr::Logical(expr) => self.interpret_logical(expr),
             Expr::Assignment(id, expr) => self.interpret_assignment(id, expr),
         }
     }
@@ -121,6 +122,10 @@ impl StatefulInterpreter {
             Some(v) => Ok(v),
             None => Err(ExprInterpreterErr::UndefinedVariable(lhv.to_string())),
         }
+    }
+
+    fn interpret_logical(&self, _expr: LogicalExpr) -> ExprInterpreterResult {
+        todo!()
     }
 
     fn interpret_equality(&self, expr: EqualityExpr) -> ExprInterpreterResult {
