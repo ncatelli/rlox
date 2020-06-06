@@ -124,8 +124,27 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_logical(&self, _expr: LogicalExpr) -> ExprInterpreterResult {
-        todo!()
+    fn interpret_logical(&self, expr: LogicalExpr) -> ExprInterpreterResult {
+        match expr {
+            LogicalExpr::Or(left, right) => {
+                let lho: Object = self.interpret(left)?;
+                let lho_bool: bool = lho.clone().into();
+                if lho_bool {
+                    Ok(lho)
+                } else {
+                    self.interpret(right)
+                }
+            }
+            LogicalExpr::And(left, right) => {
+                let lho: Object = self.interpret(left)?;
+                let lho_bool: bool = lho.clone().into();
+                if !lho_bool {
+                    Ok(lho)
+                } else {
+                    self.interpret(right)
+                }
+            }
+        }
     }
 
     fn interpret_equality(&self, expr: EqualityExpr) -> ExprInterpreterResult {
