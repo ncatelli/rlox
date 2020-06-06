@@ -38,7 +38,10 @@ block          = "{" declaration* "}" ;
 
 expression     = assigment ;
 assignment     = IDENTIFIER "=" equality
-               | equality ;
+               | logic_or ;
+logic_or       = logic_and ( "or" logic_and )* ;
+logic_and      = equality ( "and" equality )* ;
+
 equality       = comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     = addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       = multiplication ( ( "-" | "+" ) multiplication )* ;

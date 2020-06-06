@@ -7,6 +7,7 @@ use std::fmt;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     Assignment(token::Token, Box<Expr>),
+    Logical(LogicalExpr),
     Equality(EqualityExpr),
     Comparison(ComparisonExpr),
     Addition(AdditionExpr),
@@ -21,6 +22,7 @@ impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Assignment(i, e) => write!(f, "(= {} {})", &i.lexeme.clone().unwrap(), e),
+            Self::Logical(e) => write!(f, "{}", &e),
             Self::Equality(e) => write!(f, "{}", &e),
             Self::Comparison(e) => write!(f, "{}", &e),
             Self::Addition(e) => write!(f, "{}", &e),
@@ -29,6 +31,47 @@ impl fmt::Display for Expr {
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "(Grouping {})", &e),
             Self::Variable(i) => write!(f, "(Var {})", &i.lexeme.clone().unwrap()),
+        }
+    }
+}
+
+/// Represents Logical Lox expressions.
+///
+/// # Examples
+/// ```
+/// use rlox::ast::expression::*;
+/// use rlox::object;
+///
+/// let Logical = Expr::Logical(
+///     LogicalExpr::Or(
+///         Box::new(
+///             Expr::Primary(
+///                 object::Object::Literal(
+///                     object::Literal::Bool(false)
+///                 )
+///             )
+///         ),
+///         Box::new(
+///             Expr::Primary(
+///                 object::Object::Literal(
+///                     object::Literal::Bool(true)
+///                 )
+///             )
+///         ),
+///     )
+/// );
+/// ```
+#[derive(Debug, PartialEq, Clone)]
+pub enum LogicalExpr {
+    Or(Box<Expr>, Box<Expr>),
+    And(Box<Expr>, Box<Expr>),
+}
+
+impl fmt::Display for LogicalExpr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Or(left, right) => write!(f, "(or {} {})", left, right),
+            Self::And(left, right) => write!(f, "(and {} {})", left, right),
         }
     }
 }

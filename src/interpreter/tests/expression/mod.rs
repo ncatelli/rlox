@@ -2,6 +2,7 @@ mod addition;
 mod comparison;
 mod equality;
 mod grouping;
+mod logical;
 mod multiplication;
 mod primary;
 mod unary;

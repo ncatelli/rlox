@@ -1,5 +1,5 @@
 use crate::ast::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, MultiplicationExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
 };
 use crate::ast::token;
 use crate::environment::Environment;
@@ -98,6 +98,7 @@ impl Interpreter<Expr, Object> for StatefulInterpreter {
             Expr::Addition(expr) => self.interpret_addition(expr),
             Expr::Comparison(expr) => self.interpret_comparison(expr),
             Expr::Equality(expr) => self.interpret_equality(expr),
+            Expr::Logical(expr) => self.interpret_logical(expr),
             Expr::Assignment(id, expr) => self.interpret_assignment(id, expr),
         }
     }
@@ -120,6 +121,29 @@ impl StatefulInterpreter {
         match self.env.assign(&lhv, rhv) {
             Some(v) => Ok(v),
             None => Err(ExprInterpreterErr::UndefinedVariable(lhv.to_string())),
+        }
+    }
+
+    fn interpret_logical(&self, expr: LogicalExpr) -> ExprInterpreterResult {
+        match expr {
+            LogicalExpr::Or(left, right) => {
+                let lho: Object = self.interpret(left)?;
+                let lho_bool: bool = lho.clone().into();
+                if lho_bool {
+                    Ok(lho)
+                } else {
+                    self.interpret(right)
+                }
+            }
+            LogicalExpr::And(left, right) => {
+                let lho: Object = self.interpret(left)?;
+                let lho_bool: bool = lho.clone().into();
+                if !lho_bool {
+                    Ok(lho)
+                } else {
+                    self.interpret(right)
+                }
+            }
         }
     }
 
