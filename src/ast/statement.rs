@@ -7,6 +7,7 @@ use std::fmt;
 pub enum Stmt {
     Expression(Expr),
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
+    While(Expr, Box<Stmt>),
     Print(Expr),
     Declaration(String, Expr),
     Block(Vec<Stmt>),
@@ -20,6 +21,7 @@ impl fmt::Display for Stmt {
                 Some(eb) => write!(f, "(if ({}) ({}) ({}))", &e, &tb, &eb),
                 None => write!(f, "(if ({}) ({}))", &e, &tb),
             },
+            Self::While(e, stmt) => write!(f, "(While ({}) ({})", e, stmt),
             Self::Print(e) => write!(f, "(Print {})", &e),
             Self::Declaration(name, e) => write!(f, "(Declaration {} {}", &name, &e),
             Self::Block(stmts) => write!(f, "(Block {:?})", stmts),

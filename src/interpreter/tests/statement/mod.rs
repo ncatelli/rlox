@@ -80,3 +80,16 @@ fn if_statement_should_eval_to_else_clause_if_condition_is_false() {
         interpreter.env.get(&"test".to_string())
     );
 }
+
+#[test]
+fn while_statement_should_eval_until_false() {
+    let stmt = Stmt::While(
+        Expr::Primary(obj_bool!(false)),
+        Box::new(Stmt::Declaration(
+            "test".to_string(),
+            Expr::Primary(obj_bool!(true)),
+        )),
+    );
+
+    assert_eq!(Ok(()), StatefulInterpreter::new().interpret(vec![stmt]));
+}
