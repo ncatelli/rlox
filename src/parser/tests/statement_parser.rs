@@ -1,5 +1,5 @@
 extern crate parcel;
-use crate::ast::expression::Expr;
+use crate::ast::expression::{AdditionExpr, ComparisonExpr, Expr};
 use crate::ast::statement::Stmt;
 use crate::ast::token::TokenType;
 use crate::parser::statement_parser::statements;
@@ -148,6 +148,67 @@ fn parser_can_parse_while_stmt() {
                 Expr::Primary(obj_bool!(true)),
                 Box::new(Stmt::Expression(Expr::Primary(obj_bool!(true)))),
             )]
+        ))),
+        statements().parse(&input)
+    );
+}
+
+#[test]
+fn parser_can_parse_for_stmt() {
+    let input = vec![
+        token_from_tt!(TokenType::For),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::Var),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::Equal),
+        token_from_tt!(TokenType::Number, "1", obj_number!(1.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::Less),
+        token_from_tt!(TokenType::Number, "5", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::Equal),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::Plus),
+        token_from_tt!(TokenType::Number, "1", obj_number!(1.0)),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::Print),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::Semicolon),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[20..],
+            vec![Stmt::Block(vec![
+                Stmt::Declaration("test".to_string(), Expr::Primary(obj_number!(1.0))),
+                Stmt::While(
+                    Expr::Comparison(ComparisonExpr::Less(
+                        Box::new(Expr::Variable(token_from_tt!(
+                            TokenType::Identifier,
+                            "test"
+                        ))),
+                        Box::new(Expr::Primary(obj_number!(5.0)))
+                    )),
+                    Box::new(Stmt::Block(vec![
+                        Stmt::Print(Expr::Variable(token_from_tt!(
+                            TokenType::Identifier,
+                            "test"
+                        ))),
+                        Stmt::Expression(Expr::Assignment(
+                            token_from_tt!(TokenType::Identifier, "test"),
+                            Box::new(Expr::Addition(AdditionExpr::Add(
+                                Box::new(Expr::Variable(token_from_tt!(
+                                    TokenType::Identifier,
+                                    "test"
+                                ))),
+                                Box::new(Expr::Primary(obj_number!(1.0)))
+                            )))
+                        ))
+                    ]))
+                )
+            ])]
         ))),
         statements().parse(&input)
     );
