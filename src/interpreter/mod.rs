@@ -347,7 +347,7 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
         match input {
             Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
             Stmt::If(expr, tb, eb) => self.interpret_if_stmt(expr, tb, eb),
-            Stmt::While(_expr, _stmts) => todo!(),
+            Stmt::While(cond, body) => self.interpret_while_stmt(cond, body),
             Stmt::Print(expr) => self.interpret_print_stmt(expr),
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
             Stmt::Block(stmts) => self.interpret_block(stmts),
@@ -408,5 +408,9 @@ impl StatefulInterpreter {
             (false, None) => Ok(()),
             (false, Some(stmt)) => self.interpret(stmt),
         }
+    }
+
+    fn interpret_while_stmt(&self, _cond: Expr, _body: Box<Stmt>) -> StmtInterpreterResult {
+        todo!()
     }
 }

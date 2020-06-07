@@ -129,3 +129,26 @@ fn parser_can_parse_if_stmt_with_else_clause() {
         statements().parse(&input)
     );
 }
+
+#[test]
+fn parser_can_parse_while_stmt() {
+    let input = vec![
+        token_from_tt!(TokenType::While),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+        token_from_tt!(TokenType::Semicolon),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[6..],
+            vec![Stmt::While(
+                Expr::Primary(obj_bool!(true)),
+                Box::new(Stmt::Expression(Expr::Primary(obj_bool!(true)))),
+            )]
+        ))),
+        statements().parse(&input)
+    );
+}

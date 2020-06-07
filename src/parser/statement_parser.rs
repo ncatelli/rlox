@@ -14,9 +14,10 @@ pub fn statements<'a>() -> impl parcel::Parser<'a, &'a [Token], Vec<Stmt>> {
 #[allow(clippy::redundant_closure)]
 fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     declaration_stmt()
-        .or(|| print_stmt())
         .or(|| expression_stmt())
+        .or(|| while_stmt())
         .or(|| if_stmt())
+        .or(|| print_stmt())
         .or(|| block())
 }
 
@@ -86,4 +87,19 @@ fn if_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
             Some(b) => Stmt::If(condition, Box::new(primary_branch), Some(Box::new(b))),
         },
     )
+}
+
+#[allow(clippy::redundant_closure)]
+pub fn while_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    join(
+        right(join(
+            token_type(TokenType::While),
+            left(join(
+                right(join(token_type(TokenType::LeftParen), expression())),
+                token_type(TokenType::RightParen),
+            )),
+        )),
+        statement(),
+    )
+    .map(|(condition, stmt)| Stmt::While(condition, Box::new(stmt)))
 }
