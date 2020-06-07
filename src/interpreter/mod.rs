@@ -402,7 +402,9 @@ impl StatefulInterpreter {
         tb: Box<Stmt>,
         eb: Option<Box<Stmt>>,
     ) -> StmtInterpreterResult {
-        let condition = self.interpret(cond).unwrap();
+        let condition = self
+            .interpret(cond)
+            .map_err(|e| StmtInterpreterErr::Expression(e))?;
         match (condition.into(), eb) {
             (true, _) => self.interpret(tb),
             (false, None) => Ok(()),
@@ -410,7 +412,17 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_while_stmt(&self, _cond: Expr, _body: Box<Stmt>) -> StmtInterpreterResult {
-        todo!()
+    fn interpret_while_stmt(&self, cond: Expr, body: Box<Stmt>) -> StmtInterpreterResult {
+        while self
+            .interpret(cond.clone())
+            .map_err(|e| StmtInterpreterErr::Expression(e))?
+            .into()
+        {
+            if let Err(e) = self.interpret(body.clone()) {
+                return Err(e);
+            }
+        }
+
+        Ok(())
     }
 }
