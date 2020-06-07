@@ -27,13 +27,17 @@ declaration    = varDecl
 varDecl        = "var" IDENTIFIER "=" expression ";" ;
 
 statement      = exprStmt
+               | forStmt
                | ifStmt
                | printStmt
                | whileStmt
                | block ;
 
 exprStmt       = expression ";" ;
-whileStmt      = "while" "(" expression ")" statement; 
+whileStmt      = "while" "(" expression ")" statement ;
+forStmt        = "for" "(" ( varDecl | exprStmt | ";" )
+                           expression? ";"
+                           expression? ")" statement ;
 ifStmt         = "if" "(" expression ")" statement ( "else" statement )? ;
 printStmt      = "print" expression ";" ;
 block          = "{" declaration* "}" ;
