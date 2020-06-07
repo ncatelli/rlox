@@ -115,7 +115,11 @@ pub fn for_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
                 right(join(
                     token_type(TokenType::LeftParen),
                     join(
-                        optional(expression_stmt().or(|| declaration_stmt())),
+                        optional(
+                            expression_stmt()
+                                .or(|| declaration_stmt())
+                                .or(|| nil_stmt()),
+                        ),
                         join(
                             left(join(
                                 optional(expression()),
@@ -148,4 +152,8 @@ pub fn for_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
 
         Stmt::Block(for_block)
     })
+}
+
+fn nil_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    token_type(TokenType::Semicolon).map(|_| Stmt::Expression(Expr::Primary(obj_nil!())))
 }
