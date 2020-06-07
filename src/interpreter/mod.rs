@@ -396,6 +396,7 @@ impl StatefulInterpreter {
         block_interpreter.interpret(stmts)
     }
 
+    #[allow(clippy::redundant_closure)]
     fn interpret_if_stmt(
         &self,
         cond: Expr,
@@ -412,6 +413,7 @@ impl StatefulInterpreter {
         }
     }
 
+    #[allow(clippy::redundant_closure)]
     fn interpret_while_stmt(&self, cond: Expr, body: Box<Stmt>) -> StmtInterpreterResult {
         while self
             .interpret(cond.clone())

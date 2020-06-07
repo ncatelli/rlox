@@ -1,5 +1,6 @@
 extern crate parcel;
 use super::combinators::token_type;
+use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
 use crate::ast::token::{Token, TokenType};
 use crate::parser::expression_parser::expression;
@@ -16,6 +17,7 @@ fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     declaration_stmt()
         .or(|| expression_stmt())
         .or(|| while_stmt())
+        .or(|| for_stmt())
         .or(|| if_stmt())
         .or(|| print_stmt())
         .or(|| block())
@@ -102,4 +104,56 @@ pub fn while_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         statement(),
     )
     .map(|(condition, stmt)| Stmt::While(condition, Box::new(stmt)))
+}
+
+#[allow(clippy::redundant_closure)]
+pub fn for_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    join(
+        right(join(
+            token_type(TokenType::For),
+            left(join(
+                right(join(
+                    token_type(TokenType::LeftParen),
+                    join(
+                        optional(
+                            expression_stmt()
+                                .or(|| declaration_stmt())
+                                .or(|| nil_stmt()),
+                        ),
+                        join(
+                            left(join(
+                                optional(expression()),
+                                token_type(TokenType::Semicolon),
+                            )),
+                            optional(expression()),
+                        ),
+                    ),
+                )),
+                token_type(TokenType::RightParen),
+            )),
+        )),
+        statement(),
+    )
+    .map(|((initializer, (condition, incrementer)), stmt)| {
+        let mut for_block: Vec<Stmt> = Vec::new();
+        if let Some(init) = initializer {
+            for_block.push(init)
+        };
+
+        let mut while_body: Vec<Stmt> = vec![stmt];
+        if let Some(inc) = incrementer {
+            while_body.push(Stmt::Expression(inc))
+        };
+
+        for_block.push(Stmt::While(
+            condition.unwrap_or(Expr::Primary(obj_bool!(true))),
+            Box::new(Stmt::Block(while_body)),
+        ));
+
+        Stmt::Block(for_block)
+    })
+}
+
+fn nil_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    token_type(TokenType::Semicolon).map(|_| Stmt::Expression(Expr::Primary(obj_nil!())))
 }
