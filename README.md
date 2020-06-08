@@ -48,11 +48,14 @@ assignment     = IDENTIFIER "=" equality
 logic_or       = logic_and ( "or" logic_and )* ;
 logic_and      = equality ( "and" equality )* ;
 
+arguments      = expression ( "," expression )* ;
+
 equality       = comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     = addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       = multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication = unary ( ( "/" | "*" ) unary )* ;
 unary          = ( "!" | "-" ) unary | primary ;
+call           = primary ( "(" arguments? ")" )* ;
 primary        = NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil"
                | "(" expression ")" ;
 ```
