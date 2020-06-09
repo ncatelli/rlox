@@ -93,6 +93,7 @@ impl Interpreter<Expr, Object> for StatefulInterpreter {
             Expr::Grouping(expr) => self.interpret(expr),
             Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(obj) => self.interpret_primary(obj),
+            Expr::Call(_callee, _args) => todo!(),
             Expr::Unary(expr) => self.interpret_unary(expr),
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
             Expr::Addition(expr) => self.interpret_addition(expr),

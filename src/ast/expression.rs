@@ -13,6 +13,7 @@ pub enum Expr {
     Addition(AdditionExpr),
     Multiplication(MultiplicationExpr),
     Unary(UnaryExpr),
+    Call(Box<Expr>, Vec<Expr>),
     Primary(object::Object),
     Grouping(Box<Expr>),
     Variable(token::Token),
@@ -31,6 +32,15 @@ impl fmt::Display for Expr {
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "(Grouping {})", &e),
             Self::Variable(i) => write!(f, "(Var {})", &i.lexeme.clone().unwrap()),
+            Self::Call(callee, args) => write!(
+                f,
+                "{}({})",
+                callee,
+                args.iter()
+                    .map(|a| a.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+            ),
         }
     }
 }

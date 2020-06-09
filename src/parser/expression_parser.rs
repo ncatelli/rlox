@@ -236,6 +236,37 @@ fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
             _ => panic!(format!("unexpected token: {}", token.token_type)),
         })
     })
+    .or(|| call())
+}
+
+#[allow(clippy::redundant_closure)]
+fn call<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
+    join(
+        primary(),
+        right(join(
+            token_type(TokenType::LeftParen),
+            left(join(
+                optional(join(
+                    expression(),
+                    zero_or_more(right(join(token_type(TokenType::Comma), expression()))),
+                )),
+                token_type(TokenType::RightParen),
+            )),
+        )),
+    )
+    .map(|(callee, opt_args)| {
+        Expr::Call(
+            Box::new(callee),
+            match opt_args {
+                None => Vec::new(),
+                Some(a) => {
+                    let mut args = vec![a.0];
+                    args.extend(a.1);
+                    args
+                }
+            },
+        )
+    })
     .or(|| primary())
 }
 
