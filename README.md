@@ -54,7 +54,7 @@ equality       = comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     = addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       = multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication = unary ( ( "/" | "*" ) unary )* ;
-unary          = ( "!" | "-" ) unary | primary ;
+unary          = ( "!" | "-" ) unary | call ;
 call           = primary ( "(" arguments? ")" )* ;
 primary        = NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil"
                | "(" expression ")" ;
