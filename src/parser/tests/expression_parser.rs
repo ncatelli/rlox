@@ -6,18 +6,6 @@ use crate::ast::token::{Token, TokenType};
 use crate::parser::expression_parser::expression;
 use parcel::*;
 
-fn match_literal_helper(token: Token) {
-    let seed_vec = vec![token.clone()];
-
-    assert_eq!(
-        Ok(MatchStatus::Match((
-            &seed_vec[1..],
-            Expr::Primary(token.object.unwrap())
-        ))),
-        expression().parse(&seed_vec)
-    );
-}
-
 macro_rules! token_from_tt {
     ($tt:expr) => {
         $crate::ast::token::Token::new($tt, 1, Option::None, Option::None)
@@ -343,12 +331,15 @@ fn parser_should_parse_unary_expression() {
 
 #[test]
 fn parser_should_parse_primary_expression() {
-    match_literal_helper(Token::new(
-        TokenType::Number,
-        1,
-        Option::Some("1.0".to_string()),
-        Option::Some(obj_number!(1.0)),
-    ))
+    let input = vec![token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0))];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[1..],
+            Expr::Primary(obj_number!(1.0))
+        ))),
+        expression().parse(&input)
+    );
 }
 
 #[test]
