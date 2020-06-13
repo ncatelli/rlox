@@ -272,18 +272,20 @@ fn call<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
 
 #[allow(clippy::redundant_closure)]
 fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
-    token_type(TokenType::True)
-        .or(|| token_type(TokenType::False))
-        .or(|| token_type(TokenType::Nil))
-        .or(|| token_type(TokenType::Number))
-        .or(|| token_type(TokenType::Str))
-        .map(|token| Expr::Primary(token.object.unwrap()))
-        .or(|| token_type(TokenType::Identifier).map(|token| Expr::Variable(token)))
-        .or(|| {
-            right(join(
-                token_type(TokenType::LeftParen),
-                left(join(expression(), token_type(TokenType::RightParen))),
-            ))
-            .map(|expr| Expr::Grouping(Box::new(expr)))
-        })
+    parcel::one_of(vec![
+        token_type(TokenType::True),
+        token_type(TokenType::False),
+        token_type(TokenType::Nil),
+        token_type(TokenType::Number),
+        token_type(TokenType::Str),
+    ])
+    .map(|token| Expr::Primary(token.object.unwrap()))
+    .or(|| token_type(TokenType::Identifier).map(|token| Expr::Variable(token)))
+    .or(|| {
+        right(join(
+            token_type(TokenType::LeftParen),
+            left(join(expression(), token_type(TokenType::RightParen))),
+        ))
+        .map(|expr| Expr::Grouping(Box::new(expr)))
+    })
 }
