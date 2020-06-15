@@ -361,6 +361,7 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
             Stmt::If(expr, tb, eb) => self.interpret_if_stmt(expr, tb, eb),
             Stmt::While(cond, body) => self.interpret_while_stmt(cond, body),
             Stmt::Print(expr) => self.interpret_print_stmt(expr),
+            Stmt::Function(_name, _params, _block) => todo!(),
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
             Stmt::Block(stmts) => self.interpret_block(stmts),
         }

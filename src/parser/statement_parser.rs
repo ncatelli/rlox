@@ -15,6 +15,7 @@ pub fn statements<'a>() -> impl parcel::Parser<'a, &'a [Token], Vec<Stmt>> {
 #[allow(clippy::redundant_closure)]
 fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     declaration_stmt()
+        .or(|| fun_declaration_stmt())
         .or(|| expression_stmt())
         .or(|| while_stmt())
         .or(|| for_stmt())
@@ -35,6 +36,48 @@ fn print_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         join(expression(), token_type(TokenType::Semicolon)),
     )))
     .map(|expr| Stmt::Print(expr))
+}
+
+#[allow(clippy::redundant_closure)]
+fn fun_declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    right(join(
+        token_type(TokenType::Fun),
+        join(
+            token_type(TokenType::Identifier),
+            join(
+                right(join(
+                    token_type(TokenType::LeftParen),
+                    left(join(
+                        optional(join(
+                            token_type(TokenType::Identifier),
+                            zero_or_more(right(join(
+                                token_type(TokenType::Comma),
+                                token_type(TokenType::Identifier),
+                            ))),
+                        )),
+                        token_type(TokenType::RightParen),
+                    )),
+                )),
+                block(),
+            ),
+        ),
+    ))
+    .map(|(callee, (opt_args, body))| {
+        let ident = match (callee.token_type, callee.lexeme) {
+            (TokenType::Identifier, Some(l)) => l,
+            _ => panic!("identifier is not a token."),
+        };
+
+        Stmt::Function(
+            ident,
+            opt_args.map_or(Vec::new(), |a| {
+                let mut args = vec![a.0];
+                args.extend(a.1);
+                args
+            }),
+            Box::new(body),
+        )
+    })
 }
 
 #[allow(clippy::redundant_closure)]
