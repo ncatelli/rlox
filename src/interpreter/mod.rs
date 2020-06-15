@@ -93,7 +93,7 @@ impl Interpreter<Expr, Object> for StatefulInterpreter {
             Expr::Grouping(expr) => self.interpret(expr),
             Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(obj) => self.interpret_primary(obj),
-            Expr::Call(_callee, _args) => todo!(),
+            Expr::Call(callee, args) => self.interpret_call(*callee, args),
             Expr::Unary(expr) => self.interpret_unary(expr),
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
             Expr::Addition(expr) => self.interpret_addition(expr),
@@ -292,6 +292,17 @@ impl StatefulInterpreter {
                 _ => type_error!(),
             },
         }
+    }
+
+    fn interpret_call(&self, _callee: Expr, _args: Vec<Expr>) -> ExprInterpreterResult {
+        /*let fun = self.interpret(callee).map(|obj_res| obj_res)?;
+        let callable = Callable::new(fun);
+        let _params: Vec<Object> = args
+            .into_iter()
+            .map(|expr| self.interpret(expr).unwrap())
+            .collect();
+        */
+        todo!()
     }
 
     fn interpret_primary(&self, obj: Object) -> ExprInterpreterResult {
