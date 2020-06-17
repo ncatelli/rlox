@@ -3,6 +3,7 @@ use crate::ast::expression::{
 };
 use crate::ast::token;
 use crate::environment::Environment;
+use crate::functions;
 use crate::object::{Literal, Object};
 use std::fmt;
 use std::rc::Rc;
@@ -372,7 +373,9 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
             Stmt::If(expr, tb, eb) => self.interpret_if_stmt(expr, tb, eb),
             Stmt::While(cond, body) => self.interpret_while_stmt(cond, body),
             Stmt::Print(expr) => self.interpret_print_stmt(expr),
-            Stmt::Function(_name, _params, _block) => todo!(),
+            Stmt::Function(name, params, body) => {
+                self.interpret_function_decl_stmt(name, params, body)
+            }
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
             Stmt::Block(stmts) => self.interpret_block(stmts),
         }
@@ -413,6 +416,20 @@ impl StatefulInterpreter {
             }
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
         }
+    }
+
+    fn interpret_function_decl_stmt(
+        &self,
+        name: String,
+        params: Vec<token::Token>,
+        body: Box<Stmt>,
+    ) -> StmtInterpreterResult {
+        let func = functions::Function::new(params, *body);
+        let callable = functions::Callable::Func(func);
+        let obj = Object::Call(Box::new(callable));
+
+        self.env.define(&name, obj);
+        Ok(())
     }
 
     fn interpret_block(&self, stmts: Vec<Stmt>) -> StmtInterpreterResult {

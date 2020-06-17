@@ -67,7 +67,6 @@ fn fun_declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
             (TokenType::Identifier, Some(l)) => l,
             _ => panic!("identifier is not a token."),
         };
-
         Stmt::Function(
             ident,
             opt_args.map_or(Vec::new(), |a| {
