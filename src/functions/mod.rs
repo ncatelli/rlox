@@ -5,23 +5,19 @@ use crate::object;
 use std::rc::Rc;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Callable {
-    fun: Function,
+pub enum Callable {
+    Func(Function),
 }
 
 impl Callable {
     pub fn new(fun: Function) -> Self {
-        Callable { fun }
+        Callable::Func(fun)
     }
 
     pub fn call(&self, env: Rc<Environment>, args: Vec<object::Object>) -> object::Object {
-        let local = Environment::from(&env);
-        for (ident, arg) in self.fun.params.iter().zip(args.into_iter()) {
-            let lexeme = ident.lexeme.clone().unwrap();
-            local.define(&lexeme, arg.clone());
+        match self {
+            Self::Func(f) => f.call(env, args),
         }
-
-        obj_nil!()
     }
 }
 
@@ -38,6 +34,16 @@ impl Function {
 
     pub fn arity(&self) -> usize {
         self.params.len()
+    }
+
+    pub fn call(&self, env: Rc<Environment>, args: Vec<object::Object>) -> object::Object {
+        let local = Environment::from(&env);
+        for (ident, arg) in self.params.iter().zip(args.into_iter()) {
+            let lexeme = ident.lexeme.clone().unwrap();
+            local.define(&lexeme, arg.clone());
+        }
+
+        obj_nil!()
     }
 }
 
