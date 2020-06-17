@@ -62,14 +62,19 @@ impl PartialEq for Function {
     }
 }
 
+/// StaticFuncCallback is a type that all static functions must implement. This
+/// type takes an environment and a vector of objects, representing arguments for
+/// use at call time.
+type StaticFuncCallback = fn(Rc<Environment>, Vec<object::Object>) -> object::Object;
+
 /// StaticFunc represents a static function to be called at a later date.
 #[derive(Debug, Clone, PartialEq)]
 pub struct StaticFunc {
-    func: fn() -> object::Object,
+    func: StaticFuncCallback,
 }
 
 impl StaticFunc {
-    pub fn new(func: fn() -> object::Object) -> Self {
+    pub fn new(func: fn(Rc<Environment>, args: Vec<object::Object>) -> object::Object) -> Self {
         Self { func }
     }
 
@@ -77,7 +82,7 @@ impl StaticFunc {
         0
     }
 
-    pub fn call(&self, _env: Rc<Environment>, _args: Vec<object::Object>) -> object::Object {
-        (self.func)()
+    pub fn call(&self, env: Rc<Environment>, args: Vec<object::Object>) -> object::Object {
+        (self.func)(env, args)
     }
 }
