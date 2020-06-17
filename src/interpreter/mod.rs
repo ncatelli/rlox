@@ -50,6 +50,7 @@ pub enum ExprInterpreterErr {
     Type(&'static str),
     BinaryExpr(&'static str, Object, Object),
     UndefinedVariable(String),
+    CallErr(Object),
 }
 
 impl fmt::Display for ExprInterpreterErr {
@@ -63,6 +64,7 @@ impl fmt::Display for ExprInterpreterErr {
                 left, op, right
             ),
             Self::UndefinedVariable(id) => write!(f, "undefined symbol: {}", id),
+            Self::CallErr(o) => write!(f, "object {} is not callable", o),
         }
     }
 }
@@ -308,15 +310,17 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_call(&self, _callee: Expr, _args: Vec<Expr>) -> ExprInterpreterResult {
-        /*let fun = self.interpret(callee).map(|obj_res| obj_res)?;
-        let callable = Callable::new(fun);
-        let _params: Vec<Object> = args
+    fn interpret_call(&self, callee: Expr, args: Vec<Expr>) -> ExprInterpreterResult {
+        let fun = self.interpret(callee).map(|obj_res| obj_res)?;
+        let params: Vec<Object> = args
             .into_iter()
             .map(|expr| self.interpret(expr).unwrap())
             .collect();
-        */
-        todo!()
+
+        match fun {
+            Object::Call(c) => Ok(c.call(self.env.clone(), params)),
+            _ => Err(ExprInterpreterErr::CallErr(fun)),
+        }
     }
 
     fn interpret_primary(&self, obj: Object) -> ExprInterpreterResult {
