@@ -71,7 +71,6 @@ pub type ExprInterpreterResult = Result<Object, ExprInterpreterErr>;
 
 #[derive(Default)]
 pub struct StatefulInterpreter {
-    pub globals: Environment,
     pub env: Rc<Environment>,
 }
 
@@ -86,8 +85,7 @@ impl StatefulInterpreter {
         );
 
         StatefulInterpreter {
-            globals: glbls,
-            env: Environment::new_rc(),
+            env: Environment::from(&glbls),
         }
     }
 

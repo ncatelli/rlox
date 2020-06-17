@@ -17,15 +17,11 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn new() -> Self {
-        Environment {
+    pub fn new() -> Rc<Self> {
+        Rc::new(Environment {
             parent: None,
             symbols_table: RefCell::new(SymbolTable::new()),
-        }
-    }
-
-    pub fn new_rc() -> Rc<Self> {
-        Rc::new(Self::new())
+        })
     }
 
     pub fn from(parent: &Rc<Environment>) -> Rc<Self> {
