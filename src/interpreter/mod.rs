@@ -68,18 +68,23 @@ pub type ExprInterpreterResult = Result<Object, ExprInterpreterErr>;
 
 #[derive(Default)]
 pub struct StatefulInterpreter {
+    pub globals: Environment,
     pub env: Rc<Environment>,
 }
 
 impl StatefulInterpreter {
     pub fn new() -> StatefulInterpreter {
         StatefulInterpreter {
-            env: Environment::new(),
+            globals: Environment::new(),
+            env: Environment::new_rc(),
         }
     }
 
+    /// from generates an interpreter from a pre-existing environment.
     pub fn from(env: Rc<Environment>) -> StatefulInterpreter {
-        StatefulInterpreter { env }
+        let mut si = StatefulInterpreter::new();
+        si.env = env;
+        si
     }
 }
 
