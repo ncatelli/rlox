@@ -374,7 +374,7 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
             Stmt::While(cond, body) => self.interpret_while_stmt(cond, body),
             Stmt::Print(expr) => self.interpret_print_stmt(expr),
             Stmt::Function(name, params, body) => {
-                self.interpret_function_decl_stmt(name, params, body)
+                self.interpret_function_decl_stmt(name, params, *body)
             }
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
             Stmt::Block(stmts) => self.interpret_block(stmts),
@@ -422,9 +422,9 @@ impl StatefulInterpreter {
         &self,
         name: String,
         params: Vec<token::Token>,
-        body: Box<Stmt>,
+        body: Stmt,
     ) -> StmtInterpreterResult {
-        let func = functions::Function::new(params, *body);
+        let func = functions::Function::new(params, body);
         let callable = functions::Callable::Func(func);
         let obj = Object::Call(Box::new(callable));
 
