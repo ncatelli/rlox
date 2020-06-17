@@ -3,9 +3,12 @@ use crate::ast::expression::{
 };
 use crate::ast::token;
 use crate::environment::Environment;
+use crate::functions;
 use crate::object::{Literal, Object};
 use std::fmt;
 use std::rc::Rc;
+
+mod static_methods;
 
 #[cfg(test)]
 mod tests;
@@ -74,8 +77,16 @@ pub struct StatefulInterpreter {
 
 impl StatefulInterpreter {
     pub fn new() -> StatefulInterpreter {
+        let glbls = Environment::new();
+        glbls.define(
+            "clock",
+            obj_call!(Box::new(functions::Callable::Static(
+                functions::StaticFunc::new(static_methods::clock)
+            ))),
+        );
+
         StatefulInterpreter {
-            globals: Environment::new(),
+            globals: glbls,
             env: Environment::new_rc(),
         }
     }

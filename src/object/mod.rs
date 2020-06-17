@@ -80,8 +80,8 @@ impl fmt::Display for Literal {
 
 #[allow(unused_macros)]
 macro_rules! obj_call {
-    ($f:expr) => {
-        $crate::object::Object::Call($crate::functions::Callable::new($f))
+    ($c:expr) => {
+        $crate::object::Object::Call($c)
     };
 }
 

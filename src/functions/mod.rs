@@ -4,9 +4,16 @@ use crate::environment::Environment;
 use crate::object;
 use std::rc::Rc;
 
+#[derive(Debug, Clone, Copy)]
+pub enum CallError {
+    Arity,
+    Unknown,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Callable {
     Func(Function),
+    Static(StaticFunc),
 }
 
 impl Callable {
@@ -17,10 +24,12 @@ impl Callable {
     pub fn call(&self, env: Rc<Environment>, args: Vec<object::Object>) -> object::Object {
         match self {
             Self::Func(f) => f.call(env, args),
+            Self::Static(sf) => sf.call(env, args),
         }
     }
 }
 
+/// Function represents a lox runtime function.
 #[derive(Debug, Clone)]
 pub struct Function {
     params: Vec<token::Token>,
@@ -50,5 +59,25 @@ impl Function {
 impl PartialEq for Function {
     fn eq(&self, other: &Self) -> bool {
         self.params == other.params && self.body == other.body
+    }
+}
+
+/// StaticFunc represents a static function to be called at a later date.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StaticFunc {
+    func: fn() -> object::Object,
+}
+
+impl StaticFunc {
+    pub fn new(func: fn() -> object::Object) -> Self {
+        Self { func }
+    }
+
+    pub fn arity(&self) -> usize {
+        0
+    }
+
+    pub fn call(&self, _env: Rc<Environment>, _args: Vec<object::Object>) -> object::Object {
+        (self.func)()
     }
 }
