@@ -1,5 +1,6 @@
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
+use crate::functions;
 use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
 
@@ -27,6 +28,25 @@ fn declaration_statement_should_set_persistent_global_symbol() {
     interpreter.interpret(vec![stmt]).unwrap();
     assert_eq!(
         Some(obj_bool!(true)),
+        interpreter.env.get(&"test".to_string())
+    );
+}
+
+#[test]
+fn function_declaration_statement_should_set_persistent_global_symbol() {
+    let block = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
+    let stmt = Stmt::Function("test".to_string(), vec![], Box::new(block));
+    let interpreter = StatefulInterpreter::new();
+
+    let f = functions::Function::new(
+        vec![],
+        Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]),
+    );
+    let expected_call = obj_call!(Box::new(functions::Callable::Func(f)));
+
+    interpreter.interpret(vec![stmt]).unwrap();
+    assert_eq!(
+        Some(expected_call),
         interpreter.env.get(&"test".to_string())
     );
 }
