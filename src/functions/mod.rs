@@ -1,6 +1,8 @@
 use crate::ast::statement;
 use crate::ast::token;
 use crate::environment::Environment;
+use crate::interpreter;
+use crate::interpreter::Interpreter;
 use crate::object;
 use std::rc::Rc;
 
@@ -52,6 +54,8 @@ impl Function {
             local.define(&lexeme, arg.clone());
         }
 
+        let intptr = interpreter::StatefulInterpreter::from(local);
+        intptr.interpret(self.body.clone()).unwrap();
         obj_nil!()
     }
 }
