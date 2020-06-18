@@ -330,13 +330,53 @@ fn parser_should_parse_unary_expression() {
 }
 
 #[test]
-fn parser_should_parse_primary_expression() {
-    let input = vec![token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0))];
+fn parser_should_parse_call_expression_with_single_arg() {
+    let input = vec![
+        token_from_tt!(TokenType::Identifier, "testfunc"),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+        token_from_tt!(TokenType::RightParen),
+    ];
 
     assert_eq!(
         Ok(MatchStatus::Match((
-            &input[1..],
-            Expr::Primary(obj_number!(1.0))
+            &input[4..],
+            Expr::Call(
+                Box::new(Expr::Variable(token_from_tt!(
+                    TokenType::Identifier,
+                    "testfunc"
+                ))),
+                vec![Expr::Primary(obj_bool!(true))]
+            )
+        ))),
+        expression().parse(&input)
+    );
+}
+
+#[test]
+fn parser_should_parse_call_expression_with_multiple_arg() {
+    let input = vec![
+        token_from_tt!(TokenType::Identifier, "testfunc"),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::True, "true", obj_bool!(true)),
+        token_from_tt!(TokenType::Comma),
+        token_from_tt!(TokenType::False, "False", obj_bool!(false)),
+        token_from_tt!(TokenType::RightParen),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[6..],
+            Expr::Call(
+                Box::new(Expr::Variable(token_from_tt!(
+                    TokenType::Identifier,
+                    "testfunc"
+                ))),
+                vec![
+                    Expr::Primary(obj_bool!(true)),
+                    Expr::Primary(obj_bool!(false))
+                ]
+            )
         ))),
         expression().parse(&input)
     );

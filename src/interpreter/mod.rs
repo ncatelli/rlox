@@ -3,9 +3,12 @@ use crate::ast::expression::{
 };
 use crate::ast::token;
 use crate::environment::Environment;
+use crate::functions;
 use crate::object::{Literal, Object};
 use std::fmt;
 use std::rc::Rc;
+
+mod static_methods;
 
 #[cfg(test)]
 mod tests;
@@ -47,6 +50,8 @@ pub enum ExprInterpreterErr {
     Type(&'static str),
     BinaryExpr(&'static str, Object, Object),
     UndefinedVariable(String),
+    UndefinedFunction,
+    CallErr(String),
 }
 
 impl fmt::Display for ExprInterpreterErr {
@@ -60,6 +65,8 @@ impl fmt::Display for ExprInterpreterErr {
                 left, op, right
             ),
             Self::UndefinedVariable(id) => write!(f, "undefined symbol: {}", id),
+            Self::UndefinedFunction => write!(f, "undefined function"),
+            Self::CallErr(o) => write!(f, "{}", o),
         }
     }
 }
@@ -73,13 +80,18 @@ pub struct StatefulInterpreter {
 
 impl StatefulInterpreter {
     pub fn new() -> StatefulInterpreter {
+        let glbls = static_methods::define_statics();
+
         StatefulInterpreter {
-            env: Environment::new(),
+            env: Environment::from(&glbls),
         }
     }
 
+    /// from generates an interpreter from a pre-existing environment.
     pub fn from(env: Rc<Environment>) -> StatefulInterpreter {
-        StatefulInterpreter { env }
+        let mut si = StatefulInterpreter::new();
+        si.env = env;
+        si
     }
 }
 
@@ -93,6 +105,7 @@ impl Interpreter<Expr, Object> for StatefulInterpreter {
             Expr::Grouping(expr) => self.interpret(expr),
             Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(obj) => self.interpret_primary(obj),
+            Expr::Call(callee, args) => self.interpret_call(*callee, args),
             Expr::Unary(expr) => self.interpret_unary(expr),
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
             Expr::Addition(expr) => self.interpret_addition(expr),
@@ -293,6 +306,27 @@ impl StatefulInterpreter {
         }
     }
 
+    fn interpret_call(&self, callee: Expr, args: Vec<Expr>) -> ExprInterpreterResult {
+        let fun = self.interpret(callee).map(|obj_res| obj_res)?;
+        let params: Vec<Object> = args
+            .into_iter()
+            .map(|expr| self.interpret(expr).unwrap())
+            .collect();
+
+        let c = match fun {
+            Object::Call(c) => Ok(c),
+            _ => Err(ExprInterpreterErr::CallErr(format!(
+                "object {} is not callable",
+                fun
+            ))),
+        }?;
+
+        match c.call(self.env.clone(), params) {
+            Ok(r) => Ok(r),
+            Err(e) => Err(ExprInterpreterErr::CallErr(format!("{:?}", e))),
+        }
+    }
+
     fn interpret_primary(&self, obj: Object) -> ExprInterpreterResult {
         Ok(obj)
     }
@@ -349,6 +383,9 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
             Stmt::If(expr, tb, eb) => self.interpret_if_stmt(expr, tb, eb),
             Stmt::While(cond, body) => self.interpret_while_stmt(cond, body),
             Stmt::Print(expr) => self.interpret_print_stmt(expr),
+            Stmt::Function(name, params, body) => {
+                self.interpret_function_decl_stmt(name, params, *body)
+            }
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
             Stmt::Block(stmts) => self.interpret_block(stmts),
         }
@@ -389,6 +426,20 @@ impl StatefulInterpreter {
             }
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
         }
+    }
+
+    fn interpret_function_decl_stmt(
+        &self,
+        name: String,
+        params: Vec<token::Token>,
+        body: Stmt,
+    ) -> StmtInterpreterResult {
+        let func = functions::Function::new(params, body);
+        let callable = functions::Callable::Func(func);
+        let obj = Object::Call(Box::new(callable));
+
+        self.env.define(&name, obj);
+        Ok(())
     }
 
     fn interpret_block(&self, stmts: Vec<Stmt>) -> StmtInterpreterResult {

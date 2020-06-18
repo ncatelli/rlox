@@ -6,6 +6,9 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.release]
+lto = true
+
 [dev-dependencies]
 criterion = "0.3"
 
@@ -13,6 +16,5 @@ criterion = "0.3"
 name = "rlox_bench"
 harness = false
 
-
 [dependencies]
-parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.4.0" }
+parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.5.0" }

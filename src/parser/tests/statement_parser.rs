@@ -42,6 +42,35 @@ fn parser_can_parse_declaration_stmt() {
 }
 
 #[test]
+fn parser_can_parse_function_declaration_stmt() {
+    let input = vec![
+        token_from_tt!(TokenType::Fun),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::Identifier, "arg_one"),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::LeftBrace),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::RightBrace),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[9..],
+            vec![Stmt::Function(
+                "test".to_string(),
+                vec![token_from_tt!(TokenType::Identifier, "arg_one")],
+                Box::new(Stmt::Block(vec![Stmt::Expression(Expr::Primary(
+                    obj_number!(5.0)
+                ))]))
+            )]
+        ))),
+        statements().parse(&input)
+    );
+}
+
+#[test]
 fn parser_can_parse_print_stmt() {
     let input = vec![
         token_from_tt!(TokenType::Print),

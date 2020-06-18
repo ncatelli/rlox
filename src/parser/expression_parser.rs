@@ -236,23 +236,56 @@ fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
             _ => panic!(format!("unexpected token: {}", token.token_type)),
         })
     })
+    .or(|| call())
+}
+
+#[allow(clippy::redundant_closure)]
+fn call<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
+    join(
+        primary(),
+        right(join(
+            token_type(TokenType::LeftParen),
+            left(join(
+                optional(join(
+                    expression(),
+                    zero_or_more(right(join(token_type(TokenType::Comma), expression()))),
+                )),
+                token_type(TokenType::RightParen),
+            )),
+        )),
+    )
+    .map(|(callee, opt_args)| {
+        Expr::Call(
+            Box::new(callee),
+            match opt_args {
+                None => Vec::new(),
+                Some(a) => {
+                    let mut args = vec![a.0];
+                    args.extend(a.1);
+                    args
+                }
+            },
+        )
+    })
     .or(|| primary())
 }
 
 #[allow(clippy::redundant_closure)]
 fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
-    token_type(TokenType::True)
-        .or(|| token_type(TokenType::False))
-        .or(|| token_type(TokenType::Nil))
-        .or(|| token_type(TokenType::Number))
-        .or(|| token_type(TokenType::Str))
-        .map(|token| Expr::Primary(token.object.unwrap()))
-        .or(|| token_type(TokenType::Identifier).map(|token| Expr::Variable(token)))
-        .or(|| {
-            right(join(
-                token_type(TokenType::LeftParen),
-                left(join(expression(), token_type(TokenType::RightParen))),
-            ))
-            .map(|expr| Expr::Grouping(Box::new(expr)))
-        })
+    parcel::one_of(vec![
+        token_type(TokenType::True),
+        token_type(TokenType::False),
+        token_type(TokenType::Nil),
+        token_type(TokenType::Number),
+        token_type(TokenType::Str),
+    ])
+    .map(|token| Expr::Primary(token.object.unwrap()))
+    .or(|| token_type(TokenType::Identifier).map(|token| Expr::Variable(token)))
+    .or(|| {
+        right(join(
+            token_type(TokenType::LeftParen),
+            left(join(expression(), token_type(TokenType::RightParen))),
+        ))
+        .map(|expr| Expr::Grouping(Box::new(expr)))
+    })
 }

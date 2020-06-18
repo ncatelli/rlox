@@ -21,8 +21,14 @@ A rust implementation of https://craftinginterpreters.com/
 ```
 program        = statement* EOF ;
 
-declaration    = varDecl
+declaration    = funDecl
+               | varDecl
                | statement ;
+
+
+funDecl        = "fun" function ;
+function       = IDENTIFIER "(" parameters? ")" block;
+parameters     = IDENTIFIER ( "," IDENTIFIER )* ;
 
 varDecl        = "var" IDENTIFIER "=" expression ";" ;
 
@@ -48,11 +54,14 @@ assignment     = IDENTIFIER "=" equality
 logic_or       = logic_and ( "or" logic_and )* ;
 logic_and      = equality ( "and" equality )* ;
 
+arguments      = expression ( "," expression )* ;
+
 equality       = comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     = addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       = multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication = unary ( ( "/" | "*" ) unary )* ;
-unary          = ( "!" | "-" ) unary | primary ;
+unary          = ( "!" | "-" ) unary | call ;
+call           = primary ( "(" arguments? ")" )* ;
 primary        = NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil"
                | "(" expression ")" ;
 ```
