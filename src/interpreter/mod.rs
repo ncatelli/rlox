@@ -387,6 +387,7 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
                 self.interpret_function_decl_stmt(name, params, *body)
             }
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
+            Stmt::Return(_expr) => todo!(),
             Stmt::Block(stmts) => self.interpret_block(stmts),
         }
     }
