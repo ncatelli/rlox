@@ -52,6 +52,15 @@ fn function_declaration_statement_should_set_persistent_global_symbol() {
 }
 
 #[test]
+fn return_statement_should_return_the_evaluated_expression_value() {
+    let stmts = Stmt::Return(Expr::Primary(obj_bool!(true)));
+    assert_eq!(
+        Ok(obj_bool!(true)),
+        StatefulInterpreter::new().interpret(stmts)
+    );
+}
+
+#[test]
 fn block_statement_should_set_persistent_global_symbol() {
     let stmts = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
     assert_eq!(Ok(obj_nil!()), StatefulInterpreter::new().interpret(stmts));

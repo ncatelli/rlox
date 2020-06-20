@@ -389,7 +389,7 @@ impl Interpreter<Stmt, Object> for StatefulInterpreter {
                 self.interpret_function_decl_stmt(name, params, *body)
             }
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
-            Stmt::Return(_expr) => todo!(),
+            Stmt::Return(expr) => self.interpret_return_stmt(expr),
             Stmt::Block(stmts) => self.interpret_block(stmts),
         }
     }
@@ -443,6 +443,13 @@ impl StatefulInterpreter {
 
         self.env.define(&name, obj);
         Ok(obj_nil!())
+    }
+
+    fn interpret_return_stmt(&self, expr: Expr) -> StmtInterpreterResult {
+        match self.interpret(expr) {
+            Ok(obj) => Ok(obj),
+            Err(e) => Err(StmtInterpreterErr::Expression(e)),
+        }
     }
 
     fn interpret_block(&self, stmts: Vec<Stmt>) -> StmtInterpreterResult {
