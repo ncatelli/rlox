@@ -89,7 +89,7 @@ impl Function {
 
         let intptr = interpreter::StatefulInterpreter::from(local);
         match intptr.interpret(self.body.clone()) {
-            Ok(rv) => Ok(rv),
+            Ok(rv) => Ok(rv.unwrap_or(obj_nil!())),
             Err(_) => Err(CallError::Unknown),
         }
     }

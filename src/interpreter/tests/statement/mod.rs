@@ -8,7 +8,7 @@ use crate::interpreter::StatefulInterpreter;
 #[test]
 fn expression_stmt_should_return_ok() {
     assert_eq!(
-        Ok(obj_nil!()),
+        Ok(None),
         StatefulInterpreter::new()
             .interpret(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))])
     );
@@ -17,7 +17,7 @@ fn expression_stmt_should_return_ok() {
 #[test]
 fn print_stmt_should_return_ok() {
     assert_eq!(
-        Ok(obj_nil!()),
+        Ok(None),
         StatefulInterpreter::new().interpret(vec![Stmt::Print(Expr::Primary(obj_bool!(true)))])
     );
 }
@@ -37,7 +37,7 @@ fn declaration_statement_should_set_persistent_global_symbol() {
 fn return_statement_should_return_the_evaluated_expression_value() {
     let stmts = Stmt::Return(Expr::Primary(obj_bool!(true)));
     assert_eq!(
-        Ok(obj_bool!(true)),
+        Ok(Some(obj_bool!(true))),
         StatefulInterpreter::new().interpret(stmts)
     );
 }
@@ -45,7 +45,7 @@ fn return_statement_should_return_the_evaluated_expression_value() {
 #[test]
 fn block_statement_should_set_persistent_global_symbol() {
     let stmts = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
-    assert_eq!(Ok(obj_nil!()), StatefulInterpreter::new().interpret(stmts));
+    assert_eq!(Ok(None), StatefulInterpreter::new().interpret(stmts));
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn block_statement_with_return_should_return_value() {
         Stmt::Return(Expr::Primary(obj_number!(5.0))),
     ]);
     assert_eq!(
-        Ok(obj_number!(5.0)),
+        Ok(Some(obj_number!(5.0))),
         StatefulInterpreter::new().interpret(stmts)
     );
 }
@@ -96,7 +96,7 @@ fn function_call_should_return_a_value_when_specified() {
     ];
 
     assert_eq!(
-        Ok(obj_bool!(true)),
+        Ok(Some(obj_bool!(true))),
         StatefulInterpreter::new().interpret(input)
     );
 }
@@ -155,8 +155,5 @@ fn while_statement_should_eval_until_false() {
         )),
     );
 
-    assert_eq!(
-        Ok(obj_nil!()),
-        StatefulInterpreter::new().interpret(vec![stmt])
-    );
+    assert_eq!(Ok(None), StatefulInterpreter::new().interpret(vec![stmt]));
 }

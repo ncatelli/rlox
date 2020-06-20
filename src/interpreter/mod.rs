@@ -358,25 +358,24 @@ impl fmt::Display for StmtInterpreterErr {
     }
 }
 
-pub type StmtInterpreterResult = Result<Object, StmtInterpreterErr>;
+pub type StmtInterpreterResult = Result<Option<Object>, StmtInterpreterErr>;
 
-impl Interpreter<Vec<Stmt>, Object> for StatefulInterpreter {
+impl Interpreter<Vec<Stmt>, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
 
     fn interpret(&self, input: Vec<Stmt>) -> StmtInterpreterResult {
-        let mut ret: Object = obj_nil!();
-
         for stmt in input {
             match self.interpret(stmt) {
-                Ok(r) => ret = r,
+                Ok(None) => continue,
+                rv @ Ok(_) => return rv,
                 Err(e) => return Err(e),
             };
         }
-        Ok(ret)
+        Ok(None)
     }
 }
 
-impl Interpreter<Stmt, Object> for StatefulInterpreter {
+impl Interpreter<Stmt, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
 
     fn interpret(&self, input: Stmt) -> StmtInterpreterResult {
@@ -396,7 +395,7 @@ impl Interpreter<Stmt, Object> for StatefulInterpreter {
 }
 
 /// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, Object)> implementation
-impl Interpreter<Box<Stmt>, Object> for StatefulInterpreter {
+impl Interpreter<Box<Stmt>, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
     fn interpret(&self, input: Box<Stmt>) -> StmtInterpreterResult {
         self.interpret(*input)
@@ -407,11 +406,11 @@ impl StatefulInterpreter {
     fn interpret_expression_stmt(&self, expr: Expr) -> StmtInterpreterResult {
         match expr {
             e @ Expr::Call(_, _) => match self.interpret(e) {
-                Ok(rv) => Ok(rv),
+                Ok(rv) => Ok(Some(rv)),
                 Err(err) => Err(StmtInterpreterErr::Expression(err)),
             },
             e @ _ => match self.interpret(e) {
-                Ok(_) => Ok(obj_nil!()),
+                Ok(_) => Ok(None),
                 Err(err) => Err(StmtInterpreterErr::Expression(err)),
             },
         }
@@ -421,7 +420,7 @@ impl StatefulInterpreter {
         match self.interpret(expr) {
             Ok(expr) => {
                 println!("{}", expr);
-                Ok(obj_nil!())
+                Ok(None)
             }
             Err(err) => Err(StmtInterpreterErr::Expression(err)),
         }
@@ -431,7 +430,7 @@ impl StatefulInterpreter {
         match self.interpret(expr) {
             Ok(obj) => {
                 self.env.define(&name, obj);
-                Ok(obj_nil!())
+                Ok(None)
             }
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
         }
@@ -448,12 +447,12 @@ impl StatefulInterpreter {
         let obj = Object::Call(Box::new(callable));
 
         self.env.define(&name, obj);
-        Ok(obj_nil!())
+        Ok(None)
     }
 
     fn interpret_return_stmt(&self, expr: Expr) -> StmtInterpreterResult {
         match self.interpret(expr) {
-            Ok(obj) => Ok(obj),
+            Ok(obj) => Ok(Some(obj)),
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
         }
     }
@@ -475,7 +474,7 @@ impl StatefulInterpreter {
             .map_err(|e| StmtInterpreterErr::Expression(e))?;
         match (condition.into(), eb) {
             (true, _) => self.interpret(tb),
-            (false, None) => Ok(obj_nil!()),
+            (false, None) => Ok(None),
             (false, Some(stmt)) => self.interpret(stmt),
         }
     }
@@ -487,11 +486,13 @@ impl StatefulInterpreter {
             .map_err(|e| StmtInterpreterErr::Expression(e))?
             .into()
         {
-            if let Err(e) = self.interpret(body.clone()) {
-                return Err(e);
+            match self.interpret(body.clone()) {
+                Ok(None) => continue,
+                rv @ Ok(_) => return rv,
+                Err(e) => return Err(e),
             }
         }
 
-        Ok(obj_nil!())
+        Ok(None)
     }
 }
