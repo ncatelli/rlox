@@ -409,7 +409,7 @@ impl StatefulInterpreter {
                 Ok(rv) => Ok(Some(rv)),
                 Err(err) => Err(StmtInterpreterErr::Expression(err)),
             },
-            e @ _ => match self.interpret(e) {
+            e => match self.interpret(e) {
                 Ok(_) => Ok(None),
                 Err(err) => Err(StmtInterpreterErr::Expression(err)),
             },
