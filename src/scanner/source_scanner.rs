@@ -315,7 +315,7 @@ impl Scanner {
                         Ok(Token::new(
                             TokenType::Str,
                             current.line,
-                            Some(format!("\"{}\"", literal_str.clone())), // TODO remove clone
+                            Some(format!("\"{}\"", literal_str)),
                             Some(obj_str!(literal_str)),
                         )),
                         current,

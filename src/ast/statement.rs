@@ -12,6 +12,7 @@ pub enum Stmt {
     Print(Expr),
     Function(String, Vec<token::Token>, Box<Stmt>),
     Declaration(String, Expr),
+    Return(Expr),
     Block(Vec<Stmt>),
 }
 
@@ -29,6 +30,7 @@ impl fmt::Display for Stmt {
                 write!(f, "(Fun {}({:?}) {}", &name, &params, &block)
             }
             Self::Declaration(name, e) => write!(f, "(Declaration {} {}", &name, &e),
+            Self::Return(e) => write!(f, "(Return {})", &e),
             Self::Block(stmts) => write!(f, "(Block {:?})", stmts),
         }
     }

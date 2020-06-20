@@ -358,23 +358,24 @@ impl fmt::Display for StmtInterpreterErr {
     }
 }
 
-pub type StmtInterpreterResult = Result<(), StmtInterpreterErr>;
+pub type StmtInterpreterResult = Result<Option<Object>, StmtInterpreterErr>;
 
-impl Interpreter<Vec<Stmt>, ()> for StatefulInterpreter {
+impl Interpreter<Vec<Stmt>, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
 
     fn interpret(&self, input: Vec<Stmt>) -> StmtInterpreterResult {
         for stmt in input {
             match self.interpret(stmt) {
-                Ok(()) => continue,
+                Ok(None) => continue,
+                rv @ Ok(_) => return rv,
                 Err(e) => return Err(e),
             };
         }
-        Ok(())
+        Ok(None)
     }
 }
 
-impl Interpreter<Stmt, ()> for StatefulInterpreter {
+impl Interpreter<Stmt, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
 
     fn interpret(&self, input: Stmt) -> StmtInterpreterResult {
@@ -387,13 +388,14 @@ impl Interpreter<Stmt, ()> for StatefulInterpreter {
                 self.interpret_function_decl_stmt(name, params, *body)
             }
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
+            Stmt::Return(expr) => self.interpret_return_stmt(expr),
             Stmt::Block(stmts) => self.interpret_block(stmts),
         }
     }
 }
 
-/// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, ())> implementation
-impl Interpreter<Box<Stmt>, ()> for StatefulInterpreter {
+/// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, Object)> implementation
+impl Interpreter<Box<Stmt>, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
     fn interpret(&self, input: Box<Stmt>) -> StmtInterpreterResult {
         self.interpret(*input)
@@ -402,9 +404,15 @@ impl Interpreter<Box<Stmt>, ()> for StatefulInterpreter {
 
 impl StatefulInterpreter {
     fn interpret_expression_stmt(&self, expr: Expr) -> StmtInterpreterResult {
-        match self.interpret(expr) {
-            Ok(_) => Ok(()),
-            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+        match expr {
+            e @ Expr::Call(_, _) => match self.interpret(e) {
+                Ok(rv) => Ok(Some(rv)),
+                Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            },
+            e => match self.interpret(e) {
+                Ok(_) => Ok(None),
+                Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            },
         }
     }
 
@@ -412,7 +420,7 @@ impl StatefulInterpreter {
         match self.interpret(expr) {
             Ok(expr) => {
                 println!("{}", expr);
-                Ok(())
+                Ok(None)
             }
             Err(err) => Err(StmtInterpreterErr::Expression(err)),
         }
@@ -422,7 +430,7 @@ impl StatefulInterpreter {
         match self.interpret(expr) {
             Ok(obj) => {
                 self.env.define(&name, obj);
-                Ok(())
+                Ok(None)
             }
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
         }
@@ -439,7 +447,14 @@ impl StatefulInterpreter {
         let obj = Object::Call(Box::new(callable));
 
         self.env.define(&name, obj);
-        Ok(())
+        Ok(None)
+    }
+
+    fn interpret_return_stmt(&self, expr: Expr) -> StmtInterpreterResult {
+        match self.interpret(expr) {
+            Ok(obj) => Ok(Some(obj)),
+            Err(e) => Err(StmtInterpreterErr::Expression(e)),
+        }
     }
 
     fn interpret_block(&self, stmts: Vec<Stmt>) -> StmtInterpreterResult {
@@ -459,7 +474,7 @@ impl StatefulInterpreter {
             .map_err(|e| StmtInterpreterErr::Expression(e))?;
         match (condition.into(), eb) {
             (true, _) => self.interpret(tb),
-            (false, None) => Ok(()),
+            (false, None) => Ok(None),
             (false, Some(stmt)) => self.interpret(stmt),
         }
     }
@@ -471,11 +486,13 @@ impl StatefulInterpreter {
             .map_err(|e| StmtInterpreterErr::Expression(e))?
             .into()
         {
-            if let Err(e) = self.interpret(body.clone()) {
-                return Err(e);
+            match self.interpret(body.clone()) {
+                Ok(None) => continue,
+                rv @ Ok(_) => return rv,
+                Err(e) => return Err(e),
             }
         }
 
-        Ok(())
+        Ok(None)
     }
 }

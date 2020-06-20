@@ -36,16 +36,18 @@ statement      = exprStmt
                | forStmt
                | ifStmt
                | printStmt
+               | returnStmt
                | whileStmt
                | block ;
 
 exprStmt       = expression ";" ;
-whileStmt      = "while" "(" expression ")" statement ;
 forStmt        = "for" "(" ( varDecl | exprStmt | ";" )
                            expression? ";"
                            expression? ")" statement ;
-ifStmt         = "if" "(" expression ")" statement ( "else" statement )? ;
+ifStmt         = "if" "(" expression ")" statement ( "else" statement )?      ;
 printStmt      = "print" expression ";" ;
+returnStmt     = "return" expression? ";" ;
+whileStmt      = "while" "(" expression ")" statement ;
 block          = "{" declaration* "}" ;
 
 expression     = assigment ;

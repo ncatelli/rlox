@@ -21,6 +21,7 @@ fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         .or(|| for_stmt())
         .or(|| if_stmt())
         .or(|| print_stmt())
+        .or(|| return_stmt())
         .or(|| block())
 }
 
@@ -98,6 +99,19 @@ fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         };
 
         Stmt::Declaration(id, expr)
+    })
+}
+
+#[allow(clippy::redundant_closure)]
+fn return_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    left(right(join(
+        token_type(TokenType::Return),
+        join(optional(expression()), token_type(TokenType::Semicolon)),
+    )))
+    .map(|optional_expr| {
+        optional_expr.map_or(Stmt::Return(Expr::Primary(obj_nil!())), |expr| {
+            Stmt::Return(expr)
+        })
     })
 }
 

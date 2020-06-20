@@ -10,7 +10,7 @@ fn declaration_statement_should_set_persistent_global_symbol() {
     interpreter.env.define(&"b", obj_number!(2.0));
 
     assert_eq!(
-        Ok(()),
+        Ok(None),
         interpreter.interpret(vec![Stmt::Expression(Expr::Addition(AdditionExpr::Add(
             Box::new(Expr::Variable(tok_identifier!("a"))),
             Box::new(Expr::Variable(tok_identifier!("b"))),

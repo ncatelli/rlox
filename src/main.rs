@@ -66,7 +66,9 @@ fn run(interpreter: &mut StatefulInterpreter, source: String) -> RuntimeResult<u
         .collect();
 
     match statements().parse(&tokens) {
-        Ok(parcel::MatchStatus::Match((_, stmt))) => interpreter.interpret(stmt).unwrap(),
+        Ok(parcel::MatchStatus::Match((_, stmt))) => {
+            interpreter.interpret(stmt).map(|_| ()).unwrap()
+        }
         Ok(parcel::MatchStatus::NoMatch(_)) => println!("No match found"),
         Err(e) => println!("{:?}", e),
     };

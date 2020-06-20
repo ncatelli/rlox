@@ -20,7 +20,7 @@ macro_rules! token_from_tt {
 }
 
 #[test]
-fn parser_can_parse_declaration_stmt() {
+fn can_parse_declaration_stmt() {
     let input = vec![
         token_from_tt!(TokenType::Var),
         token_from_tt!(TokenType::Identifier, "test"),
@@ -42,7 +42,7 @@ fn parser_can_parse_declaration_stmt() {
 }
 
 #[test]
-fn parser_can_parse_function_declaration_stmt() {
+fn can_parse_function_declaration_stmt() {
     let input = vec![
         token_from_tt!(TokenType::Fun),
         token_from_tt!(TokenType::Identifier, "test"),
@@ -71,7 +71,7 @@ fn parser_can_parse_function_declaration_stmt() {
 }
 
 #[test]
-fn parser_can_parse_print_stmt() {
+fn can_parse_print_stmt() {
     let input = vec![
         token_from_tt!(TokenType::Print),
         token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
@@ -88,7 +88,24 @@ fn parser_can_parse_print_stmt() {
 }
 
 #[test]
-fn parser_can_parse_block_stmt() {
+fn can_parse_return_stmt() {
+    let input = vec![
+        token_from_tt!(TokenType::Return),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[3..],
+            vec![Stmt::Return(Expr::Primary(obj_number!(5.0)))]
+        ))),
+        statements().parse(&input)
+    );
+}
+
+#[test]
+fn can_parse_block_stmt() {
     let input = vec![
         token_from_tt!(TokenType::LeftBrace),
         token_from_tt!(TokenType::Print),
@@ -109,7 +126,7 @@ fn parser_can_parse_block_stmt() {
 }
 
 #[test]
-fn parser_can_parse_if_stmt_with_no_else_clause() {
+fn can_parse_if_stmt_with_no_else_clause() {
     let input = vec![
         token_from_tt!(TokenType::If),
         token_from_tt!(TokenType::LeftParen),
@@ -133,7 +150,7 @@ fn parser_can_parse_if_stmt_with_no_else_clause() {
 }
 
 #[test]
-fn parser_can_parse_if_stmt_with_else_clause() {
+fn can_parse_if_stmt_with_else_clause() {
     let input = vec![
         token_from_tt!(TokenType::If),
         token_from_tt!(TokenType::LeftParen),
@@ -160,7 +177,7 @@ fn parser_can_parse_if_stmt_with_else_clause() {
 }
 
 #[test]
-fn parser_can_parse_while_stmt() {
+fn can_parse_while_stmt() {
     let input = vec![
         token_from_tt!(TokenType::While),
         token_from_tt!(TokenType::LeftParen),
@@ -183,7 +200,7 @@ fn parser_can_parse_while_stmt() {
 }
 
 #[test]
-fn parser_can_parse_for_stmt() {
+fn can_parse_for_stmt() {
     let input = vec![
         token_from_tt!(TokenType::For),
         token_from_tt!(TokenType::LeftParen),
