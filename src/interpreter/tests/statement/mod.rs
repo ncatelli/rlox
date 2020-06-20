@@ -7,7 +7,7 @@ use crate::interpreter::StatefulInterpreter;
 #[test]
 fn expression_stmt_should_return_ok() {
     assert_eq!(
-        Ok(()),
+        Ok(obj_nil!()),
         StatefulInterpreter::new()
             .interpret(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))])
     );
@@ -16,7 +16,7 @@ fn expression_stmt_should_return_ok() {
 #[test]
 fn print_stmt_should_return_ok() {
     assert_eq!(
-        Ok(()),
+        Ok(obj_nil!()),
         StatefulInterpreter::new().interpret(vec![Stmt::Print(Expr::Primary(obj_bool!(true)))])
     );
 }
@@ -54,7 +54,7 @@ fn function_declaration_statement_should_set_persistent_global_symbol() {
 #[test]
 fn block_statement_should_set_persistent_global_symbol() {
     let stmts = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
-    assert_eq!(Ok(()), StatefulInterpreter::new().interpret(stmts));
+    assert_eq!(Ok(obj_nil!()), StatefulInterpreter::new().interpret(stmts));
 }
 
 #[test]
@@ -111,5 +111,8 @@ fn while_statement_should_eval_until_false() {
         )),
     );
 
-    assert_eq!(Ok(()), StatefulInterpreter::new().interpret(vec![stmt]));
+    assert_eq!(
+        Ok(obj_nil!()),
+        StatefulInterpreter::new().interpret(vec![stmt])
+    );
 }

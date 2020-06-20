@@ -17,7 +17,7 @@ fn should_return_ok_on_success() {
         .define(&"a", obj_call!(Box::new(functions::Callable::Func(f))));
 
     assert_eq!(
-        Ok(()),
+        Ok(obj_nil!()),
         interpreter.interpret(vec![Stmt::Expression(Expr::Call(
             Box::new(Expr::Variable(tok_identifier!("a"))),
             vec![]

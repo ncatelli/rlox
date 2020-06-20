@@ -27,6 +27,9 @@ impl fmt::Display for CallError {
     }
 }
 
+/// CallResult wraps an object or error return value on a call.
+type CallResult = Result<object::Object, CallError>;
+
 /// Callable represents a callable function, whether static or runtime,
 /// providing methods for invoking and checking the arity of the method.
 #[derive(Debug, Clone, PartialEq)]
@@ -60,9 +63,6 @@ impl Callable {
         }
     }
 }
-
-/// CallResult wraps an object or error return value on a call.
-type CallResult = Result<object::Object, CallError>;
 
 /// Function represents a lox runtime function.
 #[derive(Debug, Clone)]
