@@ -405,9 +405,15 @@ impl Interpreter<Box<Stmt>, Object> for StatefulInterpreter {
 
 impl StatefulInterpreter {
     fn interpret_expression_stmt(&self, expr: Expr) -> StmtInterpreterResult {
-        match self.interpret(expr) {
-            Ok(_) => Ok(obj_nil!()),
-            Err(err) => Err(StmtInterpreterErr::Expression(err)),
+        match expr {
+            e @ Expr::Call(_, _) => match self.interpret(e) {
+                Ok(rv) => Ok(rv),
+                Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            },
+            e @ _ => match self.interpret(e) {
+                Ok(_) => Ok(obj_nil!()),
+                Err(err) => Err(StmtInterpreterErr::Expression(err)),
+            },
         }
     }
 

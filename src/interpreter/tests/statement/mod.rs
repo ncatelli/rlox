@@ -1,5 +1,6 @@
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
+use crate::ast::token::{Token, TokenType};
 use crate::functions;
 use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
@@ -33,6 +34,33 @@ fn declaration_statement_should_set_persistent_global_symbol() {
 }
 
 #[test]
+fn return_statement_should_return_the_evaluated_expression_value() {
+    let stmts = Stmt::Return(Expr::Primary(obj_bool!(true)));
+    assert_eq!(
+        Ok(obj_bool!(true)),
+        StatefulInterpreter::new().interpret(stmts)
+    );
+}
+
+#[test]
+fn block_statement_should_set_persistent_global_symbol() {
+    let stmts = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
+    assert_eq!(Ok(obj_nil!()), StatefulInterpreter::new().interpret(stmts));
+}
+
+#[test]
+fn block_statement_with_return_should_return_value() {
+    let stmts = Stmt::Block(vec![
+        Stmt::Expression(Expr::Primary(obj_bool!(true))),
+        Stmt::Return(Expr::Primary(obj_number!(5.0))),
+    ]);
+    assert_eq!(
+        Ok(obj_number!(5.0)),
+        StatefulInterpreter::new().interpret(stmts)
+    );
+}
+
+#[test]
 fn function_declaration_statement_should_set_persistent_global_symbol() {
     let block = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
     let stmt = Stmt::Function("test".to_string(), vec![], Box::new(block));
@@ -52,18 +80,25 @@ fn function_declaration_statement_should_set_persistent_global_symbol() {
 }
 
 #[test]
-fn return_statement_should_return_the_evaluated_expression_value() {
-    let stmts = Stmt::Return(Expr::Primary(obj_bool!(true)));
+fn function_call_should_return_a_value_when_specified() {
+    let block = Stmt::Block(vec![Stmt::Return(Expr::Primary(obj_bool!(true)))]);
+    let input = vec![
+        Stmt::Function("test".to_string(), vec![], Box::new(block)),
+        Stmt::Expression(Expr::Call(
+            Box::new(Expr::Variable(Token::new(
+                TokenType::Identifier,
+                1,
+                Some("test".to_string()),
+                None,
+            ))),
+            vec![],
+        )),
+    ];
+
     assert_eq!(
         Ok(obj_bool!(true)),
-        StatefulInterpreter::new().interpret(stmts)
+        StatefulInterpreter::new().interpret(input)
     );
-}
-
-#[test]
-fn block_statement_should_set_persistent_global_symbol() {
-    let stmts = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
-    assert_eq!(Ok(obj_nil!()), StatefulInterpreter::new().interpret(stmts));
 }
 
 #[test]
