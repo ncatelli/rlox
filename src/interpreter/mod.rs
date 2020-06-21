@@ -442,7 +442,7 @@ impl StatefulInterpreter {
         params: Vec<token::Token>,
         body: Stmt,
     ) -> StmtInterpreterResult {
-        let func = functions::Function::new(params, body);
+        let func = functions::Function::new(self.env.clone(), params, body);
         let callable = functions::Callable::Func(func);
         let obj = Object::Call(Box::new(callable));
 

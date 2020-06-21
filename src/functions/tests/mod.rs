@@ -1,15 +1,18 @@
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
+use crate::environment::Environment;
 
 macro_rules! gen_func {
     () => {
         $crate::functions::Function::new(
+            Environment::new(),
             vec![],
             Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]),
         )
     };
     ($params:expr) => {
         $crate::functions::Function::new(
+            Environment::new(),
             $params,
             Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]),
         )
