@@ -67,6 +67,7 @@ fn function_declaration_statement_should_set_persistent_global_symbol() {
     let interpreter = StatefulInterpreter::new();
 
     let f = functions::Function::new(
+        interpreter.env.clone(),
         vec![],
         Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]),
     );

@@ -6,12 +6,14 @@ use crate::interpreter::{ExprInterpreterErr, StatefulInterpreter, StmtInterprete
 
 #[test]
 fn should_return_ok_on_success() {
+    let interpreter = StatefulInterpreter::new();
+
     let f = functions::Function::new(
+        interpreter.env.clone(),
         vec![],
         Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]),
     );
 
-    let interpreter = StatefulInterpreter::new();
     interpreter
         .env
         .define(&"a", obj_call!(Box::new(functions::Callable::Func(f))));
@@ -27,12 +29,14 @@ fn should_return_ok_on_success() {
 
 #[test]
 fn should_throw_error_on_arity_mismatch() {
+    let interpreter = StatefulInterpreter::new();
+
     let f = functions::Function::new(
+        interpreter.env.clone(),
         vec![],
         Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]),
     );
 
-    let interpreter = StatefulInterpreter::new();
     interpreter
         .env
         .define(&"a", obj_call!(Box::new(functions::Callable::Func(f))));

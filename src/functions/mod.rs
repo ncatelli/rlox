@@ -67,21 +67,26 @@ impl Callable {
 /// Function represents a lox runtime function.
 #[derive(Debug, Clone)]
 pub struct Function {
+    closure: Rc<Environment>,
     params: Vec<token::Token>,
     body: statement::Stmt,
 }
 
 impl Function {
-    pub fn new(params: Vec<token::Token>, body: statement::Stmt) -> Self {
-        Function { params, body }
+    pub fn new(closure: Rc<Environment>, params: Vec<token::Token>, body: statement::Stmt) -> Self {
+        Function {
+            closure,
+            params,
+            body,
+        }
     }
 
     pub fn arity(&self) -> usize {
         self.params.len()
     }
 
-    pub fn call(&self, env: Rc<Environment>, args: Vec<object::Object>) -> CallResult {
-        let local = Environment::from(&env);
+    pub fn call(&self, _env: Rc<Environment>, args: Vec<object::Object>) -> CallResult {
+        let local = Environment::from(&self.closure);
         for (ident, arg) in self.params.iter().zip(args.into_iter()) {
             let lexeme = ident.lexeme.clone().unwrap();
             local.define(&lexeme, arg.clone());
