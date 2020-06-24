@@ -116,7 +116,7 @@ fn return_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
 }
 
 #[allow(clippy::redundant_closure)]
-fn block<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+pub fn block<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     right(join(
         token_type(TokenType::LeftBrace),
         left(join(statements(), token_type(TokenType::RightBrace))),

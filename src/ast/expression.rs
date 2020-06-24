@@ -1,3 +1,4 @@
+use crate::ast::statement;
 use crate::ast::token;
 use crate::object;
 use std::fmt;
@@ -16,6 +17,7 @@ pub enum Expr {
     Call(Box<Expr>, Vec<Expr>),
     Primary(object::Object),
     Grouping(Box<Expr>),
+    Lambda(Vec<token::Token>, Box<statement::Stmt>),
     Variable(token::Token),
 }
 
@@ -32,6 +34,16 @@ impl fmt::Display for Expr {
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "(Grouping {})", &e),
             Self::Variable(i) => write!(f, "(Var {})", &i.lexeme.clone().unwrap()),
+            Self::Lambda(params, body) => write!(
+                f,
+                "(Lambda ({}) {})",
+                params
+                    .iter()
+                    .map(|p| p.to_string())
+                    .collect::<Vec<String>>()
+                    .join(","),
+                body
+            ),
             Self::Call(callee, args) => write!(
                 f,
                 "{}({})",
