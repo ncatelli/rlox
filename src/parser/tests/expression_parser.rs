@@ -384,6 +384,32 @@ fn should_parse_call_expression_with_multiple_arg() {
 }
 
 #[test]
+fn should_parse_lambda_expression_with_no_params() {
+    let input = vec![
+        token_from_tt!(TokenType::Fun),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::LeftBrace),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::RightBrace),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[7..],
+            Expr::Lambda(
+                vec![],
+                Box::new(Stmt::Block(vec![Stmt::Expression(Expr::Primary(
+                    obj_number!(5.0)
+                ))]))
+            )
+        ))),
+        expression().parse(&input)
+    );
+}
+
+#[test]
 fn should_parse_lambda_expression_with_parameters() {
     let input = vec![
         token_from_tt!(TokenType::Fun),
