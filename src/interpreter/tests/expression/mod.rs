@@ -3,6 +3,7 @@ mod call;
 mod comparison;
 mod equality;
 mod grouping;
+mod lambda;
 mod logical;
 mod multiplication;
 mod primary;
