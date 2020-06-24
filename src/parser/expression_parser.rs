@@ -2,6 +2,7 @@ extern crate parcel;
 use crate::ast::expression::*;
 use crate::ast::token::{Token, TokenType};
 use crate::parser::combinators::{token_type, unzip};
+use crate::parser::statement_parser::block;
 use parcel::*;
 
 /// Represents the entrypoint for expression parsing within the lox parser and
@@ -265,6 +266,40 @@ fn call<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
                     args
                 }
             },
+        )
+    })
+    .or(|| lambda())
+}
+
+#[allow(clippy::redundant_closure)]
+fn lambda<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
+    right(join(
+        token_type(TokenType::Fun),
+        join(
+            right(join(
+                token_type(TokenType::LeftParen),
+                left(join(
+                    optional(join(
+                        token_type(TokenType::Identifier),
+                        zero_or_more(right(join(
+                            token_type(TokenType::Comma),
+                            token_type(TokenType::Identifier),
+                        ))),
+                    )),
+                    token_type(TokenType::RightParen),
+                )),
+            )),
+            block(),
+        ),
+    ))
+    .map(|(opt_args, body)| {
+        Expr::Lambda(
+            opt_args.map_or(Vec::new(), |a| {
+                let mut args = vec![a.0];
+                args.extend(a.1);
+                args
+            }),
+            Box::new(body),
         )
     })
     .or(|| primary())

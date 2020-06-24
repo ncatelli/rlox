@@ -2,6 +2,7 @@ extern crate parcel;
 use crate::ast::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
 };
+use crate::ast::statement::Stmt;
 use crate::ast::token::{Token, TokenType};
 use crate::parser::expression_parser::expression;
 use parcel::*;
@@ -19,7 +20,7 @@ macro_rules! token_from_tt {
 }
 
 #[test]
-fn parser_should_parse_assignment_expression() {
+fn should_parse_assignment_expression() {
     let input = vec![
         token_from_tt!(TokenType::Identifier, "test"),
         token_from_tt!(TokenType::Equal),
@@ -44,7 +45,7 @@ fn parser_should_parse_assignment_expression() {
 }
 
 #[test]
-fn parser_should_parse_logical_or() {
+fn should_parse_logical_or() {
     let input = vec![
         token_from_tt!(TokenType::False, "false", obj_bool!(false)),
         token_from_tt!(TokenType::Or),
@@ -64,7 +65,7 @@ fn parser_should_parse_logical_or() {
 }
 
 #[test]
-fn parser_should_parse_multiple_logical_or() {
+fn should_parse_multiple_logical_or() {
     let input = vec![
         token_from_tt!(TokenType::False, "false", obj_bool!(false)),
         token_from_tt!(TokenType::Or),
@@ -89,7 +90,7 @@ fn parser_should_parse_multiple_logical_or() {
 }
 
 #[test]
-fn parser_should_parse_logical_and() {
+fn should_parse_logical_and() {
     let input = vec![
         token_from_tt!(TokenType::False, "false", obj_bool!(false)),
         token_from_tt!(TokenType::And),
@@ -109,7 +110,7 @@ fn parser_should_parse_logical_and() {
 }
 
 #[test]
-fn parser_should_parse_multiple_logical_and() {
+fn should_parse_multiple_logical_and() {
     let input = vec![
         token_from_tt!(TokenType::False, "false", obj_bool!(false)),
         token_from_tt!(TokenType::And),
@@ -134,7 +135,7 @@ fn parser_should_parse_multiple_logical_and() {
 }
 
 #[test]
-fn parser_should_parse_equality_expression() {
+fn should_parse_equality_expression() {
     let input = vec![
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
         token_from_tt!(TokenType::EqualEqual),
@@ -154,7 +155,7 @@ fn parser_should_parse_equality_expression() {
 }
 
 #[test]
-fn parser_should_parse_many_equality_expression() {
+fn should_parse_many_equality_expression() {
     let input = vec![
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
         token_from_tt!(TokenType::EqualEqual),
@@ -179,7 +180,7 @@ fn parser_should_parse_many_equality_expression() {
 }
 
 #[test]
-fn parser_should_parse_comparison_expression() {
+fn should_parse_comparison_expression() {
     let input = vec![
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
         token_from_tt!(TokenType::GreaterEqual),
@@ -199,7 +200,7 @@ fn parser_should_parse_comparison_expression() {
 }
 
 #[test]
-fn parser_should_parse_many_comparison_expression() {
+fn should_parse_many_comparison_expression() {
     let input = vec![
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
         token_from_tt!(TokenType::GreaterEqual),
@@ -224,7 +225,7 @@ fn parser_should_parse_many_comparison_expression() {
 }
 
 #[test]
-fn parser_should_parse_addition_expression() {
+fn should_parse_addition_expression() {
     let input = vec![
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
         token_from_tt!(TokenType::Plus),
@@ -244,7 +245,7 @@ fn parser_should_parse_addition_expression() {
 }
 
 #[test]
-fn parser_should_parse_many_addition_expression() {
+fn should_parse_many_addition_expression() {
     let input = vec![
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
         token_from_tt!(TokenType::Plus),
@@ -269,7 +270,7 @@ fn parser_should_parse_many_addition_expression() {
 }
 
 #[test]
-fn parser_should_parse_multiplication_expression() {
+fn should_parse_multiplication_expression() {
     let input = vec![
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
         token_from_tt!(TokenType::Star),
@@ -289,7 +290,7 @@ fn parser_should_parse_multiplication_expression() {
 }
 
 #[test]
-fn parser_should_parse_many_multiplication_expression() {
+fn should_parse_many_multiplication_expression() {
     let input = vec![
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
         token_from_tt!(TokenType::Star),
@@ -314,7 +315,7 @@ fn parser_should_parse_many_multiplication_expression() {
 }
 
 #[test]
-fn parser_should_parse_unary_expression() {
+fn should_parse_unary_expression() {
     let input = vec![
         token_from_tt!(TokenType::Bang),
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
@@ -330,7 +331,7 @@ fn parser_should_parse_unary_expression() {
 }
 
 #[test]
-fn parser_should_parse_call_expression_with_single_arg() {
+fn should_parse_call_expression_with_single_arg() {
     let input = vec![
         token_from_tt!(TokenType::Identifier, "testfunc"),
         token_from_tt!(TokenType::LeftParen),
@@ -354,7 +355,7 @@ fn parser_should_parse_call_expression_with_single_arg() {
 }
 
 #[test]
-fn parser_should_parse_call_expression_with_multiple_arg() {
+fn should_parse_call_expression_with_multiple_arg() {
     let input = vec![
         token_from_tt!(TokenType::Identifier, "testfunc"),
         token_from_tt!(TokenType::LeftParen),
@@ -383,7 +384,60 @@ fn parser_should_parse_call_expression_with_multiple_arg() {
 }
 
 #[test]
-fn parser_should_parse_grouping_expression() {
+fn should_parse_lambda_expression_with_no_params() {
+    let input = vec![
+        token_from_tt!(TokenType::Fun),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::LeftBrace),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::RightBrace),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[7..],
+            Expr::Lambda(
+                vec![],
+                Box::new(Stmt::Block(vec![Stmt::Expression(Expr::Primary(
+                    obj_number!(5.0)
+                ))]))
+            )
+        ))),
+        expression().parse(&input)
+    );
+}
+
+#[test]
+fn should_parse_lambda_expression_with_parameters() {
+    let input = vec![
+        token_from_tt!(TokenType::Fun),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::Identifier, "arg_one"),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::LeftBrace),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::RightBrace),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[8..],
+            Expr::Lambda(
+                vec![token_from_tt!(TokenType::Identifier, "arg_one")],
+                Box::new(Stmt::Block(vec![Stmt::Expression(Expr::Primary(
+                    obj_number!(5.0)
+                ))]))
+            )
+        ))),
+        expression().parse(&input)
+    );
+}
+
+#[test]
+fn should_parse_grouping_expression() {
     let input = vec![
         token_from_tt!(TokenType::LeftParen),
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),
@@ -400,7 +454,7 @@ fn parser_should_parse_grouping_expression() {
 }
 
 #[test]
-fn parser_should_throw_error_on_invalid_expression() {
+fn should_throw_error_on_invalid_expression() {
     let input = vec![
         token_from_tt!(TokenType::LeftParen),
         token_from_tt!(TokenType::Number, "1.0", obj_number!(1.0)),

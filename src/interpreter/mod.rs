@@ -103,6 +103,7 @@ impl Interpreter<Expr, Object> for StatefulInterpreter {
     fn interpret(&self, expr: Expr) -> ExprInterpreterResult {
         match expr {
             Expr::Grouping(expr) => self.interpret(expr),
+            Expr::Lambda(params, body) => self.interpret_lambda(params, *body),
             Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(obj) => self.interpret_primary(obj),
             Expr::Call(callee, args) => self.interpret_call(*callee, args),
@@ -325,6 +326,14 @@ impl StatefulInterpreter {
             Ok(r) => Ok(r),
             Err(e) => Err(ExprInterpreterErr::CallErr(format!("{:?}", e))),
         }
+    }
+
+    fn interpret_lambda(&self, params: Vec<token::Token>, body: Stmt) -> ExprInterpreterResult {
+        let func = functions::Function::new(self.env.clone(), params, body);
+        let callable = functions::Callable::Func(func);
+        let obj = Object::Call(Box::new(callable));
+
+        Ok(obj)
     }
 
     fn interpret_primary(&self, obj: Object) -> ExprInterpreterResult {

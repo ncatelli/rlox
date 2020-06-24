@@ -27,7 +27,7 @@ declaration    = funDecl
 
 
 funDecl        = "fun" function ;
-function       = IDENTIFIER "(" parameters? ")" block;
+function       = IDENTIFIER "(" parameters? ")" block ;
 parameters     = IDENTIFIER ( "," IDENTIFIER )* ;
 
 varDecl        = "var" IDENTIFIER "=" expression ";" ;
@@ -44,7 +44,7 @@ exprStmt       = expression ";" ;
 forStmt        = "for" "(" ( varDecl | exprStmt | ";" )
                            expression? ";"
                            expression? ")" statement ;
-ifStmt         = "if" "(" expression ")" statement ( "else" statement )?      ;
+ifStmt         = "if" "(" expression ")" statement ( "else" statement )? ;
 printStmt      = "print" expression ";" ;
 returnStmt     = "return" expression? ";" ;
 whileStmt      = "while" "(" expression ")" statement ;
@@ -64,6 +64,7 @@ addition       = multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication = unary ( ( "/" | "*" ) unary )* ;
 unary          = ( "!" | "-" ) unary | call ;
 call           = primary ( "(" arguments? ")" )* ;
+lambda         = "fun" "(" parameters? ")" block ;
 primary        = NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil"
                | "(" expression ")" ;
 ```
