@@ -85,7 +85,7 @@ fn function_call_should_return_a_value_when_specified() {
     let block = Stmt::Block(vec![Stmt::Return(Expr::Primary(obj_bool!(true)))]);
     let input = vec![
         Stmt::Function("test".to_string(), vec![], Box::new(block)),
-        Stmt::Expression(Expr::Call(
+        Stmt::Return(Expr::Call(
             Box::new(Expr::Variable(Token::new(
                 TokenType::Identifier,
                 1,
