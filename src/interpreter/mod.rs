@@ -413,15 +413,9 @@ impl Interpreter<Box<Stmt>, Option<Object>> for StatefulInterpreter {
 
 impl StatefulInterpreter {
     fn interpret_expression_stmt(&self, expr: Expr) -> StmtInterpreterResult {
-        match expr {
-            e @ Expr::Call(_, _) => match self.interpret(e) {
-                Ok(rv) => Ok(Some(rv)),
-                Err(err) => Err(StmtInterpreterErr::Expression(err)),
-            },
-            e => match self.interpret(e) {
-                Ok(_) => Ok(None),
-                Err(err) => Err(StmtInterpreterErr::Expression(err)),
-            },
+        match self.interpret(expr) {
+            Ok(_) => Ok(None),
+            Err(err) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
 

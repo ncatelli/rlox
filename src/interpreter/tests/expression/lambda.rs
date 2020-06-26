@@ -6,7 +6,7 @@ use crate::interpreter::{ExprInterpreterErr, StatefulInterpreter, StmtInterprete
 #[test]
 fn should_return_a_value_when_specified() {
     let block = Stmt::Block(vec![Stmt::Return(Expr::Primary(obj_bool!(true)))]);
-    let input = vec![Stmt::Expression(Expr::Call(
+    let input = vec![Stmt::Return(Expr::Call(
         Box::new(Expr::Lambda(vec![], Box::new(block))),
         vec![],
     ))];
