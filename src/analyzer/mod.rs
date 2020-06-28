@@ -5,8 +5,8 @@ use std::fmt;
 #[cfg(test)]
 mod tests;
 
-/// LexicalAnalyzer defines a trait for lexical analysizing passes.
-pub trait LexicalAnalyzer<A, B> {
+/// Analyzer defines a trait for analysizing passes against the AST.
+pub trait Analyzer<A, B> {
     type Error;
 
     fn analyze(&self, input: A) -> Result<B, Self::Error>;
@@ -40,7 +40,7 @@ impl ScopeAnalyzer {
     }
 }
 
-impl LexicalAnalyzer<(ScopeStack, Vec<Stmt>), ScopeStack> for ScopeAnalyzer {
+impl Analyzer<(ScopeStack, Vec<Stmt>), ScopeStack> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, input: (ScopeStack, Vec<Stmt>)) -> ScopeAnalyzerResult {
@@ -55,7 +55,7 @@ impl LexicalAnalyzer<(ScopeStack, Vec<Stmt>), ScopeStack> for ScopeAnalyzer {
     }
 }
 
-impl LexicalAnalyzer<(ScopeStack, Stmt), ScopeStack> for ScopeAnalyzer {
+impl Analyzer<(ScopeStack, Stmt), ScopeStack> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, input: (ScopeStack, Stmt)) -> ScopeAnalyzerResult {
@@ -68,7 +68,7 @@ impl LexicalAnalyzer<(ScopeStack, Stmt), ScopeStack> for ScopeAnalyzer {
 }
 
 // Unpack boxed-Stmts
-impl LexicalAnalyzer<(ScopeStack, Box<Stmt>), ScopeStack> for ScopeAnalyzer {
+impl Analyzer<(ScopeStack, Box<Stmt>), ScopeStack> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, input: (ScopeStack, Box<Stmt>)) -> ScopeAnalyzerResult {

@@ -7,7 +7,7 @@ pub mod ast;
 pub mod environment;
 pub mod functions;
 pub mod interpreter;
-pub mod lexical_analyzer;
+pub mod analyzer;
 pub mod parser;
 pub mod scanner;
 
