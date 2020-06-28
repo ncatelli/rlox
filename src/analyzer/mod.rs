@@ -79,7 +79,20 @@ impl Analyzer<(ScopeStack, Box<Stmt>), ScopeStack> for ScopeAnalyzer {
 
 // Resolves Stmt-related types.
 impl ScopeAnalyzer {
+    fn begin_scope(ss: ScopeStack) -> ScopeStack {
+        let mut ss = ss;
+        ss.push(Scope::new());
+        ss
+    }
+
+    fn end_scope(ss: ScopeStack) -> ScopeStack {
+        let mut ss = ss;
+        ss.pop();
+        ss
+    }
+
     fn resolve_block_scope(&self, scope: ScopeStack, stmts: Vec<Stmt>) -> ScopeAnalyzerResult {
-        self.analyze((scope, stmts))
+        self.analyze((Self::begin_scope(scope), stmts))
+            .map(|s| Self::end_scope(s))
     }
 }
