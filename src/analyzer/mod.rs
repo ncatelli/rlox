@@ -1,5 +1,6 @@
+use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
 
 #[cfg(test)]
@@ -25,25 +26,45 @@ impl fmt::Display for ScopeAnalyzerErr {
     }
 }
 
-pub type Scope = HashMap<String, bool>;
+pub type Scope = HashSet<String>;
+
 pub type ScopeStack = Vec<Scope>;
 pub type ScopeAnalyzerResult = Result<ScopeStack, ScopeAnalyzerErr>;
 
-#[derive(Default)]
+/// begin_scope creates a new scope, pushing it to the top of the stack.
+fn begin_scope(mut s: ScopeStack) -> ScopeStack {
+    s.push(Scope::new());
+    s
+}
+
+fn end_scope(mut s: ScopeStack) -> ScopeStack {
+    s.pop();
+    s
+}
+
+fn define_on_current_scope(mut s: ScopeStack, v: &str) -> ScopeStack {
+    let mut current = s.pop().unwrap_or(Scope::new());
+    current.insert(v.to_string());
+    s.push(current);
+    s
+}
+
+#[derive(Default, Debug, PartialEq)]
 /// ScopeAnalyzers walks the tree, ensuring that variables and scopes resolve
 /// to the expected values.
 pub struct ScopeAnalyzer {}
 
 impl ScopeAnalyzer {
+    // Instantiates a new ScopeAnalyzer
     pub fn new() -> Self {
-        ScopeAnalyzer {}
+        ScopeAnalyzer::default()
     }
 }
 
-impl Analyzer<(ScopeStack, Vec<Stmt>), ScopeStack> for ScopeAnalyzer {
+impl Analyzer<(ScopeStack, &Vec<Stmt>), ScopeStack> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: (ScopeStack, Vec<Stmt>)) -> ScopeAnalyzerResult {
+    fn analyze(&self, input: (ScopeStack, &Vec<Stmt>)) -> ScopeAnalyzerResult {
         let (mut scope, stmts) = input;
         for stmt in stmts {
             match self.analyze((scope, stmt)) {
@@ -55,44 +76,50 @@ impl Analyzer<(ScopeStack, Vec<Stmt>), ScopeStack> for ScopeAnalyzer {
     }
 }
 
-impl Analyzer<(ScopeStack, Stmt), ScopeStack> for ScopeAnalyzer {
+impl Analyzer<(ScopeStack, &Stmt), ScopeStack> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: (ScopeStack, Stmt)) -> ScopeAnalyzerResult {
+    fn analyze(&self, input: (ScopeStack, &Stmt)) -> ScopeAnalyzerResult {
         let (scope, stmt) = input;
         match stmt {
-            Stmt::Block(stmts) => self.resolve_block_scope(scope, stmts),
+            &Stmt::Block(ref stmts) => self.resolve_block_stmt(scope, stmts),
+            &Stmt::Declaration(ref name, _) => self.resolve_declaration_stmt(scope, name),
             _ => Err(ScopeAnalyzerErr::Unspecified),
         }
     }
 }
 
-// Unpack boxed-Stmts
-impl Analyzer<(ScopeStack, Box<Stmt>), ScopeStack> for ScopeAnalyzer {
-    type Error = ScopeAnalyzerErr;
+// Resolves Stmt-related types.
+impl ScopeAnalyzer {
+    fn resolve_block_stmt(&self, scope: ScopeStack, stmts: &Vec<Stmt>) -> ScopeAnalyzerResult {
+        self.analyze((begin_scope(scope), stmts))
+            .map(|s| end_scope(s))
+    }
 
-    fn analyze(&self, input: (ScopeStack, Box<Stmt>)) -> ScopeAnalyzerResult {
-        let (scope, boxed_stmt) = input;
-        self.analyze((scope, *boxed_stmt))
+    fn resolve_declaration_stmt(&self, scope: ScopeStack, name: &str) -> ScopeAnalyzerResult {
+        Ok(define_on_current_scope(scope, name))
     }
 }
 
-// Resolves Stmt-related types.
-impl ScopeAnalyzer {
-    fn begin_scope(ss: ScopeStack) -> ScopeStack {
-        let mut ss = ss;
-        ss.push(Scope::new());
-        ss
-    }
+// Expr Analyzer
 
-    fn end_scope(ss: ScopeStack) -> ScopeStack {
-        let mut ss = ss;
-        ss.pop();
-        ss
-    }
+impl Analyzer<(ScopeStack, Expr), ScopeStack> for ScopeAnalyzer {
+    type Error = ScopeAnalyzerErr;
 
-    fn resolve_block_scope(&self, scope: ScopeStack, stmts: Vec<Stmt>) -> ScopeAnalyzerResult {
-        self.analyze((Self::begin_scope(scope), stmts))
-            .map(|s| Self::end_scope(s))
+    fn analyze(&self, input: (ScopeStack, Expr)) -> ScopeAnalyzerResult {
+        let (_scope, stmt) = input;
+        match stmt {
+            _ => Err(ScopeAnalyzerErr::Unspecified),
+        }
+    }
+}
+
+/// Unpack boxed-Expr
+impl Analyzer<(ScopeStack, Box<Expr>), ScopeStack> for ScopeAnalyzer {
+    type Error = ScopeAnalyzerErr;
+
+    fn analyze(&self, input: (ScopeStack, Box<Expr>)) -> ScopeAnalyzerResult {
+        let (scope, boxed_expr) = input;
+        self.analyze((scope, *boxed_expr))
     }
 }
