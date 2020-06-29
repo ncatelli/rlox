@@ -28,26 +28,58 @@ impl fmt::Display for ScopeAnalyzerErr {
 
 pub type Scope = HashSet<String>;
 
-pub type ScopeStack = Vec<Scope>;
+#[derive(PartialEq, Debug)]
+/// ScopeStack wraps a Vec<Scope> and provides basic interations for interacting
+/// with a stack of scopes, including pushing, popping, loading and storing
+/// values.
+pub struct ScopeStack {
+    stack: Vec<Scope>,
+}
+
+impl ScopeStack {
+    /// Instantiates a stack of scopes, creating the initial scope
+    pub fn new() -> Self {
+        ScopeStack {
+            stack: vec![Scope::new()],
+        }
+    }
+
+    /// Pushes a scope (s) onto the stack.
+    pub fn push(self, s: Scope) -> Self {
+        let mut vs: Vec<Scope> = Self::into(self);
+        vs.push(s);
+        vs.into()
+    }
+
+    /// pops a scope off the stack, returning the new stack and the scope.
+    pub fn pop(self) -> (Self, Scope) {
+        let mut vs: Vec<Scope> = Self::into(self);
+        let scope = vs.pop().unwrap_or(Scope::new());
+        (vs.into(), scope)
+    }
+
+    /// define writes a value into the current (top of stack) scope.
+    pub fn define(self, v: &str) -> Self {
+        let mut vs: Vec<Scope> = Self::into(self);
+        let mut scope = vs.pop().unwrap_or(Scope::new());
+        scope.insert(v.to_string());
+        Self::from(vs).push(scope)
+    }
+}
+
+impl From<Vec<Scope>> for ScopeStack {
+    fn from(v: Vec<Scope>) -> Self {
+        ScopeStack { stack: v }
+    }
+}
+
+impl From<ScopeStack> for Vec<Scope> {
+    fn from(ss: ScopeStack) -> Self {
+        ss.stack
+    }
+}
+
 pub type ScopeAnalyzerResult = Result<ScopeStack, ScopeAnalyzerErr>;
-
-/// begin_scope creates a new scope, pushing it to the top of the stack.
-fn begin_scope(mut s: ScopeStack) -> ScopeStack {
-    s.push(Scope::new());
-    s
-}
-
-fn end_scope(mut s: ScopeStack) -> ScopeStack {
-    s.pop();
-    s
-}
-
-fn define_on_current_scope(mut s: ScopeStack, v: &str) -> ScopeStack {
-    let mut current = s.pop().unwrap_or(Scope::new());
-    current.insert(v.to_string());
-    s.push(current);
-    s
-}
 
 #[derive(Default, Debug, PartialEq)]
 /// ScopeAnalyzers walks the tree, ensuring that variables and scopes resolve
@@ -91,13 +123,13 @@ impl Analyzer<(ScopeStack, &Stmt), ScopeStack> for ScopeAnalyzer {
 
 // Resolves Stmt-related types.
 impl ScopeAnalyzer {
-    fn resolve_block_stmt(&self, scope: ScopeStack, stmts: &Vec<Stmt>) -> ScopeAnalyzerResult {
-        self.analyze((begin_scope(scope), stmts))
-            .map(|s| end_scope(s))
+    fn resolve_block_stmt(&self, ss: ScopeStack, stmts: &Vec<Stmt>) -> ScopeAnalyzerResult {
+        self.analyze((ss.push(Scope::new()), stmts))
+            .map(|s| s.pop().0)
     }
 
     fn resolve_declaration_stmt(&self, scope: ScopeStack, name: &str) -> ScopeAnalyzerResult {
-        Ok(define_on_current_scope(scope, name))
+        Ok(scope.define(name))
     }
 }
 
