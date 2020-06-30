@@ -135,23 +135,13 @@ impl ScopeAnalyzer {
 
 // Expr Analyzer
 
-impl Analyzer<(ScopeStack, Expr), ScopeStack> for ScopeAnalyzer {
+impl Analyzer<(ScopeStack, &Expr), ScopeStack> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: (ScopeStack, Expr)) -> ScopeAnalyzerResult {
+    fn analyze(&self, input: (ScopeStack, &Expr)) -> ScopeAnalyzerResult {
         let (_scope, stmt) = input;
         match stmt {
             _ => Err(ScopeAnalyzerErr::Unspecified),
         }
-    }
-}
-
-/// Unpack boxed-Expr
-impl Analyzer<(ScopeStack, Box<Expr>), ScopeStack> for ScopeAnalyzer {
-    type Error = ScopeAnalyzerErr;
-
-    fn analyze(&self, input: (ScopeStack, Box<Expr>)) -> ScopeAnalyzerResult {
-        let (scope, boxed_expr) = input;
-        self.analyze((scope, *boxed_expr))
     }
 }
