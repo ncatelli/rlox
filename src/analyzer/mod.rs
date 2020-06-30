@@ -1,5 +1,6 @@
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
+use crate::ast::token::Token;
 use std::collections::HashSet;
 use std::fmt;
 
@@ -139,9 +140,20 @@ impl Analyzer<(ScopeStack, &Expr), ScopeStack> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, input: (ScopeStack, &Expr)) -> ScopeAnalyzerResult {
-        let (_scope, stmt) = input;
-        match stmt {
+        let (scope, expr) = input;
+        match expr {
+            &Expr::Variable(ref name) => self.resolve_variable_expression(scope, name),
             _ => Err(ScopeAnalyzerErr::Unspecified),
         }
+    }
+}
+
+impl ScopeAnalyzer {
+    fn resolve_variable_expression(
+        &self,
+        _scope: ScopeStack,
+        _name: &Token,
+    ) -> ScopeAnalyzerResult {
+        Err(ScopeAnalyzerErr::Unspecified)
     }
 }
