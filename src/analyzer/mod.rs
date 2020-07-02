@@ -5,10 +5,10 @@ use std::fmt;
 mod tests;
 
 /// SemanticAnalyzer provides a trait for performing transformations on an AST.
-pub trait SemanticAnalyzer<A> {
+pub trait SemanticAnalyzer<A, B> {
     type Error;
 
-    fn analyze(&self, input: A) -> Result<A, Self::Error>;
+    fn analyze(&self, input: A) -> Result<B, Self::Error>;
 }
 
 #[derive(PartialEq, Debug)]
@@ -26,7 +26,7 @@ impl fmt::Display for ScopeAnalyzerErr {
 
 pub struct ScopeAnalyzer {}
 
-impl SemanticAnalyzer<Vec<Stmt>> for ScopeAnalyzer {
+impl SemanticAnalyzer<Vec<Stmt>, Vec<Stmt>> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, input: Vec<Stmt>) -> Result<Vec<Stmt>, Self::Error> {
@@ -34,7 +34,7 @@ impl SemanticAnalyzer<Vec<Stmt>> for ScopeAnalyzer {
     }
 }
 
-impl SemanticAnalyzer<Stmt> for ScopeAnalyzer {
+impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, input: Stmt) -> Result<Stmt, Self::Error> {
