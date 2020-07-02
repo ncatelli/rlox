@@ -86,9 +86,10 @@ impl StatefulInterpreter {
             env: Environment::from(&glbls),
         }
     }
+}
 
-    /// from generates an interpreter from a pre-existing environment.
-    pub fn from(env: Rc<Environment>) -> StatefulInterpreter {
+impl From<Rc<Environment>> for StatefulInterpreter {
+    fn from(env: Rc<Environment>) -> StatefulInterpreter {
         let mut si = StatefulInterpreter::new();
         si.env = env;
         si
