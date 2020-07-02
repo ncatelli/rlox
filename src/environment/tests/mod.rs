@@ -95,3 +95,20 @@ fn child_environment_should_be_able_to_assign_symbols_to_parents() {
 
     assert_eq!(child.get(&key), Option::Some(obj_bool!(false)))
 }
+
+#[test]
+fn top_level_environment_should_return_a_zero_offset() {
+    let parent = Environment::new();
+
+    // assert parent has no ancestors
+    assert_eq!(parent.offset(), 0)
+}
+
+#[test]
+fn child_offset_should_reflect_count_of_ancestors() {
+    let parent = Environment::new();
+    let child = Environment::from(&parent);
+
+    // assert parent has no ancestors
+    assert_eq!(child.offset(), 1)
+}
