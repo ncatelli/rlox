@@ -1,5 +1,7 @@
 use crate::analyzer::SemanticAnalyzer;
+use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
+use crate::ast::token;
 use std::collections::{HashSet, VecDeque};
 use std::fmt;
 
@@ -106,6 +108,8 @@ impl SemanticAnalyzer<&Vec<Stmt>, Node> for ScopeAnalyzer {
     }
 }
 
+// Stmt analysis
+
 impl SemanticAnalyzer<(Node, &Vec<Stmt>), Node> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
@@ -143,5 +147,26 @@ impl ScopeAnalyzer {
         let mut node = node;
         node.data.insert(name.to_string());
         Ok(node)
+    }
+}
+
+// Expr analysis
+
+impl SemanticAnalyzer<(Node, &Expr), Node> for ScopeAnalyzer {
+    type Error = ScopeAnalyzerErr;
+
+    fn analyze(&self, input: (Node, &Expr)) -> Result<Node, Self::Error> {
+        let (_node, expr) = input; // unpack input
+        let result_node = match expr {
+            Expr::Variable(t) => self.analyze_variable(t),
+            _ => Err(ScopeAnalyzerErr::Unimplemented),
+        };
+        result_node
+    }
+}
+
+impl ScopeAnalyzer {
+    fn analyze_variable(&self, _tok: &token::Token) -> Result<Node, ScopeAnalyzerErr> {
+        todo!()
     }
 }
