@@ -27,11 +27,10 @@ fn node_can_append_add_a_child_node() {
 
 #[test]
 fn node_can_flatten_to_a_vec() {
-    let tree = Node::new()
+    let flattened: Vec<Scope> = Node::new()
         .add_child(Node::new())
-        .add_child(Node::new().add_child(Node::new()));
-
-    let flattened: Vec<Scope> = tree.into();
+        .add_child(Node::new().add_child(Node::new()))
+        .into();
 
     assert_eq!(
         vec![Scope::new(), Scope::new(), Scope::new(), Scope::new()],
