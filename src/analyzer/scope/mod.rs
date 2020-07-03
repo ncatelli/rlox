@@ -53,7 +53,12 @@ impl Into<Vec<Scope>> for Node {
                 self.children
                     .unwrap_or(VecDeque::new())
                     .into_iter()
-                    .map(|n| n.into()),
+                    .map(|n| {
+                        let node: Vec<Scope> = n.into();
+                        node
+                    })
+                    .flatten()
+                    .into_iter(),
             )
             .collect()
     }
