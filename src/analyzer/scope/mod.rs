@@ -39,6 +39,26 @@ impl Node {
     }
 }
 
+impl Into<Scope> for Node {
+    fn into(self) -> Scope {
+        self.data
+    }
+}
+
+impl Into<Vec<Scope>> for Node {
+    fn into(self) -> Vec<Scope> {
+        vec![self.data]
+            .into_iter()
+            .chain(
+                self.children
+                    .unwrap_or(VecDeque::new())
+                    .into_iter()
+                    .map(|n| n.into()),
+            )
+            .collect()
+    }
+}
+
 #[derive(PartialEq, Debug)]
 pub enum ScopeAnalyzerErr {
     Unspecified,
