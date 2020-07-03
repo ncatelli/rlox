@@ -29,11 +29,15 @@ fn node_can_append_add_a_child_node() {
 fn node_can_flatten_to_a_vec() {
     let flattened: Vec<Scope> = Node::new()
         .add_child(Node::new())
-        .add_child(Node::new().add_child(Node::new()))
+        .add_child(Node::new().add_child(Node::new().define("test")))
         .into();
 
+    // Create a scope with data to validate order
+    let mut scope_with_data = Scope::new();
+    scope_with_data.insert("test".to_string());
+
     assert_eq!(
-        vec![Scope::new(), Scope::new(), Scope::new(), Scope::new()],
+        vec![Scope::new(), Scope::new(), Scope::new(), scope_with_data],
         flattened
     )
 }
