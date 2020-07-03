@@ -1,12 +1,12 @@
 use crate::analyzer::SemanticAnalyzer;
 use crate::ast::statement::Stmt;
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashSet, VecDeque};
 use std::fmt;
 
 #[cfg(test)]
 mod tests;
 
-pub type Scope = HashMap<String, usize>;
+pub type Scope = HashSet<String>;
 
 #[derive(PartialEq, Debug)]
 pub struct Node {
@@ -16,9 +16,19 @@ pub struct Node {
 
 impl Node {
     pub fn new() -> Self {
-        Node {
+        Self {
             data: Scope::new(),
             children: None,
+        }
+    }
+
+    pub fn define(self, v: &str) -> Self {
+        let mut data = self.data;
+        data.insert(v.to_string());
+
+        Self {
+            data: data,
+            children: self.children,
         }
     }
 
@@ -116,6 +126,7 @@ impl SemanticAnalyzer<(Node, &Stmt), Node> for ScopeAnalyzer {
         let (node, stmt) = input; // unpack input
         let result_node = match stmt {
             Stmt::Block(stmts) => self.analyze_block(node, stmts),
+            Stmt::Declaration(name, _) => self.analyze_declaration(node, name),
             _ => Err(ScopeAnalyzerErr::Unimplemented),
         };
         result_node
@@ -126,5 +137,11 @@ impl ScopeAnalyzer {
     fn analyze_block(&self, node: Node, stmts: &Vec<Stmt>) -> Result<Node, ScopeAnalyzerErr> {
         let child = self.analyze((Node::new(), stmts))?;
         Ok(node.add_child(child))
+    }
+
+    fn analyze_declaration(&self, node: Node, name: &str) -> Result<Node, ScopeAnalyzerErr> {
+        let mut node = node;
+        node.data.insert(name.to_string());
+        Ok(node)
     }
 }
