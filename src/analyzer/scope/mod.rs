@@ -1,172 +1,103 @@
 use crate::analyzer::SemanticAnalyzer;
 use crate::ast::expression::Expr;
-use crate::ast::statement::Stmt;
 use crate::ast::token;
-use std::collections::{HashSet, VecDeque};
 use std::fmt;
+use std::rc::Rc;
+
+pub mod tree;
+use tree::Node;
 
 #[cfg(test)]
 mod tests;
-
-pub type Scope = HashSet<String>;
-
-#[derive(PartialEq, Debug)]
-pub struct Node {
-    data: Scope,
-    children: Option<VecDeque<Node>>,
-}
-
-impl Node {
-    pub fn new() -> Self {
-        Self {
-            data: Scope::new(),
-            children: None,
-        }
-    }
-
-    pub fn define(self, v: &str) -> Self {
-        let mut data = self.data;
-        data.insert(v.to_string());
-
-        Self {
-            data: data,
-            children: self.children,
-        }
-    }
-
-    pub fn add_child(self, child: Node) -> Self {
-        let mut node = self;
-        let children = node.children;
-
-        node.children = match children {
-            None => Some(vec![child].into_iter().collect()),
-            Some(v) => {
-                let mut v = v;
-                v.push_back(child);
-                Some(v)
-            }
-        };
-
-        node
-    }
-}
-
-impl Into<Scope> for Node {
-    fn into(self) -> Scope {
-        self.data
-    }
-}
-
-impl Into<Vec<Scope>> for Node {
-    fn into(self) -> Vec<Scope> {
-        vec![self.data]
-            .into_iter()
-            .chain(
-                self.children
-                    .unwrap_or(VecDeque::new())
-                    .into_iter()
-                    .map(|n| {
-                        let node: Vec<Scope> = n.into();
-                        node
-                    })
-                    .flatten()
-                    .into_iter(),
-            )
-            .collect()
-    }
-}
 
 #[derive(PartialEq, Debug)]
 pub enum ScopeAnalyzerErr {
     Unspecified,
     Unimplemented, // Eventually remove after completed
+    Undefined(String),
 }
 
 impl fmt::Display for ScopeAnalyzerErr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Unspecified => write!(f, "unspecified resolver error"),
-            Self::Unimplemented => write!(f, "This endpoint was not implemented yet"),
+            Self::Unimplemented => write!(f, "this endpoint was not implemented yet"),
+            Self::Undefined(id) => write!(f, "undefined token: {}", &id),
         }
     }
 }
 
-pub struct ScopeAnalyzer {}
+#[derive(Default)]
+pub struct ScopeAnalyzer {
+    pub scopes: Rc<Node>,
+}
 
 impl ScopeAnalyzer {
-    pub fn new() -> Self {
-        ScopeAnalyzer {}
-    }
-}
+    pub fn new() -> ScopeAnalyzer {
+        let glbls = Node::new();
 
-impl SemanticAnalyzer<&Vec<Stmt>, Node> for ScopeAnalyzer {
-    type Error = ScopeAnalyzerErr;
-
-    fn analyze(&self, input: &Vec<Stmt>) -> Result<Node, Self::Error> {
-        let node = Node::new();
-        self.analyze((node, input))
-    }
-}
-
-// Stmt analysis
-
-impl SemanticAnalyzer<(Node, &Vec<Stmt>), Node> for ScopeAnalyzer {
-    type Error = ScopeAnalyzerErr;
-
-    fn analyze(&self, input: (Node, &Vec<Stmt>)) -> Result<Node, Self::Error> {
-        let (mut node, stmts) = input; // unpack input
-        for stmt in stmts.into_iter() {
-            node = self.analyze((node, stmt))?
+        ScopeAnalyzer {
+            scopes: Node::from(&glbls),
         }
-
-        Ok(node)
     }
 }
 
-impl SemanticAnalyzer<(Node, &Stmt), Node> for ScopeAnalyzer {
+impl From<Rc<Node>> for ScopeAnalyzer {
+    fn from(scopes: Rc<Node>) -> ScopeAnalyzer {
+        let mut si = ScopeAnalyzer::new();
+        si.scopes = scopes;
+        si
+    }
+}
+
+/// SemanticAnalyzer<&Expr, usize> Implements the requirements
+/// for an analyzer pass over Expr
+impl SemanticAnalyzer<&Expr, usize> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: (Node, &Stmt)) -> Result<Node, Self::Error> {
-        let (node, stmt) = input; // unpack input
-        let result_node = match stmt {
-            Stmt::Block(stmts) => self.analyze_block(node, stmts),
-            Stmt::Declaration(name, _) => self.analyze_declaration(node, name),
-            _ => Err(ScopeAnalyzerErr::Unimplemented),
-        };
-        result_node
+    fn analyze(&self, expr: &Expr) -> Result<usize, Self::Error> {
+        match expr {
+            Expr::Variable(id) => self.interpret_variable(id.clone()),
+            _ => todo!(),
+        }
     }
 }
 
 impl ScopeAnalyzer {
-    fn analyze_block(&self, node: Node, stmts: &Vec<Stmt>) -> Result<Node, ScopeAnalyzerErr> {
-        let child = self.analyze((Node::new(), stmts))?;
-        Ok(node.add_child(child))
-    }
+    fn interpret_variable(&self, identifier: token::Token) -> Result<usize, ScopeAnalyzerErr> {
+        let var = identifier.lexeme.unwrap();
 
-    fn analyze_declaration(&self, node: Node, name: &str) -> Result<Node, ScopeAnalyzerErr> {
-        let mut node = node;
-        node.data.insert(name.to_string());
-        Ok(node)
+        match self.scopes.resolve_local(&var) {
+            Some(v) => Ok(v),
+            None => Err(ScopeAnalyzerErr::Undefined(var.to_string())),
+        }
     }
 }
 
-// Expr analysis
+use crate::ast::statement::Stmt;
 
-impl SemanticAnalyzer<(Node, &Expr), Node> for ScopeAnalyzer {
+impl SemanticAnalyzer<&Vec<Stmt>, ()> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: (Node, &Expr)) -> Result<Node, Self::Error> {
-        let (_node, expr) = input; // unpack input
-        let result_node = match expr {
-            Expr::Variable(t) => self.analyze_variable(t),
-            _ => Err(ScopeAnalyzerErr::Unimplemented),
-        };
-        result_node
+    fn analyze(&self, input: &Vec<Stmt>) -> Result<(), Self::Error> {
+        for stmt in input {
+            match self.analyze(stmt) {
+                Ok(_) => continue,
+                Err(e) => return Err(e),
+            };
+        }
+        Ok(())
     }
 }
 
-impl ScopeAnalyzer {
-    fn analyze_variable(&self, _tok: &token::Token) -> Result<Node, ScopeAnalyzerErr> {
-        todo!()
+impl SemanticAnalyzer<&Stmt, ()> for ScopeAnalyzer {
+    type Error = ScopeAnalyzerErr;
+
+    fn analyze(&self, input: &Stmt) -> Result<(), Self::Error> {
+        match input {
+            _ => todo!(),
+        }
     }
 }
+
+impl ScopeAnalyzer {}
