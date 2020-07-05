@@ -97,6 +97,42 @@ fn child_environment_should_be_able_to_assign_symbols_to_parents() {
 }
 
 #[test]
+fn child_environment_should_be_able_to_reference_specific_parent_symbols_via_get_at() {
+    let root = Environment::new(); // offset 0
+    let first = Environment::from(&root); // offset 1
+    let second = Environment::from(&first); // offset 2
+    let third = Environment::from(&second); // offset 3
+    let key = "test";
+    first.define(&key, obj_bool!(true));
+    second.define(&key, obj_bool!(false));
+
+    // on upward walk it shoudl find the first key, corresponding to second node.
+    assert_eq!(third.get(&key), Option::Some(obj_bool!(false)));
+
+    // on get_at upward walk it should pull the key referenced by 1st offst.
+    assert_eq!(third.get_at(&key, 1), Option::Some(obj_bool!(true)));
+}
+
+#[test]
+fn child_environment_should_ignore_horizontal_nodes_() {
+    let root = Environment::new(); // offset 0
+    let lfirst = Environment::from(&root); // offset 1
+    let rfirst = Environment::from(&root); // offset 1
+    let lsecond = Environment::from(&lfirst); // offset 2
+    let lthird = Environment::from(&lsecond); // offset 3
+    let key = "test";
+    lfirst.define(&key, obj_bool!(true));
+    rfirst.define(&key, obj_nil!());
+    lsecond.define(&key, obj_bool!(false));
+
+    // on upward walk it shoudl find the first key, corresponding to second node.
+    assert_eq!(lthird.get(&key), Option::Some(obj_bool!(false)));
+    assert_eq!(rfirst.get(&key), Option::Some(obj_nil!()));
+    // on get_at upward walk it should pull the key referenced by 1st offst.
+    assert_eq!(lthird.get_at(&key, 1), Option::Some(obj_bool!(true)));
+}
+
+#[test]
 fn top_level_environment_should_return_a_zero_offset() {
     let parent = Environment::new();
 

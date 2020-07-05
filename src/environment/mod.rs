@@ -63,6 +63,15 @@ impl Environment {
         }
     }
 
+    pub fn get_at(&self, name: &str, offset: usize) -> Option<object::Object> {
+        // if current offset is deeper than targetted offset, continue upward.
+        match (self.offset() > offset, self.parent.as_ref()) {
+            (false, _) => self.get(name),
+            (true, Some(parent)) => parent.get_at(&name, offset),
+            (true, None) => None,
+        }
+    }
+
     pub fn offset(&self) -> usize {
         self.offset
     }
