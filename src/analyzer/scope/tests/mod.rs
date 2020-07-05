@@ -108,3 +108,35 @@ fn variable_lookups_should_walk_to_owning_symbol_table() {
 
     assert_eq!(vec![parent, child], scopes);
 }
+
+#[test]
+fn function_should_define_child_blocks() {
+    let stmt = vec![
+        Stmt::Function(
+            "test_func".to_string(),
+            vec![],
+            Box::new(Stmt::Block(vec![Stmt::Declaration(
+                "test_nested_decl".to_string(),
+                Expr::Primary(obj_nil!()),
+            )])),
+        ),
+        Stmt::Declaration("test_decl".to_string(), Expr::Primary(obj_nil!())),
+    ];
+
+    // setup expected nodes
+    let parent = Node::new();
+    let child = Node::from(&parent);
+    // validate declaration occur in correct node.
+    parent.declare("test_func");
+    parent.declare("test_decl");
+    child.declare("test_nested_decl");
+
+    let scopes: Vec<Rc<Node>> = ScopeAnalyzer::new()
+        .analyze(&stmt)
+        .unwrap()
+        .into_iter()
+        .map(|node| node)
+        .collect();
+
+    assert_eq!(vec![parent, child], scopes);
+}

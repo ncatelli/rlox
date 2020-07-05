@@ -117,6 +117,15 @@ impl SemanticAnalyzer<&Vec<Stmt>, Vec<Rc<Node>>> for ScopeAnalyzer {
     }
 }
 
+/// SemanticAnalyzer<&Box<Stmt>, Option<Vec<Rc<Node>>>> unpacks the boxed expr.
+impl SemanticAnalyzer<&Box<Stmt>, Option<Vec<Rc<Node>>>> for ScopeAnalyzer {
+    type Error = ScopeAnalyzerErr;
+
+    fn analyze(&self, stmt: &Box<Stmt>) -> Result<Option<Vec<Rc<Node>>>, Self::Error> {
+        self.analyze(&(**stmt))
+    }
+}
+
 impl SemanticAnalyzer<&Stmt, Option<Vec<Rc<Node>>>> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
@@ -125,6 +134,7 @@ impl SemanticAnalyzer<&Stmt, Option<Vec<Rc<Node>>>> for ScopeAnalyzer {
             Stmt::Block(stmts) => self.analyze_block(stmts),
             Stmt::Declaration(id, _) => self.analyze_declaration(id),
             Stmt::Expression(expr) => self.analyze(expr).map(|_| None),
+            Stmt::Function(id, _, stmt) => self.analyze_function(id, stmt),
             _ => Ok(None),
         }
     }
@@ -142,5 +152,16 @@ impl ScopeAnalyzer {
         self.scopes.declare(id);
 
         Ok(None)
+    }
+
+    fn analyze_function(
+        &self,
+        id: &str,
+        stmt: &Box<Stmt>,
+    ) -> Result<Option<Vec<Rc<Node>>>, ScopeAnalyzerErr> {
+        let nested_scopes = self.analyze(stmt)?;
+        self.scopes.declare(id);
+
+        Ok(nested_scopes)
     }
 }
