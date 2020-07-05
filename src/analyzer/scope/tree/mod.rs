@@ -16,7 +16,7 @@ pub struct Node {
     offset: usize,
     parent: Option<Parent>,
     locals: RefCell<Locals>,
-    symbols_table: RefCell<SymbolTable>,
+    symbol_table: RefCell<SymbolTable>,
 }
 
 impl Node {
@@ -25,7 +25,7 @@ impl Node {
             offset: 0,
             parent: None,
             locals: RefCell::new(Locals::new()),
-            symbols_table: RefCell::new(SymbolTable::new()),
+            symbol_table: RefCell::new(SymbolTable::new()),
         })
     }
 
@@ -36,13 +36,13 @@ impl Node {
             offset: parent.offset + 1,
             parent: Some(parent),
             locals: RefCell::new(Locals::new()),
-            symbols_table: RefCell::new(SymbolTable::new()),
+            symbol_table: RefCell::new(SymbolTable::new()),
         })
     }
 
     /// Adds a new symbol to the Nodes symbol table, returning the scope offset
     pub fn declare(&self, name: &str) -> usize {
-        self.symbols_table.borrow_mut().insert(name.to_string());
+        self.symbol_table.borrow_mut().insert(name.to_string());
 
         self.offset()
     }
@@ -51,7 +51,7 @@ impl Node {
     /// definition for the variable. Returning the nodes offset from the root
     /// node.
     pub fn get(&self, name: &str) -> Option<usize> {
-        let val = self.symbols_table.borrow().get(name).cloned();
+        let val = self.symbol_table.borrow().get(name).cloned();
         match (val, self.parent.as_ref()) {
             (Some(_), _) => Some(self.offset()),
             (None, Some(parent)) => parent.get(&name),
@@ -91,8 +91,8 @@ impl fmt::Debug for Node {
 
         write!(
             f,
-            "Node offset: {}, parent: {:?}, locals: {:?}, symbols_table: {:?}",
-            offset, parent, self.locals, self.symbols_table
+            "Node offset: {}, parent: {:?}, locals: {:?}, symbol_table: {:?}",
+            offset, parent, self.locals, self.symbol_table
         )
     }
 }

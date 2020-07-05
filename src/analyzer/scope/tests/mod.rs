@@ -40,7 +40,28 @@ fn single_statement_analyze_should_capture_nested_scopes() {
 }
 
 #[test]
-fn declaration_should_add_var_to_locals() {
+fn declaration_should_add_var_to_symbol_table() {
+    let stmt = vec![Stmt::Declaration(
+        "test".to_string(),
+        Expr::Primary(obj_bool!(true)),
+    )];
+
+    // setup expected values
+    let root = Node::new();
+    root.declare("test");
+
+    let scopes: Vec<Rc<Node>> = ScopeAnalyzer::new()
+        .analyze(&stmt)
+        .unwrap()
+        .into_iter()
+        .map(|node| node)
+        .collect();
+
+    assert_eq!(vec![root], scopes);
+}
+
+#[test]
+fn declaration_should_assign_definition_to_correct_node_when_nesting() {
     let stmt = vec![Stmt::Block(vec![Stmt::Declaration(
         "test".to_string(),
         Expr::Primary(obj_bool!(true)),
