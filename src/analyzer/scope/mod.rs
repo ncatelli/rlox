@@ -135,6 +135,7 @@ impl SemanticAnalyzer<&Stmt, Option<Vec<Rc<Node>>>> for ScopeAnalyzer {
             Stmt::Declaration(id, _) => self.analyze_declaration(id),
             Stmt::Expression(expr) => self.analyze(expr).map(|_| None),
             Stmt::Function(id, _, stmt) => self.analyze_function(id, stmt),
+            Stmt::If(expr, tb, eb) => self.analyze_if(expr, tb, eb),
             _ => Ok(None),
         }
     }
@@ -163,5 +164,23 @@ impl ScopeAnalyzer {
         self.scopes.declare(id);
 
         Ok(nested_scopes)
+    }
+
+    fn analyze_if(
+        &self,
+        cond: &Expr,
+        tb: &Box<Stmt>,
+        eb: &Option<Box<Stmt>>,
+    ) -> Result<Option<Vec<Rc<Node>>>, ScopeAnalyzerErr> {
+        self.analyze(cond)?;
+        let mut scope = self.analyze(tb)?.map_or(Vec::new(), |s| s);
+        // if elsebranch is defined merge with scope
+        if let Some(branch) = eb {
+            if let Some(res) = self.analyze(branch)? {
+                scope.extend(res.into_iter());
+            };
+        }
+
+        Ok(if scope.len() == 0 { None } else { Some(scope) })
     }
 }

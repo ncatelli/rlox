@@ -140,3 +140,63 @@ fn function_should_define_child_blocks() {
 
     assert_eq!(vec![parent, child], scopes);
 }
+
+#[test]
+fn if_stmts_should_analyze_both_branches() {
+    let stmt = vec![Stmt::If(
+        Expr::Primary(obj_bool!(true)),
+        Box::new(Stmt::Declaration(
+            "test_then".to_string(),
+            Expr::Primary(obj_nil!()),
+        )),
+        Some(Box::new(Stmt::Declaration(
+            "test_else".to_string(),
+            Expr::Primary(obj_nil!()),
+        ))),
+    )];
+
+    // setup expected nodes
+    let root = Node::new();
+    root.declare("test_then");
+    root.declare("test_else");
+
+    let scopes: Vec<Rc<Node>> = ScopeAnalyzer::new()
+        .analyze(&stmt)
+        .unwrap()
+        .into_iter()
+        .map(|node| node)
+        .collect();
+
+    assert_eq!(vec![root], scopes);
+}
+
+#[test]
+fn if_stmts_should_analyze_nested_blocks() {
+    let stmt = vec![Stmt::If(
+        Expr::Primary(obj_bool!(true)),
+        Box::new(Stmt::Block(vec![Stmt::Declaration(
+            "test_then".to_string(),
+            Expr::Primary(obj_nil!()),
+        )])),
+        Some(Box::new(Stmt::Block(vec![Stmt::Declaration(
+            "test_else".to_string(),
+            Expr::Primary(obj_nil!()),
+        )]))),
+    )];
+
+    // setup expected nodes
+    let root = Node::new();
+    let then_branch = Node::from(&root);
+    let else_branch = Node::from(&root);
+    then_branch.declare("test_then");
+    else_branch.declare("test_else");
+
+    let scopes: Vec<Rc<Node>> = ScopeAnalyzer::new()
+        .analyze(&stmt)
+        .unwrap()
+        .into_iter()
+        .map(|node| node)
+        .collect();
+
+    assert_eq!(vec![root, then_branch, else_branch], scopes);
+}
