@@ -1,5 +1,7 @@
 use crate::analyzer::SemanticAnalyzer;
-use crate::ast::expression::Expr;
+use crate::ast::expression::{
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
+};
 use crate::ast::token;
 use std::fmt;
 use std::rc::Rc;
@@ -67,7 +69,15 @@ impl SemanticAnalyzer<&Expr, usize> for ScopeAnalyzer {
             Expr::Variable(id) => self.analyze_variable(id.clone()),
             Expr::Assignment(id, expr) => self.analyze_assignment(id.clone(), expr),
             Expr::Primary(_) => Ok(self.scopes.offset()),
-            _ => todo!(),
+            Expr::Addition(expr) => self.analyze_addition(expr),
+            Expr::Comparison(expr) => self.analyze_comparison(expr),
+            Expr::Equality(expr) => self.analyze_equality(expr),
+            Expr::Multiplication(expr) => self.analyze_multiplication(expr),
+            Expr::Grouping(expr) => self.analyze(expr),
+            Expr::Lambda(args, body) => self.analyze_lambda(args, body),
+            Expr::Logical(expr) => self.analyze_logical(expr),
+            Expr::Unary(expr) => self.analyze_unary(expr),
+            Expr::Call(_id, _args) => todo!(),
         }
     }
 }
@@ -94,6 +104,73 @@ impl ScopeAnalyzer {
             Some(v) => Ok(v),
             None => Err(ScopeAnalyzerErr::Undefined(var.to_string())),
         }
+    }
+
+    fn analyze_addition(&self, ae: &AdditionExpr) -> Result<usize, ScopeAnalyzerErr> {
+        let (le, re) = match ae {
+            AdditionExpr::Add(le, re) => (le, re),
+            AdditionExpr::Subtract(le, re) => (le, re),
+        };
+
+        self.analyze(re)?;
+        Ok(self.analyze(le)?)
+    }
+
+    fn analyze_multiplication(&self, me: &MultiplicationExpr) -> Result<usize, ScopeAnalyzerErr> {
+        let (le, re) = match me {
+            MultiplicationExpr::Divide(le, re) => (le, re),
+            MultiplicationExpr::Multiply(le, re) => (le, re),
+        };
+
+        self.analyze(re)?;
+        Ok(self.analyze(le)?)
+    }
+
+    fn analyze_comparison(&self, ce: &ComparisonExpr) -> Result<usize, ScopeAnalyzerErr> {
+        let (le, re) = match ce {
+            ComparisonExpr::Greater(le, re) => (le, re),
+            ComparisonExpr::GreaterEqual(le, re) => (le, re),
+            ComparisonExpr::Less(le, re) => (le, re),
+            ComparisonExpr::LessEqual(le, re) => (le, re),
+        };
+
+        self.analyze(re)?;
+        Ok(self.analyze(le)?)
+    }
+
+    fn analyze_equality(&self, ee: &EqualityExpr) -> Result<usize, ScopeAnalyzerErr> {
+        let (le, re) = match ee {
+            EqualityExpr::Equal(le, re) => (le, re),
+            EqualityExpr::NotEqual(le, re) => (le, re),
+        };
+
+        self.analyze(re)?;
+        Ok(self.analyze(le)?)
+    }
+
+    fn analyze_unary(&self, ue: &UnaryExpr) -> Result<usize, ScopeAnalyzerErr> {
+        self.analyze(match ue {
+            UnaryExpr::Bang(expr) => expr,
+            UnaryExpr::Minus(expr) => expr,
+        })
+    }
+
+    fn analyze_logical(&self, le: &LogicalExpr) -> Result<usize, ScopeAnalyzerErr> {
+        let (le, re) = match le {
+            LogicalExpr::And(le, re) => (le, re),
+            LogicalExpr::Or(le, re) => (le, re),
+        };
+
+        self.analyze(re)?;
+        Ok(self.analyze(le)?)
+    }
+
+    fn analyze_lambda(
+        &self,
+        args: &Vec<token::Token>,
+        body: &Box<Stmt>,
+    ) -> Result<usize, ScopeAnalyzerErr> {
+        todo!()
     }
 }
 
@@ -134,7 +211,7 @@ impl SemanticAnalyzer<&Stmt, Option<Vec<Rc<Node>>>> for ScopeAnalyzer {
             Stmt::Block(stmts) => self.analyze_block(stmts),
             Stmt::Declaration(id, _) => self.analyze_declaration(id),
             Stmt::While(expr, body) => self.analyze_while(expr, body),
-            Stmt::Function(id, _, stmt) => self.analyze_function(id, stmt),
+            Stmt::Function(id, args, stmt) => self.analyze_function(id, args, stmt),
             Stmt::If(expr, tb, eb) => self.analyze_if(expr, tb, eb),
             Stmt::Print(expr) => self.analyze(expr).map(|_| None),
             Stmt::Return(expr) => self.analyze(expr).map(|_| None),
@@ -160,9 +237,11 @@ impl ScopeAnalyzer {
     fn analyze_function(
         &self,
         id: &str,
+        _args: &Vec<token::Token>,
         stmt: &Box<Stmt>,
     ) -> Result<Option<Vec<Rc<Node>>>, ScopeAnalyzerErr> {
         let nested_scopes = self.analyze(stmt)?;
+
         self.scopes.declare(id);
 
         Ok(nested_scopes)
