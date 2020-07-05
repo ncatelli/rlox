@@ -66,6 +66,7 @@ impl SemanticAnalyzer<&Expr, usize> for ScopeAnalyzer {
         match expr {
             Expr::Variable(id) => self.analyze_variable(id.clone()),
             Expr::Assignment(id, expr) => self.analyze_assignment(id.clone(), expr),
+            Expr::Primary(_) => Ok(self.scopes.offset()),
             _ => todo!(),
         }
     }
@@ -123,6 +124,7 @@ impl SemanticAnalyzer<&Stmt, Option<Vec<Rc<Node>>>> for ScopeAnalyzer {
         match input {
             Stmt::Block(stmts) => self.analyze_block(stmts),
             Stmt::Declaration(id, _) => self.analyze_declaration(id),
+            Stmt::Expression(expr) => self.analyze(expr).map(|_| None),
             _ => Ok(None),
         }
     }

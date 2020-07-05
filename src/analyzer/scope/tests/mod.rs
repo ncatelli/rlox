@@ -81,3 +81,30 @@ fn declaration_should_assign_definition_to_correct_node_when_nesting() {
 
     assert_eq!(vec![parent, child], scopes);
 }
+
+#[test]
+/// This is a shitty test that I should fix.
+fn variable_lookups_should_walk_to_owning_symbol_table() {
+    let stmt = vec![
+        Stmt::Declaration("test".to_string(), Expr::Primary(obj_bool!(true))),
+        Stmt::Block(vec![Stmt::Expression(Expr::Variable(tok_identifier!(
+            "test"
+        )))]),
+    ];
+
+    // setup expected values
+    // this should set a variable (test) on parent.
+    let parent = Node::new();
+    let child = Node::from(&parent);
+    parent.declare("test");
+    child.resolve_local(&"test");
+
+    let scopes: Vec<Rc<Node>> = ScopeAnalyzer::new()
+        .analyze(&stmt)
+        .unwrap()
+        .into_iter()
+        .map(|node| node)
+        .collect();
+
+    assert_eq!(vec![parent, child], scopes);
+}
