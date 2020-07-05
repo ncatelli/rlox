@@ -97,6 +97,27 @@ fn child_environment_should_be_able_to_assign_symbols_to_parents() {
 }
 
 #[test]
+fn child_environment_should_be_able_to_a_specific_parent_symbols_via_assign_at() {
+    let root = Environment::new(); // offset 0
+    let first = Environment::from(&root); // offset 1
+    let second = Environment::from(&first); // offset 2
+    let third = Environment::from(&second); // offset 3
+    let key = "test";
+    first.define(&key, obj_bool!(true));
+    second.define(&key, obj_bool!(true));
+
+    // on upward walk it shoudl find the first key, corresponding to second node.
+    assert_eq!(
+        third.assign_at(1, &key, obj_nil!()),
+        Option::Some(obj_nil!())
+    );
+
+    // on get_at upward walk it should pull the key referenced by 1st offst.
+    assert_eq!(first.get(&key), Option::Some(obj_nil!()));
+    assert_eq!(second.get(&key), Option::Some(obj_bool!(true)));
+}
+
+#[test]
 fn child_environment_should_be_able_to_reference_specific_parent_symbols_via_get_at() {
     let root = Environment::new(); // offset 0
     let first = Environment::from(&root); // offset 1

@@ -46,6 +46,20 @@ impl Environment {
         }
     }
 
+    pub fn assign_at(
+        &self,
+        offset: usize,
+        name: &str,
+        value: object::Object,
+    ) -> Option<object::Object> {
+        // if current offset is deeper than targetted offset, continue upward.
+        match (self.offset() > offset, self.parent.as_ref()) {
+            (false, _) => self.assign(name, value),
+            (true, Some(parent)) => parent.assign_at(offset, &name, value),
+            (true, None) => None,
+        }
+    }
+
     pub fn define(&self, name: &str, value: object::Object) -> Option<object::Object> {
         self.symbols_table
             .borrow_mut()
