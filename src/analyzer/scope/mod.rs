@@ -36,9 +36,7 @@ impl ScopeAnalyzer {
     pub fn new() -> ScopeAnalyzer {
         let glbls = Node::new();
 
-        ScopeAnalyzer {
-            scopes: Node::from(&glbls),
-        }
+        ScopeAnalyzer { scopes: glbls }
     }
 }
 
@@ -100,34 +98,43 @@ impl ScopeAnalyzer {
 
 use crate::ast::statement::Stmt;
 
-impl SemanticAnalyzer<&Vec<Stmt>, ()> for ScopeAnalyzer {
+impl SemanticAnalyzer<&Vec<Stmt>, Vec<Rc<Node>>> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: &Vec<Stmt>) -> Result<(), Self::Error> {
+    fn analyze(&self, input: &Vec<Stmt>) -> Result<Vec<Rc<Node>>, Self::Error> {
+        let mut scopes: Vec<Rc<Node>> = Vec::new();
+
         for stmt in input {
             match self.analyze(stmt) {
-                Ok(_) => continue,
+                Ok(None) => continue,
+                Ok(Some(s)) => scopes.extend(s.into_iter()),
                 Err(e) => return Err(e),
             };
         }
-        Ok(())
+
+        Ok(scopes)
     }
 }
 
-impl SemanticAnalyzer<&Stmt, ()> for ScopeAnalyzer {
+impl SemanticAnalyzer<&Stmt, Option<Vec<Rc<Node>>>> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: &Stmt) -> Result<(), Self::Error> {
+    fn analyze(&self, input: &Stmt) -> Result<Option<Vec<Rc<Node>>>, Self::Error> {
         match input {
             Stmt::Block(stmts) => self.analyze_block(stmts),
-            _ => todo!(),
+            _ => Ok(None),
         }
     }
 }
 
 impl ScopeAnalyzer {
-    fn analyze_block(&self, stmts: &Vec<Stmt>) -> Result<(), ScopeAnalyzerErr> {
+    fn analyze_block(&self, stmts: &Vec<Stmt>) -> Result<Option<Vec<Rc<Node>>>, ScopeAnalyzerErr> {
+        let mut block_scopes: Vec<Rc<Node>> = Vec::new();
         let block_analyzer = ScopeAnalyzer::from(Node::from(&self.scopes));
-        block_analyzer.analyze(stmts)
+        let nested_scopes = block_analyzer.analyze(stmts)?;
+
+        block_scopes.push(self.scopes.clone());
+        block_scopes.extend(nested_scopes.into_iter());
+        Ok(Some(block_scopes))
     }
 }

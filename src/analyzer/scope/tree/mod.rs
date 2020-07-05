@@ -10,7 +10,7 @@ type SymbolTable = HashSet<String>;
 type Parent = Rc<Node>;
 
 /// Functions as a symbols table for looking up variables assignments.
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub struct Node {
     offset: usize,
     parent: Option<Parent>,
