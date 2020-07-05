@@ -133,10 +133,12 @@ impl SemanticAnalyzer<&Stmt, Option<Vec<Rc<Node>>>> for ScopeAnalyzer {
         match input {
             Stmt::Block(stmts) => self.analyze_block(stmts),
             Stmt::Declaration(id, _) => self.analyze_declaration(id),
-            Stmt::Expression(expr) => self.analyze(expr).map(|_| None),
+            Stmt::While(expr, body) => self.analyze_while(expr, body),
             Stmt::Function(id, _, stmt) => self.analyze_function(id, stmt),
             Stmt::If(expr, tb, eb) => self.analyze_if(expr, tb, eb),
-            _ => Ok(None),
+            Stmt::Print(expr) => self.analyze(expr).map(|_| None),
+            Stmt::Return(expr) => self.analyze(expr).map(|_| None),
+            Stmt::Expression(expr) => self.analyze(expr).map(|_| None),
         }
     }
 }
@@ -182,5 +184,14 @@ impl ScopeAnalyzer {
         }
 
         Ok(if scope.len() == 0 { None } else { Some(scope) })
+    }
+
+    fn analyze_while(
+        &self,
+        cond: &Expr,
+        body: &Box<Stmt>,
+    ) -> Result<Option<Vec<Rc<Node>>>, ScopeAnalyzerErr> {
+        self.analyze(cond)?;
+        self.analyze(body)
     }
 }

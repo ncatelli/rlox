@@ -200,3 +200,27 @@ fn if_stmts_should_analyze_nested_blocks() {
 
     assert_eq!(vec![root, then_branch, else_branch], scopes);
 }
+
+#[test]
+fn while_stmts_should_analyze_cond_and_body() {
+    let stmts = vec![Stmt::While(
+        Expr::Primary(obj_bool!(true)),
+        Box::new(Stmt::Declaration(
+            "test_body".to_string(),
+            Expr::Primary(obj_nil!()),
+        )),
+    )];
+
+    // setup expected nodes
+    let root = Node::new();
+    root.declare("test_body");
+
+    let scopes: Vec<Rc<Node>> = ScopeAnalyzer::new()
+        .analyze(&stmts)
+        .unwrap()
+        .into_iter()
+        .map(|node| node)
+        .collect();
+
+    assert_eq!(vec![root], scopes);
+}
