@@ -1,16 +1,17 @@
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::rc::Rc;
 
 #[cfg(test)]
 mod tests;
 
-type Locals = HashMap<String, usize>;
-type SymbolTable = HashSet<String>;
-type Parent = Rc<Node>;
+pub type Locals = HashMap<String, usize>;
+pub type SymbolTable = HashSet<String>;
+pub type Parent = Rc<Node>;
 
 /// Functions as a symbols table for looking up variables assignments.
-#[derive(Default, Debug, PartialEq)]
+#[derive(Default, PartialEq)]
 pub struct Node {
     offset: usize,
     parent: Option<Parent>,
@@ -72,5 +73,26 @@ impl Node {
 
     pub fn offset(&self) -> usize {
         self.offset
+    }
+}
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let offset = self.offset();
+
+        write!(f, "Node offset: {}", offset)
+    }
+}
+
+impl fmt::Debug for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let offset = self.offset();
+        let parent = self.parent.as_ref().map_or(None, |p| Some(p.offset()));
+
+        write!(
+            f,
+            "Node offset: {}, parent: {:?}, locals: {:?}, symbols_table: {:?}",
+            offset, parent, self.locals, self.symbols_table
+        )
     }
 }
