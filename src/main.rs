@@ -6,6 +6,8 @@ use std::process;
 
 extern crate parcel;
 use parcel::prelude::v1::*;
+use rlox::analyzer::scope::ScopeAnalyzer;
+use rlox::analyzer::SemanticAnalyzer;
 use rlox::ast::token;
 use rlox::interpreter::Interpreter;
 use rlox::interpreter::StatefulInterpreter;
@@ -65,13 +67,23 @@ fn run(interpreter: &mut StatefulInterpreter, source: String) -> RuntimeResult<u
         })
         .collect();
 
-    match statements().parse(&tokens) {
-        Ok(parcel::MatchStatus::Match((_, stmt))) => {
-            interpreter.interpret(stmt).map(|_| ()).unwrap()
+    let stmts = match statements().parse(&tokens) {
+        Ok(parcel::MatchStatus::Match((_, stmt))) => Ok(stmt),
+        Ok(parcel::MatchStatus::NoMatch(_)) => {
+            let e = "No match found".to_string();
+            println!("{}", &e);
+            Err(e)
         }
-        Ok(parcel::MatchStatus::NoMatch(_)) => println!("No match found"),
-        Err(e) => println!("{:?}", e),
-    };
+        Err(e) => {
+            println!("{:?}", e);
+            Err(e)
+        }
+    }?;
+
+    let analyzed_stmts = ScopeAnalyzer::new().analyze(stmts).unwrap();
+    interpreter
+        .interpret(analyzed_stmts)
+        .map_err(|e| e.to_string())?;
 
     Ok(token_count)
 }
