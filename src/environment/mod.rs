@@ -1,3 +1,4 @@
+use crate::ast::expression::Identifier;
 use crate::object;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -6,7 +7,7 @@ use std::rc::Rc;
 #[cfg(test)]
 mod tests;
 
-type SymbolTable = HashMap<String, object::Object>;
+type SymbolTable = HashMap<Identifier, object::Object>;
 type Parent = Box<Rc<Environment>>;
 
 /// Functions as a symbols table for looking up variables assignments.
@@ -31,8 +32,8 @@ impl Environment {
         })
     }
 
-    pub fn assign(&self, name: &str, value: object::Object) -> Option<object::Object> {
-        let id = name.to_string();
+    pub fn assign(&self, name: &Identifier, value: object::Object) -> Option<object::Object> {
+        let id = name;
         let has_key = self.symbols_table.borrow().contains_key(&id);
         match (has_key, self.parent.as_ref()) {
             (true, _) => self.define(&id, value),
@@ -41,15 +42,15 @@ impl Environment {
         }
     }
 
-    pub fn define(&self, name: &str, value: object::Object) -> Option<object::Object> {
+    pub fn define(&self, name: &Identifier, value: object::Object) -> Option<object::Object> {
         self.symbols_table
             .borrow_mut()
-            .insert(name.to_string(), value.clone());
+            .insert(name.clone(), value.clone());
 
         Some(value)
     }
 
-    pub fn get(&self, name: &str) -> Option<object::Object> {
+    pub fn get(&self, name: &Identifier) -> Option<object::Object> {
         let val = self.symbols_table.borrow().get(name).cloned();
         match (val, self.parent.as_ref()) {
             (Some(v), _) => Some(v),

@@ -20,7 +20,7 @@ fn print_stmt_should_return_self() {
 #[test]
 fn declaration_statement_should_return_self() {
     let stmts = vec![Stmt::Declaration(
-        "test".to_string(),
+        identifier_id!("test"),
         Expr::Primary(obj_bool!(true)),
     )];
 
@@ -46,7 +46,11 @@ fn block_statement_should_return_self() {
 #[test]
 fn function_declaration_statement_should_return_self() {
     let block = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
-    let stmts = vec![Stmt::Function("test".to_string(), vec![], Box::new(block))];
+    let stmts = vec![Stmt::Function(
+        identifier_id!("test"),
+        vec![],
+        Box::new(block),
+    )];
 
     assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().analyze(stmts));
 }
@@ -56,11 +60,11 @@ fn if_statement_should_return_self() {
     let stmts = vec![Stmt::If(
         Expr::Primary(obj_bool!(true)),
         Box::new(Stmt::Declaration(
-            "test".to_string(),
+            identifier_id!("test"),
             Expr::Primary(obj_bool!(true)),
         )),
         Option::Some(Box::new(Stmt::Declaration(
-            "test".to_string(),
+            identifier_id!("test"),
             Expr::Primary(obj_bool!(false)),
         ))),
     )];
@@ -73,7 +77,7 @@ fn while_statement_should_return_self() {
     let stmts = vec![Stmt::While(
         Expr::Primary(obj_bool!(false)),
         Box::new(Stmt::Declaration(
-            "test".to_string(),
+            identifier_id!("test"),
             Expr::Primary(obj_bool!(true)),
         )),
     )];

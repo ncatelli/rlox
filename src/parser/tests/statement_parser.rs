@@ -33,7 +33,7 @@ fn can_parse_declaration_stmt() {
         Ok(MatchStatus::Match((
             &input[5..],
             vec![Stmt::Declaration(
-                "test".to_string(),
+                identifier_id!("test"),
                 Expr::Primary(obj_number!(5.0))
             )]
         ))),
@@ -59,8 +59,8 @@ fn can_parse_function_declaration_stmt() {
         Ok(MatchStatus::Match((
             &input[9..],
             vec![Stmt::Function(
-                "test".to_string(),
-                vec![token_from_tt!(TokenType::Identifier, "arg_one")],
+                identifier_id!("test"),
+                vec![identifier_id!("arg_one")],
                 Box::new(Stmt::Block(vec![Stmt::Expression(Expr::Primary(
                     obj_number!(5.0)
                 ))]))
@@ -228,27 +228,18 @@ fn can_parse_for_stmt() {
         Ok(MatchStatus::Match((
             &input[20..],
             vec![Stmt::Block(vec![
-                Stmt::Declaration("test".to_string(), Expr::Primary(obj_number!(1.0))),
+                Stmt::Declaration(identifier_id!("test"), Expr::Primary(obj_number!(1.0))),
                 Stmt::While(
                     Expr::Comparison(ComparisonExpr::Less(
-                        Box::new(Expr::Variable(token_from_tt!(
-                            TokenType::Identifier,
-                            "test"
-                        ))),
+                        Box::new(Expr::Variable(identifier_id!("test"))),
                         Box::new(Expr::Primary(obj_number!(5.0)))
                     )),
                     Box::new(Stmt::Block(vec![
-                        Stmt::Print(Expr::Variable(token_from_tt!(
-                            TokenType::Identifier,
-                            "test"
-                        ))),
+                        Stmt::Print(Expr::Variable(identifier_id!("test"))),
                         Stmt::Expression(Expr::Assignment(
-                            token_from_tt!(TokenType::Identifier, "test"),
+                            identifier_id!("test"),
                             Box::new(Expr::Addition(AdditionExpr::Add(
-                                Box::new(Expr::Variable(token_from_tt!(
-                                    TokenType::Identifier,
-                                    "test"
-                                ))),
+                                Box::new(Expr::Variable(identifier_id!("test"))),
                                 Box::new(Expr::Primary(obj_number!(1.0)))
                             )))
                         ))

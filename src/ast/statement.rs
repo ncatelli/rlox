@@ -1,5 +1,4 @@
-use crate::ast::expression::Expr;
-use crate::ast::token;
+use crate::ast::expression::{Expr, Identifier};
 use std::fmt;
 
 /// Represents, and encapsulates statement types possiblepossible in
@@ -10,8 +9,8 @@ pub enum Stmt {
     If(Expr, Box<Stmt>, Option<Box<Stmt>>),
     While(Expr, Box<Stmt>),
     Print(Expr),
-    Function(String, Vec<token::Token>, Box<Stmt>),
-    Declaration(String, Expr),
+    Function(Identifier, Vec<Identifier>, Box<Stmt>),
+    Declaration(Identifier, Expr),
     Return(Expr),
     Block(Vec<Stmt>),
 }

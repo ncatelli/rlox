@@ -14,14 +14,15 @@ fn should_return_ok_on_success() {
         Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]),
     );
 
-    interpreter
-        .env
-        .define(&"a", obj_call!(Box::new(functions::Callable::Func(f))));
+    interpreter.env.define(
+        &identifier_id!("a"),
+        obj_call!(Box::new(functions::Callable::Func(f))),
+    );
 
     assert_eq!(
         Ok(None),
         interpreter.interpret(vec![Stmt::Expression(Expr::Call(
-            Box::new(Expr::Variable(tok_identifier!("a"))),
+            Box::new(Expr::Variable(identifier_id!("a"))),
             vec![]
         ))])
     );
@@ -37,16 +38,17 @@ fn should_throw_error_on_arity_mismatch() {
         Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]),
     );
 
-    interpreter
-        .env
-        .define(&"a", obj_call!(Box::new(functions::Callable::Func(f))));
+    interpreter.env.define(
+        &identifier_id!("a"),
+        obj_call!(Box::new(functions::Callable::Func(f))),
+    );
 
     assert_eq!(
         Err(StmtInterpreterErr::Expression(ExprInterpreterErr::CallErr(
             "Arity".to_string()
         ))),
         interpreter.interpret(vec![Stmt::Expression(Expr::Call(
-            Box::new(Expr::Variable(tok_identifier!("a"))),
+            Box::new(Expr::Variable(identifier_id!("a"))),
             vec![Expr::Primary(obj_number!(5.0))]
         ))])
     );
