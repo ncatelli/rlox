@@ -3,7 +3,7 @@ use crate::ast::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
 };
 use crate::ast::statement::Stmt;
-use crate::ast::token::{Token, TokenType};
+use crate::ast::token::TokenType;
 use crate::parser::expression_parser::expression;
 use parcel::*;
 
@@ -31,12 +31,7 @@ fn should_parse_assignment_expression() {
         Ok(MatchStatus::Match((
             &input[3..],
             Expr::Assignment(
-                Token::new(
-                    TokenType::Identifier,
-                    1,
-                    Option::Some("test".to_string()),
-                    Option::None
-                ),
+                identifier_id!("test"),
                 Box::new(Expr::Primary(obj_number!(1.0)))
             )
         ))),
@@ -343,10 +338,7 @@ fn should_parse_call_expression_with_single_arg() {
         Ok(MatchStatus::Match((
             &input[4..],
             Expr::Call(
-                Box::new(Expr::Variable(token_from_tt!(
-                    TokenType::Identifier,
-                    "testfunc"
-                ))),
+                Box::new(Expr::Variable(identifier_id!("testfunc"),)),
                 vec![Expr::Primary(obj_bool!(true))]
             )
         ))),
@@ -369,10 +361,7 @@ fn should_parse_call_expression_with_multiple_arg() {
         Ok(MatchStatus::Match((
             &input[6..],
             Expr::Call(
-                Box::new(Expr::Variable(token_from_tt!(
-                    TokenType::Identifier,
-                    "testfunc"
-                ))),
+                Box::new(Expr::Variable(identifier_id!("testfunc"),)),
                 vec![
                     Expr::Primary(obj_bool!(true)),
                     Expr::Primary(obj_bool!(false))
@@ -426,7 +415,7 @@ fn should_parse_lambda_expression_with_parameters() {
         Ok(MatchStatus::Match((
             &input[8..],
             Expr::Lambda(
-                vec![token_from_tt!(TokenType::Identifier, "arg_one")],
+                vec![identifier_id!("arg_one"),],
                 Box::new(Stmt::Block(vec![Stmt::Expression(Expr::Primary(
                     obj_number!(5.0)
                 ))]))

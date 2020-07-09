@@ -4,6 +4,7 @@ use crate::ast::token::{Token, TokenType};
 use crate::parser::combinators::{token_type, unzip};
 use crate::parser::statement_parser::block;
 use parcel::*;
+use std::convert::TryFrom;
 
 /// Represents the entrypoint for expression parsing within the lox parser and
 /// yields an Expr object after recursively descending through the expression
@@ -45,7 +46,7 @@ fn assignment<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         token_type(TokenType::Identifier),
         right(join(token_type(TokenType::Equal), equality())),
     )
-    .map(|(lhv, rhe)| Expr::Assignment(lhv, Box::new(rhe)))
+    .map(|(lhv, rhe)| Expr::Assignment(Identifier::try_from(lhv).unwrap(), Box::new(rhe)))
     .or(|| logical_or())
 }
 
@@ -295,8 +296,12 @@ fn lambda<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     .map(|(opt_args, body)| {
         Expr::Lambda(
             opt_args.map_or(Vec::new(), |a| {
-                let mut args = vec![a.0];
-                args.extend(a.1);
+                let mut args = vec![Identifier::try_from(a.0).unwrap()];
+                args.extend(
+                    a.1.into_iter()
+                        .map(|i| Identifier::try_from(i).unwrap())
+                        .collect::<Vec<Identifier>>(),
+                );
                 args
             }),
             Box::new(body),
@@ -315,7 +320,10 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         token_type(TokenType::Str),
     ])
     .map(|token| Expr::Primary(token.object.unwrap()))
-    .or(|| token_type(TokenType::Identifier).map(|token| Expr::Variable(token)))
+    .or(|| {
+        token_type(TokenType::Identifier)
+            .map(|token| Expr::Variable(Identifier::try_from(token).unwrap()))
+    })
     .or(|| {
         right(join(
             token_type(TokenType::LeftParen),

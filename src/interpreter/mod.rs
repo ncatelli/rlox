@@ -1,7 +1,7 @@
 use crate::ast::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, Identifier, LogicalExpr, MultiplicationExpr,
+    UnaryExpr,
 };
-use crate::ast::token;
 use crate::environment::Environment;
 use crate::functions;
 use crate::object::{Literal, Object};
@@ -129,13 +129,13 @@ impl Interpreter<Box<Expr>, Object> for StatefulInterpreter {
 }
 
 impl StatefulInterpreter {
-    fn interpret_assignment(&self, id: token::Token, expr: Box<Expr>) -> ExprInterpreterResult {
-        let lhv = id.lexeme.unwrap();
+    fn interpret_assignment(&self, id: Identifier, expr: Box<Expr>) -> ExprInterpreterResult {
+        let lhv = id;
         let rhv = self.interpret(expr)?;
 
         match self.env.assign(&lhv, rhv) {
             Some(v) => Ok(v),
-            None => Err(ExprInterpreterErr::UndefinedVariable(lhv.to_string())),
+            None => Err(ExprInterpreterErr::UndefinedVariable(format!("{:?}", &lhv))),
         }
     }
 
@@ -329,7 +329,7 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_lambda(&self, params: Vec<token::Token>, body: Stmt) -> ExprInterpreterResult {
+    fn interpret_lambda(&self, params: Vec<Identifier>, body: Stmt) -> ExprInterpreterResult {
         let func = functions::Function::new(self.env.clone(), params, body);
         let callable = functions::Callable::Func(func);
         let obj = Object::Call(Box::new(callable));
@@ -341,12 +341,13 @@ impl StatefulInterpreter {
         Ok(obj)
     }
 
-    fn interpret_variable(&self, identifier: token::Token) -> ExprInterpreterResult {
-        let var = identifier.lexeme.unwrap();
-
-        match self.env.get(&var) {
+    fn interpret_variable(&self, identifier: Identifier) -> ExprInterpreterResult {
+        match self.env.get(&identifier) {
             Some(v) => Ok(v),
-            None => Err(ExprInterpreterErr::UndefinedVariable(var.clone())),
+            None => Err(ExprInterpreterErr::UndefinedVariable(format!(
+                "{:?}",
+                &identifier
+            ))),
         }
     }
 }
@@ -430,10 +431,10 @@ impl StatefulInterpreter {
         }
     }
 
-    fn interpret_declaration_stmt(&self, name: String, expr: Expr) -> StmtInterpreterResult {
+    fn interpret_declaration_stmt(&self, id: Identifier, expr: Expr) -> StmtInterpreterResult {
         match self.interpret(expr) {
             Ok(obj) => {
-                self.env.define(&name, obj);
+                self.env.define(&id, obj);
                 Ok(None)
             }
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
@@ -442,15 +443,15 @@ impl StatefulInterpreter {
 
     fn interpret_function_decl_stmt(
         &self,
-        name: String,
-        params: Vec<token::Token>,
+        id: Identifier,
+        params: Vec<Identifier>,
         body: Stmt,
     ) -> StmtInterpreterResult {
         let func = functions::Function::new(self.env.clone(), params, body);
         let callable = functions::Callable::Func(func);
         let obj = Object::Call(Box::new(callable));
 
-        self.env.define(&name, obj);
+        self.env.define(&id, obj);
         Ok(None)
     }
 

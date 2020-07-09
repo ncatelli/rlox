@@ -1,5 +1,5 @@
+use crate::ast::expression::Identifier;
 use crate::ast::statement;
-use crate::ast::token;
 use crate::environment::Environment;
 use crate::interpreter;
 use crate::interpreter::Interpreter;
@@ -68,12 +68,12 @@ impl Callable {
 #[derive(Debug, Clone)]
 pub struct Function {
     closure: Rc<Environment>,
-    params: Vec<token::Token>,
+    params: Vec<Identifier>,
     body: statement::Stmt,
 }
 
 impl Function {
-    pub fn new(closure: Rc<Environment>, params: Vec<token::Token>, body: statement::Stmt) -> Self {
+    pub fn new(closure: Rc<Environment>, params: Vec<Identifier>, body: statement::Stmt) -> Self {
         Function {
             closure,
             params,
@@ -88,8 +88,7 @@ impl Function {
     pub fn call(&self, _env: Rc<Environment>, args: Vec<object::Object>) -> CallResult {
         let local = Environment::from(&self.closure);
         for (ident, arg) in self.params.iter().zip(args.into_iter()) {
-            let lexeme = ident.lexeme.clone().unwrap();
-            local.define(&lexeme, arg.clone());
+            local.define(&ident, arg.clone());
         }
 
         let intptr = interpreter::StatefulInterpreter::from(local);

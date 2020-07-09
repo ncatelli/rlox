@@ -1,10 +1,11 @@
 extern crate parcel;
 use super::combinators::token_type;
-use crate::ast::expression::Expr;
+use crate::ast::expression::{Expr, Identifier};
 use crate::ast::statement::Stmt;
 use crate::ast::token::{Token, TokenType};
 use crate::parser::expression_parser::expression;
 use parcel::*;
+use std::convert::TryFrom;
 
 /// Represents the entrypoint for statement parsing within the lox parser and
 /// yields a Vec<Stmt> representing the program statemnts.
@@ -64,15 +65,16 @@ fn fun_declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         ),
     ))
     .map(|(callee, (opt_args, body))| {
-        let ident = match (callee.token_type, callee.lexeme) {
-            (TokenType::Identifier, Some(l)) => l,
-            _ => panic!("identifier is not a token."),
-        };
+        let ident = Identifier::try_from(callee).unwrap();
         Stmt::Function(
             ident,
             opt_args.map_or(Vec::new(), |a| {
-                let mut args = vec![a.0];
-                args.extend(a.1);
+                let mut args = vec![Identifier::try_from(a.0).unwrap()];
+                args.extend(
+                    a.1.into_iter()
+                        .map(|i| Identifier::try_from(i).unwrap())
+                        .collect::<Vec<Identifier>>(),
+                );
                 args
             }),
             Box::new(body),
@@ -93,10 +95,7 @@ fn declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
         ),
     ))
     .map(|(id_tok, expr)| {
-        let id = match id_tok.lexeme {
-            Some(i) => i,
-            _ => panic!("invalid Object specified in place of Identifier"),
-        };
+        let id = Identifier::try_from(id_tok).unwrap();
 
         Stmt::Declaration(id, expr)
     })

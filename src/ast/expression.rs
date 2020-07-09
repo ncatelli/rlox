@@ -1,13 +1,53 @@
 use crate::ast::statement;
 use crate::ast::token;
 use crate::object;
+use std::convert;
 use std::fmt;
+
+/// Identifier functions as a replacement for variable names, offering a raw Id and a Hash.
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub enum Identifier {
+    Hash(String), // todo change this to an actual hash
+    Id(String),
+}
+
+impl fmt::Display for Identifier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Id(ref s) => write!(f, "{}", s),
+            Self::Hash(ref s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl convert::TryFrom<token::Token> for Identifier {
+    type Error = &'static str;
+
+    fn try_from(tok: token::Token) -> Result<Identifier, Self::Error> {
+        match tok.lexeme {
+            Some(lexeme) => Ok(Identifier::Id(lexeme)),
+            None => Err("cannot convert token to identifier, lexeme not defined"),
+        }
+    }
+}
+
+impl From<&str> for Identifier {
+    fn from(from: &str) -> Identifier {
+        Identifier::Id(from.to_string())
+    }
+}
+
+impl From<String> for Identifier {
+    fn from(from: String) -> Identifier {
+        Identifier::Id(from)
+    }
+}
 
 /// Represents, and encapsulates one of the four types of expressions possible in
 /// lox currently. Further information can be found on each sub-type.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
-    Assignment(token::Token, Box<Expr>),
+    Assignment(Identifier, Box<Expr>),
     Logical(LogicalExpr),
     Equality(EqualityExpr),
     Comparison(ComparisonExpr),
@@ -17,14 +57,14 @@ pub enum Expr {
     Call(Box<Expr>, Vec<Expr>),
     Primary(object::Object),
     Grouping(Box<Expr>),
-    Lambda(Vec<token::Token>, Box<statement::Stmt>),
-    Variable(token::Token),
+    Lambda(Vec<Identifier>, Box<statement::Stmt>),
+    Variable(Identifier),
 }
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Assignment(i, e) => write!(f, "(= {} {})", &i.lexeme.clone().unwrap(), e),
+            Self::Assignment(i, e) => write!(f, "(= {:?} {})", &i, e),
             Self::Logical(e) => write!(f, "{}", &e),
             Self::Equality(e) => write!(f, "{}", &e),
             Self::Comparison(e) => write!(f, "{}", &e),
@@ -33,7 +73,7 @@ impl fmt::Display for Expr {
             Self::Unary(e) => write!(f, "{}", &e),
             Self::Primary(e) => write!(f, "{}", &e),
             Self::Grouping(e) => write!(f, "(Grouping {})", &e),
-            Self::Variable(i) => write!(f, "(Var {})", &i.lexeme.clone().unwrap()),
+            Self::Variable(i) => write!(f, "(Var {:?})", &i),
             Self::Lambda(params, body) => write!(
                 f,
                 "(Lambda ({}) {})",
@@ -292,4 +332,11 @@ impl fmt::Display for UnaryExpr {
             Self::Minus(expr) => write!(f, "(- {})", expr),
         }
     }
+}
+
+#[allow(unused_macros)]
+macro_rules! identifier_id {
+    ($id:expr) => {
+        $crate::ast::expression::Identifier::Id($id.to_string())
+    };
 }

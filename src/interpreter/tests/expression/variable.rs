@@ -6,14 +6,18 @@ use crate::interpreter::StatefulInterpreter;
 #[test]
 fn declaration_statement_should_set_persistent_global_symbol() {
     let interpreter = StatefulInterpreter::new();
-    interpreter.env.define(&"a", obj_number!(1.0));
-    interpreter.env.define(&"b", obj_number!(2.0));
+    interpreter
+        .env
+        .define(&identifier_id!("a"), obj_number!(1.0));
+    interpreter
+        .env
+        .define(&identifier_id!("b"), obj_number!(2.0));
 
     assert_eq!(
         Ok(None),
         interpreter.interpret(vec![Stmt::Expression(Expr::Addition(AdditionExpr::Add(
-            Box::new(Expr::Variable(tok_identifier!("a"))),
-            Box::new(Expr::Variable(tok_identifier!("b"))),
+            Box::new(Expr::Variable(identifier_id!("a"))),
+            Box::new(Expr::Variable(identifier_id!("b"))),
         )))])
     );
 }
