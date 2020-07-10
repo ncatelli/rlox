@@ -1,4 +1,5 @@
-use crate::ast::expression::{Expr, Identifier};
+use crate::ast::expression::Expr;
+use crate::ast::identifier::Identifier;
 use crate::ast::statement::Stmt;
 use crate::functions;
 use crate::interpreter::Interpreter;

@@ -1,4 +1,4 @@
-use crate::ast::expression::Identifier;
+use crate::ast::identifier::Identifier;
 use crate::object;
 use std::cell::RefCell;
 use std::collections::HashMap;
