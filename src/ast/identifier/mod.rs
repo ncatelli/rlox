@@ -30,6 +30,15 @@ impl Identifier {
     }
 }
 
+impl PartialEq<u64> for Identifier {
+    fn eq(&self, other: &u64) -> bool {
+        match self {
+            Self::Hash(h) => *h == *other,
+            _ => false,
+        }
+    }
+}
+
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
