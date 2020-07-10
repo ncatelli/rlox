@@ -1,6 +1,7 @@
 extern crate parcel;
 use super::combinators::token_type;
-use crate::ast::expression::{Expr, Identifier};
+use crate::ast::expression::Expr;
+use crate::ast::identifier::Identifier;
 use crate::ast::statement::Stmt;
 use crate::ast::token::{Token, TokenType};
 use crate::parser::expression_parser::expression;

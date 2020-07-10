@@ -1,4 +1,4 @@
-use crate::ast::expression::Identifier;
+use crate::ast::identifier::Identifier;
 use crate::ast::statement;
 use crate::environment::Environment;
 use crate::interpreter;

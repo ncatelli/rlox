@@ -1,7 +1,7 @@
 use crate::ast::expression::{
-    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, Identifier, LogicalExpr, MultiplicationExpr,
-    UnaryExpr,
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
 };
+use crate::ast::identifier::Identifier;
 use crate::environment::Environment;
 use crate::functions;
 use crate::object::{Literal, Object};

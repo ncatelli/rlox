@@ -1,47 +1,7 @@
+use crate::ast::identifier::Identifier;
 use crate::ast::statement;
-use crate::ast::token;
 use crate::object;
-use std::convert;
 use std::fmt;
-
-/// Identifier functions as a replacement for variable names, offering a raw Id and a Hash.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum Identifier {
-    Hash(String), // todo change this to an actual hash
-    Id(String),
-}
-
-impl fmt::Display for Identifier {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Id(ref s) => write!(f, "{}", s),
-            Self::Hash(ref s) => write!(f, "{}", s),
-        }
-    }
-}
-
-impl convert::TryFrom<token::Token> for Identifier {
-    type Error = &'static str;
-
-    fn try_from(tok: token::Token) -> Result<Identifier, Self::Error> {
-        match tok.lexeme {
-            Some(lexeme) => Ok(Identifier::Id(lexeme)),
-            None => Err("cannot convert token to identifier, lexeme not defined"),
-        }
-    }
-}
-
-impl From<&str> for Identifier {
-    fn from(from: &str) -> Identifier {
-        Identifier::Id(from.to_string())
-    }
-}
-
-impl From<String> for Identifier {
-    fn from(from: String) -> Identifier {
-        Identifier::Id(from)
-    }
-}
 
 /// Represents, and encapsulates one of the four types of expressions possible in
 /// lox currently. Further information can be found on each sub-type.
@@ -332,11 +292,4 @@ impl fmt::Display for UnaryExpr {
             Self::Minus(expr) => write!(f, "(- {})", expr),
         }
     }
-}
-
-#[allow(unused_macros)]
-macro_rules! identifier_id {
-    ($id:expr) => {
-        $crate::ast::expression::Identifier::Id($id.to_string())
-    };
 }
