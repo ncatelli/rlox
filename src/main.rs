@@ -22,7 +22,7 @@ fn main() {
 
     match args_len {
         al if al > 2 => {
-            println!("Usage: jlox [script]");
+            println!("Usage: rlox [script]");
             process::exit(64);
         }
         2 => run_file(&args[1]).expect("Unable to parse file"),

@@ -1,5 +1,7 @@
 use crate::analyzer::SemanticAnalyzer;
-use crate::ast::expression::Expr;
+use crate::ast::expression::{
+    AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
+};
 use crate::ast::identifier::Identifier;
 use crate::environment::Environment;
 use std::cell::Cell;
@@ -47,31 +49,29 @@ impl ScopeAnalyzer {
 
 type ExprSemanticAnalyzerResult = Result<Expr, ScopeAnalyzerErr>;
 
-/// SemanticAnalyzer<Expr, Expr> begins implemententing the required state
-/// for interpreting Expressions in a stateful way.
 impl SemanticAnalyzer<Expr, Expr> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, expr: Expr) -> ExprSemanticAnalyzerResult {
         match expr {
             Expr::Grouping(e) => Ok(Expr::Grouping(Box::new(self.analyze(e)?))),
-            e @ Expr::Lambda(_, _) => Ok(e),
-            e @ Expr::Variable(_) => Ok(e),
+            Expr::Lambda(params, body) => self.analyze_lambda(params, *body),
+            Expr::Variable(id) => self.analyze_variable(id),
             e @ Expr::Primary(_) => Ok(e),
-            e @ Expr::Call(_, _) => Ok(e),
-            e @ Expr::Unary(_) => Ok(e),
-            e @ Expr::Multiplication(_) => Ok(e),
-            e @ Expr::Addition(_) => Ok(e),
-            e @ Expr::Comparison(_) => Ok(e),
-            e @ Expr::Equality(_) => Ok(e),
-            e @ Expr::Logical(_) => Ok(e),
-            Expr::Assignment(id, v) => self.interpret_assignment(id, v),
+            Expr::Call(callee, args) => self.analyze_call(*callee, args),
+            Expr::Unary(expr) => self.analyze_unary(expr),
+            Expr::Multiplication(me) => self.analyze_multiplication(me),
+            Expr::Addition(ae) => self.analyze_addition(ae),
+            Expr::Comparison(ce) => self.analyze_comparison(ce),
+            Expr::Equality(ee) => self.analyze_equality(ee),
+            Expr::Logical(le) => self.analyze_logical(le),
+            Expr::Assignment(id, v) => self.analyze_assignment(id, v),
         }
     }
 }
 
 impl ScopeAnalyzer {
-    fn interpret_assignment(&self, id: Identifier, expr: Box<Expr>) -> ExprSemanticAnalyzerResult {
+    fn analyze_assignment(&self, id: Identifier, expr: Box<Expr>) -> ExprSemanticAnalyzerResult {
         let rhv = self.analyze(expr)?;
 
         match self.env.get(&id) {
@@ -79,219 +79,115 @@ impl ScopeAnalyzer {
             None => Err(ScopeAnalyzerErr::Undefined),
         }
     }
-    /*
-        fn interpret_logical(&self, expr: LogicalExpr) -> ExprInterpreterResult {
-            match expr {
-                LogicalExpr::Or(left, right) => {
-                    let lho: Object = self.interpret(left)?;
-                    let lho_bool: bool = lho.clone().into();
-                    if lho_bool {
-                        Ok(lho)
-                    } else {
-                        self.interpret(right)
-                    }
-                }
-                LogicalExpr::And(left, right) => {
-                    let lho: Object = self.interpret(left)?;
-                    let lho_bool: bool = lho.clone().into();
-                    if !lho_bool {
-                        Ok(lho)
-                    } else {
-                        self.interpret(right)
-                    }
-                }
-            }
+
+    fn analyze_logical(&self, expr: LogicalExpr) -> ExprSemanticAnalyzerResult {
+        Ok(Expr::Logical(match expr {
+            LogicalExpr::Or(left, right) => LogicalExpr::Or(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+            LogicalExpr::And(left, right) => LogicalExpr::And(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+        }))
+    }
+
+    fn analyze_equality(&self, expr: EqualityExpr) -> ExprSemanticAnalyzerResult {
+        Ok(Expr::Equality(match expr {
+            EqualityExpr::Equal(left, right) => EqualityExpr::Equal(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+            EqualityExpr::NotEqual(left, right) => EqualityExpr::NotEqual(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+        }))
+    }
+
+    fn analyze_comparison(&self, expr: ComparisonExpr) -> ExprSemanticAnalyzerResult {
+        Ok(Expr::Comparison(match expr {
+            ComparisonExpr::Greater(left, right) => ComparisonExpr::Greater(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+            ComparisonExpr::GreaterEqual(left, right) => ComparisonExpr::GreaterEqual(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+            ComparisonExpr::Less(left, right) => ComparisonExpr::Less(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+            ComparisonExpr::LessEqual(left, right) => ComparisonExpr::LessEqual(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+        }))
+    }
+
+    fn analyze_addition(&self, expr: AdditionExpr) -> ExprSemanticAnalyzerResult {
+        Ok(Expr::Addition(match expr {
+            AdditionExpr::Add(left, right) => AdditionExpr::Add(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+            AdditionExpr::Subtract(left, right) => AdditionExpr::Subtract(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+        }))
+    }
+
+    fn analyze_multiplication(&self, expr: MultiplicationExpr) -> ExprSemanticAnalyzerResult {
+        Ok(Expr::Multiplication(match expr {
+            MultiplicationExpr::Multiply(left, right) => MultiplicationExpr::Multiply(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+            MultiplicationExpr::Divide(left, right) => MultiplicationExpr::Divide(
+                Box::new(self.analyze(left)?),
+                Box::new(self.analyze(right)?),
+            ),
+        }))
+    }
+
+    fn analyze_unary(&self, expr: UnaryExpr) -> ExprSemanticAnalyzerResult {
+        Ok(Expr::Unary(match expr {
+            UnaryExpr::Bang(expr) => UnaryExpr::Bang(Box::new(self.analyze(expr)?)),
+            UnaryExpr::Minus(expr) => UnaryExpr::Minus(Box::new(self.analyze(expr)?)),
+        }))
+    }
+
+    fn analyze_call(&self, callee: Expr, args: Vec<Expr>) -> ExprSemanticAnalyzerResult {
+        let analyzed_callee = self.analyze(callee)?;
+        let mut analyzed_args: Vec<Expr> = Vec::new();
+
+        for arg in args {
+            analyzed_args.push(self.analyze(arg)?);
         }
 
-        fn interpret_equality(&self, expr: EqualityExpr) -> ExprInterpreterResult {
-            match expr {
-                EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
-                {
-                    (
-                        Ok(Object::Literal(Literal::Number(l_val))),
-                        Ok(Object::Literal(Literal::Number(r_val))),
-                    ) => Ok(obj_bool!((l_val - r_val).abs() < std::f64::EPSILON)),
-                    (
-                        Ok(Object::Literal(Literal::Str(l_val))),
-                        Ok(Object::Literal(Literal::Str(r_val))),
-                    ) => Ok(obj_bool!(l_val == r_val)),
-                    (Ok(l), Ok(r)) => type_error!(l, "==", r),
-                    _ => type_error!(),
-                },
-                EqualityExpr::NotEqual(left, right) => {
-                    match (self.interpret(left), self.interpret(right)) {
-                        (
-                            Ok(Object::Literal(Literal::Number(l_val))),
-                            Ok(Object::Literal(Literal::Number(r_val))),
-                        ) => Ok(obj_bool!((l_val - r_val).abs() > std::f64::EPSILON)),
-                        (
-                            Ok(Object::Literal(Literal::Str(l_val))),
-                            Ok(Object::Literal(Literal::Str(r_val))),
-                        ) => Ok(obj_bool!(l_val != r_val)),
-                        (Ok(l), Ok(r)) => type_error!(l, "!=", r),
-                        _ => type_error!(),
-                    }
-                }
-            }
+        Ok(Expr::Call(Box::new(analyzed_callee), analyzed_args))
+    }
+
+    fn analyze_lambda(&self, params: Vec<Identifier>, body: Stmt) -> ExprSemanticAnalyzerResult {
+        let body_analyzer = self.from(Environment::from(&self.env));
+        let param_ids: Vec<Identifier> = params
+            .into_iter()
+            .map(|param| body_analyzer.declare_or_assign(param))
+            .collect();
+        let analyzed_body = body_analyzer.analyze(body)?;
+
+        Ok(Expr::Lambda(param_ids, Box::new(analyzed_body)))
+    }
+
+    fn analyze_variable(&self, id: Identifier) -> ExprSemanticAnalyzerResult {
+        match self.env.get(&id) {
+            Some(offset) => Ok(Expr::Variable(Identifier::Id(offset))),
+            None => Err(ScopeAnalyzerErr::Undefined),
         }
-
-        fn interpret_comparison(&self, expr: ComparisonExpr) -> ExprInterpreterResult {
-            match expr {
-                ComparisonExpr::Less(left, right) => {
-                    match (self.interpret(left), self.interpret(right)) {
-                        (
-                            Ok(Object::Literal(Literal::Number(l_val))),
-                            Ok(Object::Literal(Literal::Number(r_val))),
-                        ) => Ok(obj_bool!(l_val < r_val)),
-                        (Ok(l), Ok(r)) => type_error!(l, "<", r),
-                        _ => type_error!(),
-                    }
-                }
-                ComparisonExpr::LessEqual(left, right) => {
-                    match (self.interpret(left), self.interpret(right)) {
-                        (
-                            Ok(Object::Literal(Literal::Number(l_val))),
-                            Ok(Object::Literal(Literal::Number(r_val))),
-                        ) => Ok(obj_bool!(l_val <= r_val)),
-                        (Ok(l), Ok(r)) => type_error!(l, "<=", r),
-                        _ => type_error!(),
-                    }
-                }
-                ComparisonExpr::Greater(left, right) => {
-                    match (self.interpret(left), self.interpret(right)) {
-                        (
-                            Ok(Object::Literal(Literal::Number(l_val))),
-                            Ok(Object::Literal(Literal::Number(r_val))),
-                        ) => Ok(obj_bool!(l_val > r_val)),
-                        (Ok(l), Ok(r)) => type_error!(l, ">", r),
-                        _ => type_error!(),
-                    }
-                }
-                ComparisonExpr::GreaterEqual(left, right) => {
-                    match (self.interpret(left), self.interpret(right)) {
-                        (
-                            Ok(Object::Literal(Literal::Number(l_val))),
-                            Ok(Object::Literal(Literal::Number(r_val))),
-                        ) => Ok(obj_bool!(l_val >= r_val)),
-                        (Ok(l), Ok(r)) => type_error!(l, ">=", r),
-                        _ => type_error!(),
-                    }
-                }
-            }
-        }
-
-        fn interpret_addition(&self, expr: AdditionExpr) -> ExprInterpreterResult {
-            match expr {
-                AdditionExpr::Add(left, right) => match (self.interpret(left), self.interpret(right)) {
-                    (
-                        Ok(Object::Literal(Literal::Number(l_val))),
-                        Ok(Object::Literal(Literal::Number(r_val))),
-                    ) => Ok(obj_number!(l_val + r_val)),
-                    (
-                        Ok(Object::Literal(Literal::Str(l_val))),
-                        Ok(Object::Literal(Literal::Str(r_val))),
-                    ) => Ok(obj_str!(format!("{}{}", l_val, r_val))),
-                    (Ok(l), Ok(r)) => type_error!(l, "+", r),
-                    _ => type_error!(),
-                },
-                AdditionExpr::Subtract(left, right) => {
-                    match (self.interpret(left), self.interpret(right)) {
-                        (
-                            Ok(Object::Literal(Literal::Number(l_val))),
-                            Ok(Object::Literal(Literal::Number(r_val))),
-                        ) => Ok(obj_number!(l_val - r_val)),
-                        (Ok(l), Ok(r)) => type_error!(l, "-", r),
-                        _ => type_error!(),
-                    }
-                }
-            }
-        }
-
-        fn interpret_multiplication(&self, expr: MultiplicationExpr) -> ExprInterpreterResult {
-            match expr {
-                MultiplicationExpr::Multiply(left, right) => {
-                    match (self.interpret(left), self.interpret(right)) {
-                        (
-                            Ok(Object::Literal(Literal::Number(l_val))),
-                            Ok(Object::Literal(Literal::Number(r_val))),
-                        ) => Ok(obj_number!(l_val * r_val)),
-                        (Ok(l), Ok(r)) => type_error!(l, "*", r),
-                        _ => type_error!(),
-                    }
-                }
-                MultiplicationExpr::Divide(left, right) => {
-                    match (self.interpret(left), self.interpret(right)) {
-                        (
-                            Ok(Object::Literal(Literal::Number(l_val))),
-                            Ok(Object::Literal(Literal::Number(r_val))),
-                        ) => Ok(obj_number!(l_val / r_val)),
-                        (Ok(l), Ok(r)) => type_error!(l, "/", r),
-                        _ => type_error!(),
-                    }
-                }
-            }
-        }
-
-        fn interpret_unary(&self, expr: UnaryExpr) -> ExprInterpreterResult {
-            match expr {
-                UnaryExpr::Bang(ue) => match self.interpret(ue) {
-                    Ok(obj) => {
-                        let ob: bool = obj.into();
-                        Ok(obj_bool!(!ob))
-                    }
-                    e @ Err(_) => e,
-                },
-                UnaryExpr::Minus(ue) => match self.interpret(ue) {
-                    Ok(Object::Literal(Literal::Number(n))) => Ok(obj_number!(n * -1.0)),
-                    e @ Err(_) => e,
-                    _ => type_error!(),
-                },
-            }
-        }
-
-        fn interpret_call(&self, callee: Expr, args: Vec<Expr>) -> ExprInterpreterResult {
-            let fun = self.interpret(callee).map(|obj_res| obj_res)?;
-            let params: Vec<Object> = args
-                .into_iter()
-                .map(|expr| self.interpret(expr).unwrap())
-                .collect();
-
-            let c = match fun {
-                Object::Call(c) => Ok(c),
-                _ => Err(ExprInterpreterErr::CallErr(format!(
-                    "object {} is not callable",
-                    fun
-                ))),
-            }?;
-
-            match c.call(self.env.clone(), params) {
-                Ok(r) => Ok(r),
-                Err(e) => Err(ExprInterpreterErr::CallErr(format!("{:?}", e))),
-            }
-        }
-
-        fn interpret_lambda(&self, params: Vec<Identifier>, body: Stmt) -> ExprInterpreterResult {
-            let func = functions::Function::new(self.env.clone(), params, body);
-            let callable = functions::Callable::Func(func);
-            let obj = Object::Call(Box::new(callable));
-
-            Ok(obj)
-        }
-
-        fn interpret_primary(&self, obj: Object) -> ExprInterpreterResult {
-            Ok(obj)
-        }
-
-        fn interpret_variable(&self, identifier: Identifier) -> ExprInterpreterResult {
-            match self.env.get(&identifier) {
-                Some(v) => Ok(v),
-                None => Err(ExprInterpreterErr::UndefinedVariable(format!(
-                    "{:?}",
-                    &identifier
-                ))),
-            }
-        }
-    */
+    }
 }
 
 impl SemanticAnalyzer<Box<Expr>, Expr> for ScopeAnalyzer {
