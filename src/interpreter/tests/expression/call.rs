@@ -15,14 +15,14 @@ fn should_return_ok_on_success() {
     );
 
     interpreter.env.define(
-        &identifier_id!("a"),
+        &identifier_name!("a"),
         obj_call!(Box::new(functions::Callable::Func(f))),
     );
 
     assert_eq!(
         Ok(None),
         interpreter.interpret(vec![Stmt::Expression(Expr::Call(
-            Box::new(Expr::Variable(identifier_id!("a"))),
+            Box::new(Expr::Variable(identifier_name!("a"))),
             vec![]
         ))])
     );
@@ -39,7 +39,7 @@ fn should_throw_error_on_arity_mismatch() {
     );
 
     interpreter.env.define(
-        &identifier_id!("a"),
+        &identifier_name!("a"),
         obj_call!(Box::new(functions::Callable::Func(f))),
     );
 
@@ -48,7 +48,7 @@ fn should_throw_error_on_arity_mismatch() {
             "Arity".to_string()
         ))),
         interpreter.interpret(vec![Stmt::Expression(Expr::Call(
-            Box::new(Expr::Variable(identifier_id!("a"))),
+            Box::new(Expr::Variable(identifier_name!("a"))),
             vec![Expr::Primary(obj_number!(5.0))]
         ))])
     );

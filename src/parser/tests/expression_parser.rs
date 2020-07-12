@@ -31,7 +31,7 @@ fn should_parse_assignment_expression() {
         Ok(MatchStatus::Match((
             &input[3..],
             Expr::Assignment(
-                identifier_id!("test"),
+                identifier_name!("test"),
                 Box::new(Expr::Primary(obj_number!(1.0)))
             )
         ))),
@@ -338,7 +338,7 @@ fn should_parse_call_expression_with_single_arg() {
         Ok(MatchStatus::Match((
             &input[4..],
             Expr::Call(
-                Box::new(Expr::Variable(identifier_id!("testfunc"),)),
+                Box::new(Expr::Variable(identifier_name!("testfunc"),)),
                 vec![Expr::Primary(obj_bool!(true))]
             )
         ))),
@@ -361,7 +361,7 @@ fn should_parse_call_expression_with_multiple_arg() {
         Ok(MatchStatus::Match((
             &input[6..],
             Expr::Call(
-                Box::new(Expr::Variable(identifier_id!("testfunc"),)),
+                Box::new(Expr::Variable(identifier_name!("testfunc"),)),
                 vec![
                     Expr::Primary(obj_bool!(true)),
                     Expr::Primary(obj_bool!(false))
@@ -415,7 +415,7 @@ fn should_parse_lambda_expression_with_parameters() {
         Ok(MatchStatus::Match((
             &input[8..],
             Expr::Lambda(
-                vec![identifier_id!("arg_one"),],
+                vec![identifier_name!("arg_one"),],
                 Box::new(Stmt::Block(vec![Stmt::Expression(Expr::Primary(
                     obj_number!(5.0)
                 ))]))

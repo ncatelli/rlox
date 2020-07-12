@@ -3,7 +3,7 @@ use crate::ast::statement;
 use crate::environment::Environment;
 use crate::interpreter;
 use crate::interpreter::Interpreter;
-use crate::object;
+use crate::object::Object;
 use std::fmt;
 use std::rc::Rc;
 
@@ -28,7 +28,7 @@ impl fmt::Display for CallError {
 }
 
 /// CallResult wraps an object or error return value on a call.
-type CallResult = Result<object::Object, CallError>;
+type CallResult = Result<Object, CallError>;
 
 /// Callable represents a callable function, whether static or runtime,
 /// providing methods for invoking and checking the arity of the method.
@@ -53,7 +53,7 @@ impl Callable {
     }
 
     /// Call attempts to invoke each correspondings call method.
-    pub fn call(&self, env: Rc<Environment>, args: Vec<object::Object>) -> CallResult {
+    pub fn call(&self, env: Rc<Environment<Identifier, Object>>, args: Vec<Object>) -> CallResult {
         let arity_match = self.arity() == args.len();
 
         match (arity_match, self) {
@@ -67,13 +67,17 @@ impl Callable {
 /// Function represents a lox runtime function.
 #[derive(Debug, Clone)]
 pub struct Function {
-    closure: Rc<Environment>,
+    closure: Rc<Environment<Identifier, Object>>,
     params: Vec<Identifier>,
     body: statement::Stmt,
 }
 
 impl Function {
-    pub fn new(closure: Rc<Environment>, params: Vec<Identifier>, body: statement::Stmt) -> Self {
+    pub fn new(
+        closure: Rc<Environment<Identifier, Object>>,
+        params: Vec<Identifier>,
+        body: statement::Stmt,
+    ) -> Self {
         Function {
             closure,
             params,
@@ -85,7 +89,7 @@ impl Function {
         self.params.len()
     }
 
-    pub fn call(&self, _env: Rc<Environment>, args: Vec<object::Object>) -> CallResult {
+    pub fn call(&self, _env: Rc<Environment<Identifier, Object>>, args: Vec<Object>) -> CallResult {
         let local = Environment::from(&self.closure);
         for (ident, arg) in self.params.iter().zip(args.into_iter()) {
             local.define(&ident, arg.clone());
@@ -108,7 +112,7 @@ impl PartialEq for Function {
 /// StaticFuncCallback is a type that all static functions must implement. This
 /// type takes an environment and a vector of objects, representing arguments for
 /// use at call time.
-type StaticFuncCallback = fn(Rc<Environment>, Vec<object::Object>) -> object::Object;
+type StaticFuncCallback = fn(Rc<Environment<Identifier, Object>>, Vec<Object>) -> Object;
 
 /// StaticFunc represents a static function to be called at a later date.
 #[derive(Debug, Clone, PartialEq)]
@@ -117,7 +121,7 @@ pub struct StaticFunc {
 }
 
 impl StaticFunc {
-    pub fn new(func: fn(Rc<Environment>, args: Vec<object::Object>) -> object::Object) -> Self {
+    pub fn new(func: fn(Rc<Environment<Identifier, Object>>, args: Vec<Object>) -> Object) -> Self {
         Self { func }
     }
 
@@ -125,7 +129,7 @@ impl StaticFunc {
         0
     }
 
-    pub fn call(&self, env: Rc<Environment>, args: Vec<object::Object>) -> CallResult {
+    pub fn call(&self, env: Rc<Environment<Identifier, Object>>, args: Vec<Object>) -> CallResult {
         Ok((self.func)(env, args))
     }
 }
