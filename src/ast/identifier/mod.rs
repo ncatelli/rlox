@@ -5,10 +5,11 @@ use std::fmt;
 #[cfg(test)]
 mod tests;
 
-/// Identifier functions as a replacement for variable names, offering a raw Id and a Hash.
+/// Identifier functions as a replacement for variable names, offering a raw
+/// name corresponding to a variable name, and an Id functioning as a numeric
+/// reference.
 #[derive(Debug, PartialEq, Hash, Eq, Clone)]
 pub enum Identifier {
-    Hash(u64), // todo change this to an actual hash
     Name(String),
     Id(u64),
 }
@@ -16,7 +17,7 @@ pub enum Identifier {
 impl PartialEq<u64> for Identifier {
     fn eq(&self, other: &u64) -> bool {
         match self {
-            Self::Hash(h) => *h == *other,
+            Self::Id(h) => *h == *other,
             _ => false,
         }
     }
@@ -26,7 +27,6 @@ impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Name(ref s) => write!(f, "{}", s),
-            Self::Hash(ref s) => write!(f, "{}", s),
             Self::Id(ref u) => write!(f, "{}", u),
         }
     }
