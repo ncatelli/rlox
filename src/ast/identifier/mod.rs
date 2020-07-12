@@ -1,33 +1,16 @@
 use crate::ast::token;
-use std::collections::hash_map::DefaultHasher;
 use std::convert;
 use std::fmt;
-use std::hash::Hasher;
 
 #[cfg(test)]
 mod tests;
 
 /// Identifier functions as a replacement for variable names, offering a raw Id and a Hash.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Hash, Eq, Clone)]
 pub enum Identifier {
     Hash(u64), // todo change this to an actual hash
     Name(String),
-}
-
-impl Identifier {
-    /// to_hash will always return a Hash variant. If the type is already a
-    /// Hash, it will return itself. Otherwise the value of the Id variant will
-    /// be hashed and returned via the Hash variant.
-    pub fn to_hash(self) -> Self {
-        match self {
-            s @ Self::Hash(_) => s,
-            Self::Name(name) => {
-                let mut hasher = DefaultHasher::new();
-                hasher.write(&name.into_bytes());
-                Self::Hash(hasher.finish())
-            }
-        }
-    }
+    Id(u64),
 }
 
 impl PartialEq<u64> for Identifier {
@@ -44,6 +27,7 @@ impl fmt::Display for Identifier {
         match self {
             Self::Name(ref s) => write!(f, "{}", s),
             Self::Hash(ref s) => write!(f, "{}", s),
+            Self::Id(ref u) => write!(f, "{}", u),
         }
     }
 }
