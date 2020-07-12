@@ -8,7 +8,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub fn define_statics() -> Rc<Environment<Identifier, Object>> {
     let glbls = Environment::new();
     glbls.define(
-        &identifier_id!("clock"),
+        &identifier_name!("clock"),
         obj_call!(Box::new(functions::Callable::Static(
             functions::StaticFunc::new(clock)
         ))),

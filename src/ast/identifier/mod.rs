@@ -11,11 +11,11 @@ mod tests;
 #[derive(Debug, PartialEq, Hash, Eq, Clone)]
 pub enum Identifier {
     Name(String),
-    Id(u64),
+    Id(usize),
 }
 
-impl PartialEq<u64> for Identifier {
-    fn eq(&self, other: &u64) -> bool {
+impl PartialEq<usize> for Identifier {
+    fn eq(&self, other: &usize) -> bool {
         match self {
             Self::Id(h) => *h == *other,
             _ => false,
@@ -56,8 +56,15 @@ impl From<String> for Identifier {
 }
 
 #[allow(unused_macros)]
+macro_rules! identifier_name {
+    ($name:expr) => {
+        $crate::ast::identifier::Identifier::Name($name.to_string())
+    };
+}
+
+#[allow(unused_macros)]
 macro_rules! identifier_id {
     ($id:expr) => {
-        $crate::ast::identifier::Identifier::Name($id.to_string())
+        $crate::ast::identifier::Identifier::Id($id)
     };
 }

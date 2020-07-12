@@ -1,6 +1,10 @@
 use crate::analyzer::SemanticAnalyzer;
 use crate::ast::expression::Expr;
+use crate::ast::identifier::Identifier;
+use crate::environment::Environment;
+use std::cell::Cell;
 use std::fmt;
+use std::rc::Rc;
 
 #[cfg(test)]
 mod tests;
@@ -8,22 +12,36 @@ mod tests;
 #[derive(PartialEq, Debug)]
 pub enum ScopeAnalyzerErr {
     Undefined,
+    TypeMismatch,
 }
 
 impl fmt::Display for ScopeAnalyzerErr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Undefined => write!(f, "undefined error"),
+            Self::TypeMismatch => write!(f, "invalid type passed to analyzer method"),
         }
     }
 }
 
-#[derive(Default)]
-pub struct ScopeAnalyzer {}
+pub struct ScopeAnalyzer {
+    pub offset: Cell<usize>,
+    pub env: Rc<Environment<Identifier, usize>>,
+}
 
 impl ScopeAnalyzer {
     pub fn new() -> ScopeAnalyzer {
-        ScopeAnalyzer {}
+        ScopeAnalyzer {
+            offset: Cell::new(0),
+            env: Environment::new(),
+        }
+    }
+
+    pub fn from(&self, env: Rc<Environment<Identifier, usize>>) -> ScopeAnalyzer {
+        ScopeAnalyzer {
+            offset: Cell::new(self.offset.get()),
+            env: env,
+        }
     }
 }
 
@@ -61,25 +79,12 @@ impl SemanticAnalyzer<Box<Expr>, Expr> for ScopeAnalyzer {
 
 use crate::ast::statement::Stmt;
 
-#[derive(PartialEq, Debug)]
-pub enum StmtScopeAnalyzerErr {
-    Unspecified,
-}
-
-impl fmt::Display for StmtScopeAnalyzerErr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Unspecified => write!(f, "unspecified statement error"),
-        }
-    }
-}
-
-pub type StmtSemanticAnalyzerResult = Result<Stmt, StmtScopeAnalyzerErr>;
+pub type StmtSemanticAnalyzerResult = Result<Stmt, ScopeAnalyzerErr>;
 
 impl SemanticAnalyzer<Vec<Stmt>, Vec<Stmt>> for ScopeAnalyzer {
-    type Error = StmtScopeAnalyzerErr;
+    type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: Vec<Stmt>) -> Result<Vec<Stmt>, StmtScopeAnalyzerErr> {
+    fn analyze(&self, input: Vec<Stmt>) -> Result<Vec<Stmt>, ScopeAnalyzerErr> {
         let mut output: Vec<Stmt> = Vec::new();
         for stmt in input {
             match self.analyze(stmt) {
@@ -92,7 +97,7 @@ impl SemanticAnalyzer<Vec<Stmt>, Vec<Stmt>> for ScopeAnalyzer {
 }
 
 impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
-    type Error = StmtScopeAnalyzerErr;
+    type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, input: Stmt) -> StmtSemanticAnalyzerResult {
         match input {
@@ -101,19 +106,40 @@ impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
             s @ Stmt::While(_, _) => Ok(s),
             s @ Stmt::Print(_) => Ok(s),
             s @ Stmt::Function(_, _, _) => Ok(s),
-            s @ Stmt::Declaration(_, _) => Ok(s),
+            Stmt::Declaration(id, expr) => self.analyze_declaration(id, expr),
             s @ Stmt::Return(_) => Ok(s),
-            s @ Stmt::Block(_) => Ok(s),
+            Stmt::Block(stmts) => self.analyze_block(stmts),
         }
     }
 }
 
 /// This functions only to unpack an Stmt and dispatch to the upstream SemanticAnalyzer<Stmt, Stmt)> implementation
 impl SemanticAnalyzer<Box<Stmt>, Stmt> for ScopeAnalyzer {
-    type Error = StmtScopeAnalyzerErr;
+    type Error = ScopeAnalyzerErr;
     fn analyze(&self, input: Box<Stmt>) -> StmtSemanticAnalyzerResult {
         self.analyze(*input)
     }
 }
 
-impl ScopeAnalyzer {}
+impl ScopeAnalyzer {
+    fn analyze_block(&self, stmts: Vec<Stmt>) -> StmtSemanticAnalyzerResult {
+        let block_analyzer = self.from(Environment::from(&self.env));
+        Ok(Stmt::Block(block_analyzer.analyze(stmts)?))
+    }
+
+    fn analyze_declaration(&self, id: Identifier, expr: Expr) -> StmtSemanticAnalyzerResult {
+        match self.analyze(expr) {
+            Ok(e) => {
+                if self.env.has_key(&id) {
+                    let offset = self.env.get(&id).unwrap();
+                    Ok(Stmt::Declaration(Identifier::Id(offset), e))
+                } else {
+                    let offset = self.offset.get();
+                    self.env.define(&id, self.offset.replace(offset + 1));
+                    Ok(Stmt::Declaration(Identifier::Id(offset), e))
+                }
+            }
+            Err(e) => Err(e),
+        }
+    }
+}

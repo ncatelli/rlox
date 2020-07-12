@@ -30,6 +30,13 @@ impl<K, V> Environment<K, V> {
         })
     }
 
+    pub fn has_key(&self, name: &K) -> bool
+    where
+        K: Eq + Hash + Clone,
+    {
+        self.symbols_table.borrow().contains_key(name)
+    }
+
     pub fn assign(&self, name: &K, value: V) -> Option<V>
     where
         K: Eq + Hash + Clone,

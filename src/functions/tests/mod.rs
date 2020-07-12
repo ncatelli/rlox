@@ -30,10 +30,14 @@ fn arity_should_return_the_number_of_params_declared() {
     assert_eq!(0, gen_callable!(gen_func!()).arity());
     assert_eq!(
         1,
-        gen_callable!(gen_func!(vec![identifier_id!("a"),])).arity()
+        gen_callable!(gen_func!(vec![identifier_name!("a"),])).arity()
     );
     assert_eq!(
         2,
-        gen_callable!(gen_func!(vec![identifier_id!("a"), identifier_id!("b")])).arity()
+        gen_callable!(gen_func!(vec![
+            identifier_name!("a"),
+            identifier_name!("b")
+        ]))
+        .arity()
     );
 }

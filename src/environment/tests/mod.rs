@@ -7,7 +7,7 @@ use std::rc::Rc;
 #[test]
 fn environment_should_allow_setting_of_symbols() {
     let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
-    let key = identifier_id!("test");
+    let key = identifier_name!("test");
 
     // unset var returns None
     assert_eq!(
@@ -24,7 +24,7 @@ fn environment_should_allow_setting_of_symbols() {
 #[test]
 fn environment_should_allow_getting_of_symbols() {
     let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
-    let key = identifier_id!("key");
+    let key = identifier_name!("key");
 
     assert_eq!(
         symtable.define(&key, obj_bool!(true)),
@@ -37,7 +37,7 @@ fn environment_should_allow_getting_of_symbols() {
 #[test]
 fn environment_should_return_none_if_assign_of_undefined_symbol() {
     let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
-    let key = identifier_id!("test");
+    let key = identifier_name!("test");
 
     // unset var returns None
     assert_eq!(symtable.assign(&key, obj_bool!(true)), Option::None);
@@ -46,7 +46,7 @@ fn environment_should_return_none_if_assign_of_undefined_symbol() {
 #[test]
 fn environment_should_return_some_if_assign_of_undefined_symbol() {
     let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
-    let key = identifier_id!("test");
+    let key = identifier_name!("test");
 
     symtable.define(&key, obj_bool!(true));
 
@@ -82,7 +82,7 @@ fn new_child_environment_should_have_a_parent() {
 fn child_environment_should_be_able_to_reference_parent_symbols() {
     let parent: Rc<Environment<Identifier, Object>> = Environment::new();
     let child = Environment::from(&parent);
-    let key = identifier_id!("test");
+    let key = identifier_name!("test");
 
     parent.define(&key, obj_bool!(true));
 
@@ -93,7 +93,7 @@ fn child_environment_should_be_able_to_reference_parent_symbols() {
 fn child_environment_should_be_able_to_assign_symbols_to_parents() {
     let parent: Rc<Environment<Identifier, Object>> = Environment::new();
     let child = Environment::from(&parent);
-    let key = identifier_id!("test");
+    let key = identifier_name!("test");
 
     parent.define(&key, obj_bool!(true));
     child.assign(&key, obj_bool!(false));
