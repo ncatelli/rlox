@@ -12,7 +12,7 @@ fn should_convert_identfier_token_with_lexeme_to_identfier() {
     );
 
     assert_eq!(
-        Ok(Identifier::Id("test".to_string())),
+        Ok(Identifier::Name("test".to_string())),
         Identifier::try_from(tok)
     )
 }
@@ -45,15 +45,15 @@ fn to_hash_returns_itself_if_variant_is_a_hash() {
 
 #[test]
 fn to_hash_should_convert_an_id_to_a_matching_value() {
-    let id = Identifier::Id("test".to_string());
+    let id = Identifier::Name("test".to_string());
 
     assert_eq!(Identifier::Hash(16183295663280961421), id.to_hash())
 }
 
 #[test]
 fn two_id_identfiers_with_same_value_should_generate_the_same_hash() {
-    let id_one = Identifier::Id("test".to_string());
-    let id_two = Identifier::Id("test".to_string());
+    let id_one = Identifier::Name("test".to_string());
+    let id_two = Identifier::Name("test".to_string());
 
     assert_eq!(id_one.to_hash(), id_two.to_hash())
 }

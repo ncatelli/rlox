@@ -11,7 +11,7 @@ mod tests;
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum Identifier {
     Hash(u64), // todo change this to an actual hash
-    Id(String),
+    Name(String),
 }
 
 impl Identifier {
@@ -21,9 +21,9 @@ impl Identifier {
     pub fn to_hash(self) -> Self {
         match self {
             s @ Self::Hash(_) => s,
-            Self::Id(id) => {
+            Self::Name(name) => {
                 let mut hasher = DefaultHasher::new();
-                hasher.write(&id.into_bytes());
+                hasher.write(&name.into_bytes());
                 Self::Hash(hasher.finish())
             }
         }
@@ -42,7 +42,7 @@ impl PartialEq<u64> for Identifier {
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Id(ref s) => write!(f, "{}", s),
+            Self::Name(ref s) => write!(f, "{}", s),
             Self::Hash(ref s) => write!(f, "{}", s),
         }
     }
@@ -53,7 +53,7 @@ impl convert::TryFrom<token::Token> for Identifier {
 
     fn try_from(tok: token::Token) -> Result<Identifier, Self::Error> {
         match (tok.token_type, tok.lexeme) {
-            (token::TokenType::Identifier, Some(lexeme)) => Ok(Identifier::Id(lexeme)),
+            (token::TokenType::Identifier, Some(lexeme)) => Ok(Identifier::Name(lexeme)),
             _ => Err("cannot convert token to identifier, lexeme not defined"),
         }
     }
@@ -61,19 +61,19 @@ impl convert::TryFrom<token::Token> for Identifier {
 
 impl From<&str> for Identifier {
     fn from(from: &str) -> Identifier {
-        Identifier::Id(from.to_string())
+        Identifier::Name(from.to_string())
     }
 }
 
 impl From<String> for Identifier {
     fn from(from: String) -> Identifier {
-        Identifier::Id(from)
+        Identifier::Name(from)
     }
 }
 
 #[allow(unused_macros)]
 macro_rules! identifier_id {
     ($id:expr) => {
-        $crate::ast::identifier::Identifier::Id($id.to_string())
+        $crate::ast::identifier::Identifier::Name($id.to_string())
     };
 }
