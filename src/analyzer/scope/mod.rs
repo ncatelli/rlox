@@ -102,7 +102,7 @@ impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
     fn analyze(&self, input: Stmt) -> StmtSemanticAnalyzerResult {
         match input {
             Stmt::Expression(e) => Ok(Stmt::Expression(self.analyze(e)?)),
-            s @ Stmt::If(_, _, _) => Ok(s),
+            Stmt::If(cond, tb, eb) => self.analyze_if(cond, tb, eb),
             Stmt::While(e, b) => Ok(Stmt::While(self.analyze(e)?, Box::new(self.analyze(b)?))),
             Stmt::Print(e) => Ok(Stmt::Print(self.analyze(e)?)),
             s @ Stmt::Function(_, _, _) => Ok(s),
@@ -125,6 +125,22 @@ impl ScopeAnalyzer {
     fn analyze_block(&self, stmts: Vec<Stmt>) -> StmtSemanticAnalyzerResult {
         let block_analyzer = self.from(Environment::from(&self.env));
         Ok(Stmt::Block(block_analyzer.analyze(stmts)?))
+    }
+
+    fn analyze_if(
+        &self,
+        cond: Expr,
+        tb: Box<Stmt>,
+        eb: Option<Box<Stmt>>,
+    ) -> StmtSemanticAnalyzerResult {
+        let c = self.analyze(cond)?;
+        let then_branch = Box::new(self.analyze(tb)?);
+        let else_branch = match eb {
+            Some(branch) => Some(Box::new(self.analyze(branch)?)),
+            None => None,
+        };
+
+        Ok(Stmt::If(c, then_branch, else_branch))
     }
 
     fn analyze_declaration(&self, id: Identifier, expr: Expr) -> StmtSemanticAnalyzerResult {

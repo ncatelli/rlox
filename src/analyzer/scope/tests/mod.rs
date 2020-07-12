@@ -110,7 +110,7 @@ fn function_declaration_statement_should_return_self() {
 
 #[test]
 fn if_statement_should_return_self() {
-    let stmts = vec![Stmt::If(
+    let input = vec![Stmt::If(
         Expr::Primary(obj_bool!(true)),
         Box::new(Stmt::Declaration(
             identifier_name!("test"),
@@ -122,7 +122,19 @@ fn if_statement_should_return_self() {
         ))),
     )];
 
-    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().analyze(stmts));
+    let output = vec![Stmt::If(
+        Expr::Primary(obj_bool!(true)),
+        Box::new(Stmt::Declaration(
+            identifier_id!(0),
+            Expr::Primary(obj_bool!(true)),
+        )),
+        Option::Some(Box::new(Stmt::Declaration(
+            identifier_id!(0),
+            Expr::Primary(obj_bool!(false)),
+        ))),
+    )];
+
+    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input));
 }
 
 #[test]
