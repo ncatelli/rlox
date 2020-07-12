@@ -54,7 +54,7 @@ impl SemanticAnalyzer<Expr, Expr> for ScopeAnalyzer {
 
     fn analyze(&self, expr: Expr) -> ExprSemanticAnalyzerResult {
         match expr {
-            e @ Expr::Grouping(_) => Ok(e),
+            Expr::Grouping(e) => Ok(Expr::Grouping(Box::new(self.analyze(e)?))),
             e @ Expr::Lambda(_, _) => Ok(e),
             e @ Expr::Variable(_) => Ok(e),
             e @ Expr::Primary(_) => Ok(e),
@@ -65,9 +65,233 @@ impl SemanticAnalyzer<Expr, Expr> for ScopeAnalyzer {
             e @ Expr::Comparison(_) => Ok(e),
             e @ Expr::Equality(_) => Ok(e),
             e @ Expr::Logical(_) => Ok(e),
-            e @ Expr::Assignment(_, _) => Ok(e),
+            Expr::Assignment(id, v) => self.interpret_assignment(id, v),
         }
     }
+}
+
+impl ScopeAnalyzer {
+    fn interpret_assignment(&self, id: Identifier, expr: Box<Expr>) -> ExprSemanticAnalyzerResult {
+        let rhv = self.analyze(expr)?;
+
+        match self.env.get(&id) {
+            Some(offset) => Ok(Expr::Assignment(Identifier::Id(offset), Box::new(rhv))),
+            None => Err(ScopeAnalyzerErr::Undefined),
+        }
+    }
+    /*
+        fn interpret_logical(&self, expr: LogicalExpr) -> ExprInterpreterResult {
+            match expr {
+                LogicalExpr::Or(left, right) => {
+                    let lho: Object = self.interpret(left)?;
+                    let lho_bool: bool = lho.clone().into();
+                    if lho_bool {
+                        Ok(lho)
+                    } else {
+                        self.interpret(right)
+                    }
+                }
+                LogicalExpr::And(left, right) => {
+                    let lho: Object = self.interpret(left)?;
+                    let lho_bool: bool = lho.clone().into();
+                    if !lho_bool {
+                        Ok(lho)
+                    } else {
+                        self.interpret(right)
+                    }
+                }
+            }
+        }
+
+        fn interpret_equality(&self, expr: EqualityExpr) -> ExprInterpreterResult {
+            match expr {
+                EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
+                {
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_bool!((l_val - r_val).abs() < std::f64::EPSILON)),
+                    (
+                        Ok(Object::Literal(Literal::Str(l_val))),
+                        Ok(Object::Literal(Literal::Str(r_val))),
+                    ) => Ok(obj_bool!(l_val == r_val)),
+                    (Ok(l), Ok(r)) => type_error!(l, "==", r),
+                    _ => type_error!(),
+                },
+                EqualityExpr::NotEqual(left, right) => {
+                    match (self.interpret(left), self.interpret(right)) {
+                        (
+                            Ok(Object::Literal(Literal::Number(l_val))),
+                            Ok(Object::Literal(Literal::Number(r_val))),
+                        ) => Ok(obj_bool!((l_val - r_val).abs() > std::f64::EPSILON)),
+                        (
+                            Ok(Object::Literal(Literal::Str(l_val))),
+                            Ok(Object::Literal(Literal::Str(r_val))),
+                        ) => Ok(obj_bool!(l_val != r_val)),
+                        (Ok(l), Ok(r)) => type_error!(l, "!=", r),
+                        _ => type_error!(),
+                    }
+                }
+            }
+        }
+
+        fn interpret_comparison(&self, expr: ComparisonExpr) -> ExprInterpreterResult {
+            match expr {
+                ComparisonExpr::Less(left, right) => {
+                    match (self.interpret(left), self.interpret(right)) {
+                        (
+                            Ok(Object::Literal(Literal::Number(l_val))),
+                            Ok(Object::Literal(Literal::Number(r_val))),
+                        ) => Ok(obj_bool!(l_val < r_val)),
+                        (Ok(l), Ok(r)) => type_error!(l, "<", r),
+                        _ => type_error!(),
+                    }
+                }
+                ComparisonExpr::LessEqual(left, right) => {
+                    match (self.interpret(left), self.interpret(right)) {
+                        (
+                            Ok(Object::Literal(Literal::Number(l_val))),
+                            Ok(Object::Literal(Literal::Number(r_val))),
+                        ) => Ok(obj_bool!(l_val <= r_val)),
+                        (Ok(l), Ok(r)) => type_error!(l, "<=", r),
+                        _ => type_error!(),
+                    }
+                }
+                ComparisonExpr::Greater(left, right) => {
+                    match (self.interpret(left), self.interpret(right)) {
+                        (
+                            Ok(Object::Literal(Literal::Number(l_val))),
+                            Ok(Object::Literal(Literal::Number(r_val))),
+                        ) => Ok(obj_bool!(l_val > r_val)),
+                        (Ok(l), Ok(r)) => type_error!(l, ">", r),
+                        _ => type_error!(),
+                    }
+                }
+                ComparisonExpr::GreaterEqual(left, right) => {
+                    match (self.interpret(left), self.interpret(right)) {
+                        (
+                            Ok(Object::Literal(Literal::Number(l_val))),
+                            Ok(Object::Literal(Literal::Number(r_val))),
+                        ) => Ok(obj_bool!(l_val >= r_val)),
+                        (Ok(l), Ok(r)) => type_error!(l, ">=", r),
+                        _ => type_error!(),
+                    }
+                }
+            }
+        }
+
+        fn interpret_addition(&self, expr: AdditionExpr) -> ExprInterpreterResult {
+            match expr {
+                AdditionExpr::Add(left, right) => match (self.interpret(left), self.interpret(right)) {
+                    (
+                        Ok(Object::Literal(Literal::Number(l_val))),
+                        Ok(Object::Literal(Literal::Number(r_val))),
+                    ) => Ok(obj_number!(l_val + r_val)),
+                    (
+                        Ok(Object::Literal(Literal::Str(l_val))),
+                        Ok(Object::Literal(Literal::Str(r_val))),
+                    ) => Ok(obj_str!(format!("{}{}", l_val, r_val))),
+                    (Ok(l), Ok(r)) => type_error!(l, "+", r),
+                    _ => type_error!(),
+                },
+                AdditionExpr::Subtract(left, right) => {
+                    match (self.interpret(left), self.interpret(right)) {
+                        (
+                            Ok(Object::Literal(Literal::Number(l_val))),
+                            Ok(Object::Literal(Literal::Number(r_val))),
+                        ) => Ok(obj_number!(l_val - r_val)),
+                        (Ok(l), Ok(r)) => type_error!(l, "-", r),
+                        _ => type_error!(),
+                    }
+                }
+            }
+        }
+
+        fn interpret_multiplication(&self, expr: MultiplicationExpr) -> ExprInterpreterResult {
+            match expr {
+                MultiplicationExpr::Multiply(left, right) => {
+                    match (self.interpret(left), self.interpret(right)) {
+                        (
+                            Ok(Object::Literal(Literal::Number(l_val))),
+                            Ok(Object::Literal(Literal::Number(r_val))),
+                        ) => Ok(obj_number!(l_val * r_val)),
+                        (Ok(l), Ok(r)) => type_error!(l, "*", r),
+                        _ => type_error!(),
+                    }
+                }
+                MultiplicationExpr::Divide(left, right) => {
+                    match (self.interpret(left), self.interpret(right)) {
+                        (
+                            Ok(Object::Literal(Literal::Number(l_val))),
+                            Ok(Object::Literal(Literal::Number(r_val))),
+                        ) => Ok(obj_number!(l_val / r_val)),
+                        (Ok(l), Ok(r)) => type_error!(l, "/", r),
+                        _ => type_error!(),
+                    }
+                }
+            }
+        }
+
+        fn interpret_unary(&self, expr: UnaryExpr) -> ExprInterpreterResult {
+            match expr {
+                UnaryExpr::Bang(ue) => match self.interpret(ue) {
+                    Ok(obj) => {
+                        let ob: bool = obj.into();
+                        Ok(obj_bool!(!ob))
+                    }
+                    e @ Err(_) => e,
+                },
+                UnaryExpr::Minus(ue) => match self.interpret(ue) {
+                    Ok(Object::Literal(Literal::Number(n))) => Ok(obj_number!(n * -1.0)),
+                    e @ Err(_) => e,
+                    _ => type_error!(),
+                },
+            }
+        }
+
+        fn interpret_call(&self, callee: Expr, args: Vec<Expr>) -> ExprInterpreterResult {
+            let fun = self.interpret(callee).map(|obj_res| obj_res)?;
+            let params: Vec<Object> = args
+                .into_iter()
+                .map(|expr| self.interpret(expr).unwrap())
+                .collect();
+
+            let c = match fun {
+                Object::Call(c) => Ok(c),
+                _ => Err(ExprInterpreterErr::CallErr(format!(
+                    "object {} is not callable",
+                    fun
+                ))),
+            }?;
+
+            match c.call(self.env.clone(), params) {
+                Ok(r) => Ok(r),
+                Err(e) => Err(ExprInterpreterErr::CallErr(format!("{:?}", e))),
+            }
+        }
+
+        fn interpret_lambda(&self, params: Vec<Identifier>, body: Stmt) -> ExprInterpreterResult {
+            let func = functions::Function::new(self.env.clone(), params, body);
+            let callable = functions::Callable::Func(func);
+            let obj = Object::Call(Box::new(callable));
+
+            Ok(obj)
+        }
+
+        fn interpret_primary(&self, obj: Object) -> ExprInterpreterResult {
+            Ok(obj)
+        }
+
+        fn interpret_variable(&self, identifier: Identifier) -> ExprInterpreterResult {
+            match self.env.get(&identifier) {
+                Some(v) => Ok(v),
+                None => Err(ExprInterpreterErr::UndefinedVariable(format!(
+                    "{:?}",
+                    &identifier
+                ))),
+            }
+        }
+    */
 }
 
 impl SemanticAnalyzer<Box<Expr>, Expr> for ScopeAnalyzer {

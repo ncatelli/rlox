@@ -3,6 +3,8 @@ use crate::analyzer::SemanticAnalyzer;
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
 
+mod expression;
+
 #[test]
 fn expression_stmt_should_return_ok() {
     let stmts = vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))];
