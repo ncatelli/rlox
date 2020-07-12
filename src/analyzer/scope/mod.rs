@@ -105,7 +105,7 @@ impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
             Stmt::If(cond, tb, eb) => self.analyze_if(cond, tb, eb),
             Stmt::While(e, b) => Ok(Stmt::While(self.analyze(e)?, Box::new(self.analyze(b)?))),
             Stmt::Print(e) => Ok(Stmt::Print(self.analyze(e)?)),
-            s @ Stmt::Function(_, _, _) => Ok(s),
+            Stmt::Function(name, params, body) => self.analyze_function(name, params, body),
             Stmt::Declaration(id, expr) => self.analyze_declaration(id, expr),
             Stmt::Return(e) => Ok(Stmt::Return(self.analyze(e)?)),
             Stmt::Block(stmts) => self.analyze_block(stmts),
@@ -122,9 +122,38 @@ impl SemanticAnalyzer<Box<Stmt>, Stmt> for ScopeAnalyzer {
 }
 
 impl ScopeAnalyzer {
+    fn declare_or_assign(&self, id: Identifier) -> Identifier {
+        if self.env.has_key(&id) {
+            let offset = self.env.get(&id).unwrap();
+            Identifier::Id(offset)
+        } else {
+            let offset = self.offset.get();
+            self.env.define(&id, self.offset.replace(offset + 1));
+            Identifier::Id(offset)
+        }
+    }
+
     fn analyze_block(&self, stmts: Vec<Stmt>) -> StmtSemanticAnalyzerResult {
         let block_analyzer = self.from(Environment::from(&self.env));
         Ok(Stmt::Block(block_analyzer.analyze(stmts)?))
+    }
+
+    fn analyze_function(
+        &self,
+        fname: Identifier,
+        params: Vec<Identifier>,
+        body: Box<Stmt>,
+    ) -> StmtSemanticAnalyzerResult {
+        let fid = self.declare_or_assign(fname);
+
+        let body_analyzer = self.from(Environment::from(&self.env));
+        let param_ids: Vec<Identifier> = params
+            .into_iter()
+            .map(|param| body_analyzer.declare_or_assign(param))
+            .collect();
+        let analyzed_body = body_analyzer.analyze(body)?;
+
+        Ok(Stmt::Function(fid, param_ids, Box::new(analyzed_body)))
     }
 
     fn analyze_if(
@@ -145,16 +174,7 @@ impl ScopeAnalyzer {
 
     fn analyze_declaration(&self, id: Identifier, expr: Expr) -> StmtSemanticAnalyzerResult {
         match self.analyze(expr) {
-            Ok(e) => {
-                if self.env.has_key(&id) {
-                    let offset = self.env.get(&id).unwrap();
-                    Ok(Stmt::Declaration(Identifier::Id(offset), e))
-                } else {
-                    let offset = self.offset.get();
-                    self.env.define(&id, self.offset.replace(offset + 1));
-                    Ok(Stmt::Declaration(Identifier::Id(offset), e))
-                }
-            }
+            Ok(e) => Ok(Stmt::Declaration(self.declare_or_assign(id), e)),
             Err(e) => Err(e),
         }
     }

@@ -99,13 +99,18 @@ fn block_statement_should_analyze_child_stmts() {
 #[test]
 fn function_declaration_statement_should_return_self() {
     let block = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
-    let stmts = vec![Stmt::Function(
+    let input = vec![Stmt::Function(
         identifier_name!("test"),
         vec![],
-        Box::new(block),
+        Box::new(block.clone()),
+    )];
+    let output = vec![Stmt::Function(
+        identifier_id!(0),
+        vec![],
+        Box::new(block.clone()),
     )];
 
-    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().analyze(stmts));
+    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input));
 }
 
 #[test]
