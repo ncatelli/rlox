@@ -127,7 +127,7 @@ fn if_statement_should_return_self() {
 
 #[test]
 fn while_statement_should_return_self() {
-    let stmts = vec![Stmt::While(
+    let input = vec![Stmt::While(
         Expr::Primary(obj_bool!(false)),
         Box::new(Stmt::Declaration(
             identifier_name!("test"),
@@ -135,5 +135,13 @@ fn while_statement_should_return_self() {
         )),
     )];
 
-    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().analyze(stmts))
+    let output = vec![Stmt::While(
+        Expr::Primary(obj_bool!(false)),
+        Box::new(Stmt::Declaration(
+            identifier_id!(0),
+            Expr::Primary(obj_bool!(true)),
+        )),
+    )];
+
+    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input))
 }

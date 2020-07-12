@@ -101,13 +101,13 @@ impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
 
     fn analyze(&self, input: Stmt) -> StmtSemanticAnalyzerResult {
         match input {
-            s @ Stmt::Expression(_) => Ok(s),
+            Stmt::Expression(e) => Ok(Stmt::Expression(self.analyze(e)?)),
             s @ Stmt::If(_, _, _) => Ok(s),
-            s @ Stmt::While(_, _) => Ok(s),
-            s @ Stmt::Print(_) => Ok(s),
+            Stmt::While(e, b) => Ok(Stmt::While(self.analyze(e)?, Box::new(self.analyze(b)?))),
+            Stmt::Print(e) => Ok(Stmt::Print(self.analyze(e)?)),
             s @ Stmt::Function(_, _, _) => Ok(s),
             Stmt::Declaration(id, expr) => self.analyze_declaration(id, expr),
-            s @ Stmt::Return(_) => Ok(s),
+            Stmt::Return(e) => Ok(Stmt::Return(self.analyze(e)?)),
             Stmt::Block(stmts) => self.analyze_block(stmts),
         }
     }
