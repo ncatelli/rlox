@@ -35,7 +35,20 @@ impl SemanticAnalyzer<Expr, Expr> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&self, expr: Expr) -> ExprSemanticAnalyzerResult {
-        Ok(expr)
+        match expr {
+            e @ Expr::Grouping(_) => Ok(e),
+            e @ Expr::Lambda(_, _) => Ok(e),
+            e @ Expr::Variable(_) => Ok(e),
+            e @ Expr::Primary(_) => Ok(e),
+            e @ Expr::Call(_, _) => Ok(e),
+            e @ Expr::Unary(_) => Ok(e),
+            e @ Expr::Multiplication(_) => Ok(e),
+            e @ Expr::Addition(_) => Ok(e),
+            e @ Expr::Comparison(_) => Ok(e),
+            e @ Expr::Equality(_) => Ok(e),
+            e @ Expr::Logical(_) => Ok(e),
+            e @ Expr::Assignment(_, _) => Ok(e),
+        }
     }
 }
 
@@ -82,7 +95,16 @@ impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
     type Error = StmtScopeAnalyzerErr;
 
     fn analyze(&self, input: Stmt) -> StmtSemanticAnalyzerResult {
-        Ok(input)
+        match input {
+            s @ Stmt::Expression(_) => Ok(s),
+            s @ Stmt::If(_, _, _) => Ok(s),
+            s @ Stmt::While(_, _) => Ok(s),
+            s @ Stmt::Print(_) => Ok(s),
+            s @ Stmt::Function(_, _, _) => Ok(s),
+            s @ Stmt::Declaration(_, _) => Ok(s),
+            s @ Stmt::Return(_) => Ok(s),
+            s @ Stmt::Block(_) => Ok(s),
+        }
     }
 }
 
@@ -93,3 +115,5 @@ impl SemanticAnalyzer<Box<Stmt>, Stmt> for ScopeAnalyzer {
         self.analyze(*input)
     }
 }
+
+impl ScopeAnalyzer {}

@@ -1,10 +1,11 @@
+use crate::ast::identifier::Identifier;
 use crate::environment::Environment;
 use crate::functions;
-use crate::object;
+use crate::object::Object;
 use std::rc::Rc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub fn define_statics() -> Rc<Environment> {
+pub fn define_statics() -> Rc<Environment<Identifier, Object>> {
     let glbls = Environment::new();
     glbls.define(
         &identifier_id!("clock"),
@@ -15,7 +16,7 @@ pub fn define_statics() -> Rc<Environment> {
     glbls
 }
 
-fn clock(_env: Rc<Environment>, _args: Vec<object::Object>) -> object::Object {
+fn clock(_env: Rc<Environment<Identifier, Object>>, _args: Vec<Object>) -> Object {
     let t = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()

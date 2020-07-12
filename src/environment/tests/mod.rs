@@ -1,9 +1,12 @@
+use crate::ast::identifier::Identifier;
 use crate::environment::Environment;
+use crate::object::Object;
 use std::option::Option;
+use std::rc::Rc;
 
 #[test]
 fn environment_should_allow_setting_of_symbols() {
-    let symtable = Environment::new();
+    let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
     let key = identifier_id!("test");
 
     // unset var returns None
@@ -20,7 +23,7 @@ fn environment_should_allow_setting_of_symbols() {
 
 #[test]
 fn environment_should_allow_getting_of_symbols() {
-    let symtable = Environment::new();
+    let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
     let key = identifier_id!("key");
 
     assert_eq!(
@@ -33,7 +36,7 @@ fn environment_should_allow_getting_of_symbols() {
 
 #[test]
 fn environment_should_return_none_if_assign_of_undefined_symbol() {
-    let symtable = Environment::new();
+    let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
     let key = identifier_id!("test");
 
     // unset var returns None
@@ -42,7 +45,7 @@ fn environment_should_return_none_if_assign_of_undefined_symbol() {
 
 #[test]
 fn environment_should_return_some_if_assign_of_undefined_symbol() {
-    let symtable = Environment::new();
+    let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
     let key = identifier_id!("test");
 
     symtable.define(&key, obj_bool!(true));
@@ -56,7 +59,7 @@ fn environment_should_return_some_if_assign_of_undefined_symbol() {
 
 #[test]
 fn new_environment_should_have_no_parent() {
-    let symtable = Environment::new();
+    let symtable: Rc<Environment<Identifier, Object>> = Environment::new();
 
     match symtable.parent {
         Some(_) => assert!(false),
@@ -66,7 +69,7 @@ fn new_environment_should_have_no_parent() {
 
 #[test]
 fn new_child_environment_should_have_a_parent() {
-    let parent = Environment::new();
+    let parent: Rc<Environment<Identifier, Object>> = Environment::new();
     let child = Environment::from(&parent);
 
     match child.parent {
@@ -77,7 +80,7 @@ fn new_child_environment_should_have_a_parent() {
 
 #[test]
 fn child_environment_should_be_able_to_reference_parent_symbols() {
-    let parent = Environment::new();
+    let parent: Rc<Environment<Identifier, Object>> = Environment::new();
     let child = Environment::from(&parent);
     let key = identifier_id!("test");
 
@@ -88,7 +91,7 @@ fn child_environment_should_be_able_to_reference_parent_symbols() {
 
 #[test]
 fn child_environment_should_be_able_to_assign_symbols_to_parents() {
-    let parent = Environment::new();
+    let parent: Rc<Environment<Identifier, Object>> = Environment::new();
     let child = Environment::from(&parent);
     let key = identifier_id!("test");
 

@@ -73,9 +73,8 @@ impl fmt::Display for ExprInterpreterErr {
 
 pub type ExprInterpreterResult = Result<Object, ExprInterpreterErr>;
 
-#[derive(Default)]
 pub struct StatefulInterpreter {
-    pub env: Rc<Environment>,
+    pub env: Rc<Environment<Identifier, Object>>,
 }
 
 impl StatefulInterpreter {
@@ -88,8 +87,14 @@ impl StatefulInterpreter {
     }
 }
 
-impl From<Rc<Environment>> for StatefulInterpreter {
-    fn from(env: Rc<Environment>) -> StatefulInterpreter {
+impl Default for StatefulInterpreter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<Rc<Environment<Identifier, Object>>> for StatefulInterpreter {
+    fn from(env: Rc<Environment<Identifier, Object>>) -> StatefulInterpreter {
         let mut si = StatefulInterpreter::new();
         si.env = env;
         si
