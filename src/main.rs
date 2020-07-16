@@ -6,8 +6,8 @@ use std::process;
 
 extern crate parcel;
 use parcel::prelude::v1::*;
-use rlox::analyzer::scope::ScopeAnalyzer;
-use rlox::analyzer::SemanticAnalyzer;
+use rlox::analyzer::scope_stack::ScopeAnalyzer;
+use rlox::analyzer::SemanticAnalyzerMut;
 use rlox::ast::token;
 use rlox::interpreter::Interpreter;
 use rlox::interpreter::StatefulInterpreter;
@@ -31,14 +31,14 @@ fn main() {
 }
 
 fn run_file(filename: &str) -> Result<(), String> {
-    let analyzer = ScopeAnalyzer::new();
+    let mut analyzer = ScopeAnalyzer::new();
     let mut interpreter = StatefulInterpreter::new();
     let mut f = File::open(filename).expect("file not found");
 
     let mut contents = String::new();
     match f.read_to_string(&mut contents) {
         Ok(_) => {
-            run(&analyzer, &mut interpreter, contents).unwrap();
+            run(&mut analyzer, &mut interpreter, contents).unwrap();
             Ok(())
         }
         Err(error) => Err(format!("error: {}", error)),
@@ -46,7 +46,7 @@ fn run_file(filename: &str) -> Result<(), String> {
 }
 
 fn run_prompt() {
-    let analyzer = ScopeAnalyzer::new();
+    let mut analyzer = ScopeAnalyzer::new();
     let mut interpreter = StatefulInterpreter::new();
     loop {
         let mut input = String::new();
@@ -54,12 +54,12 @@ fn run_prompt() {
         stdout().flush().unwrap();
 
         stdin().read_line(&mut input).expect("execution error");
-        run(&analyzer, &mut interpreter, input).unwrap();
+        run(&mut analyzer, &mut interpreter, input).unwrap();
     }
 }
 
 fn run(
-    analyzer: &ScopeAnalyzer,
+    analyzer: &mut ScopeAnalyzer,
     interpreter: &mut StatefulInterpreter,
     source: String,
 ) -> RuntimeResult<usize> {

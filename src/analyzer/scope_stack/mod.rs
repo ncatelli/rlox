@@ -209,14 +209,7 @@ impl SemanticAnalyzerMut<Vec<Stmt>, Vec<Stmt>> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
     fn analyze(&mut self, input: Vec<Stmt>) -> Result<Vec<Stmt>, ScopeAnalyzerErr> {
-        let mut output: Vec<Stmt> = Vec::new();
-        for stmt in input {
-            match self.analyze(stmt) {
-                Ok(s) => output.push(s),
-                Err(e) => return Err(e),
-            };
-        }
-        Ok(output)
+        input.into_iter().map(|s| self.analyze(s)).collect()
     }
 }
 
