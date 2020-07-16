@@ -16,4 +16,3 @@ pub trait SemanticAnalyzerMut<A, B> {
 }
 
 pub mod scope;
-pub mod scope_stack;

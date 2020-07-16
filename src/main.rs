@@ -6,7 +6,7 @@ use std::process;
 
 extern crate parcel;
 use parcel::prelude::v1::*;
-use rlox::analyzer::scope_stack::ScopeAnalyzer;
+use rlox::analyzer::scope::ScopeAnalyzer;
 use rlox::analyzer::SemanticAnalyzerMut;
 use rlox::ast::token;
 use rlox::interpreter::Interpreter;

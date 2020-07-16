@@ -1,6 +1,7 @@
-use crate::analyzer::scope::ScopeAnalyzer;
-use crate::analyzer::SemanticAnalyzer;
+use crate::analyzer::scope_stack::ScopeAnalyzer;
+use crate::analyzer::SemanticAnalyzerMut;
 use crate::ast::expression::Expr;
+use crate::ast::statement::Stmt;
 
 #[test]
 fn primary_expression_should_return_ok() {
@@ -12,7 +13,7 @@ fn primary_expression_should_return_ok() {
 
 #[test]
 fn assignment_expression_should_match_predefined_value() {
-    let sa = ScopeAnalyzer::new();
+    let mut sa = ScopeAnalyzer::new();
     let input = Expr::Assignment(
         identifier_name!("test"),
         Box::new(Expr::Primary(obj_bool!(true))),
@@ -37,7 +38,7 @@ fn assignment_expression_should_err_if_variable_is_undeclared() {
 
 #[test]
 fn variable_analyze_should_resolve_offset() {
-    let sa = ScopeAnalyzer::new();
+    let mut sa = ScopeAnalyzer::new();
     sa.declare_or_assign(identifier_name!("a"));
 
     let input = Expr::Variable(identifier_name!("a"));
@@ -48,7 +49,7 @@ fn variable_analyze_should_resolve_offset() {
 
 #[test]
 fn call_expression_should_match_predefined_value() {
-    let sa = ScopeAnalyzer::new();
+    let mut sa = ScopeAnalyzer::new();
     let input = Expr::Assignment(
         identifier_name!("test"),
         Box::new(Expr::Primary(obj_bool!(true))),
@@ -63,7 +64,7 @@ fn call_expression_should_match_predefined_value() {
 
 #[test]
 fn call_analyze_should_resolve_identifiers_to_ids() {
-    let sa = ScopeAnalyzer::new();
+    let mut sa = ScopeAnalyzer::new();
     sa.declare_or_assign(identifier_name!("a"));
     sa.declare_or_assign(identifier_name!("b"));
 
@@ -75,6 +76,28 @@ fn call_analyze_should_resolve_identifiers_to_ids() {
         Box::new(Expr::Variable(identifier_id!(0))),
         vec![Expr::Variable(identifier_id!(1))],
     );
+
+    assert_eq!(Ok(output), sa.analyze(input));
+}
+
+#[test]
+fn lambda_expression_should_match_predefined_value() {
+    let mut sa = ScopeAnalyzer::new();
+    let input = Expr::Lambda(
+        vec![identifier_name!("test"), identifier_name!("test_again")],
+        Box::new(Stmt::Block(vec![Stmt::Print(Expr::Variable(
+            identifier_name!("test"),
+        ))])),
+    );
+    let output = Expr::Lambda(
+        vec![identifier_id!(1), identifier_id!(2)],
+        Box::new(Stmt::Block(vec![Stmt::Print(Expr::Variable(
+            identifier_id!(1),
+        ))])),
+    );
+
+    // Pre-declare a test variable for the above assignment to assign to
+    sa.declare_or_assign(identifier_name!("hello"));
 
     assert_eq!(Ok(output), sa.analyze(input));
 }
