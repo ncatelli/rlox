@@ -1,5 +1,5 @@
 use crate::analyzer::scope_stack::ScopeAnalyzer;
-use crate::analyzer::SemanticAnalyzer;
+use crate::analyzer::SemanticAnalyzerMut;
 use crate::ast::expression::Expr;
 
 #[test]
@@ -12,7 +12,7 @@ fn primary_expression_should_return_ok() {
 
 #[test]
 fn assignment_expression_should_match_predefined_value() {
-    let sa = ScopeAnalyzer::new();
+    let mut sa = ScopeAnalyzer::new();
     let input = Expr::Assignment(
         identifier_name!("test"),
         Box::new(Expr::Primary(obj_bool!(true))),
@@ -37,7 +37,7 @@ fn assignment_expression_should_err_if_variable_is_undeclared() {
 
 #[test]
 fn variable_analyze_should_resolve_offset() {
-    let sa = ScopeAnalyzer::new();
+    let mut sa = ScopeAnalyzer::new();
     sa.declare_or_assign(identifier_name!("a"));
 
     let input = Expr::Variable(identifier_name!("a"));
@@ -48,7 +48,7 @@ fn variable_analyze_should_resolve_offset() {
 
 #[test]
 fn call_expression_should_match_predefined_value() {
-    let sa = ScopeAnalyzer::new();
+    let mut sa = ScopeAnalyzer::new();
     let input = Expr::Assignment(
         identifier_name!("test"),
         Box::new(Expr::Primary(obj_bool!(true))),
@@ -63,7 +63,7 @@ fn call_expression_should_match_predefined_value() {
 
 #[test]
 fn call_analyze_should_resolve_identifiers_to_ids() {
-    let sa = ScopeAnalyzer::new();
+    let mut sa = ScopeAnalyzer::new();
     sa.declare_or_assign(identifier_name!("a"));
     sa.declare_or_assign(identifier_name!("b"));
 

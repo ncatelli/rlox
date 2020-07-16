@@ -1,6 +1,9 @@
 use crate::ast::identifier::Identifier;
 use std::fmt;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(PartialEq, Debug)]
 pub enum StackErr {
     Undefined,
@@ -80,9 +83,11 @@ impl ScopeStack {
 
         let offset = self
             .stack
+            .clone()
             .iter()
-            .rev()
             .flatten()
+            .into_iter()
+            .rev()
             .position(|elem| elem == id);
 
         offset.map(|i| stack_len - i - 1)
