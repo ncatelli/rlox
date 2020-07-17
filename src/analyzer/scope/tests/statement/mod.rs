@@ -1,5 +1,5 @@
 use crate::analyzer::scope::ScopeAnalyzer;
-use crate::analyzer::SemanticAnalyzer;
+use crate::analyzer::SemanticAnalyzerMut;
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
 

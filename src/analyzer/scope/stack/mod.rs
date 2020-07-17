@@ -86,7 +86,6 @@ impl ScopeStack {
             .clone()
             .iter()
             .flatten()
-            .into_iter()
             .rev()
             .position(|elem| elem == id);
 
@@ -96,10 +95,6 @@ impl ScopeStack {
     /// len returns the number of unique IDs exist in the scope, this is useful
     /// for fetching the next Identifier offset.
     pub fn len(&self) -> usize {
-        self.stack
-            .iter()
-            .flatten()
-            .collect::<Vec<&Identifier>>()
-            .len()
+        self.stack.iter().flatten().count()
     }
 }

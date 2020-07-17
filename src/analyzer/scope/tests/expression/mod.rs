@@ -1,4 +1,4 @@
-use crate::analyzer::scope_stack::ScopeAnalyzer;
+use crate::analyzer::scope::ScopeAnalyzer;
 use crate::analyzer::SemanticAnalyzerMut;
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;

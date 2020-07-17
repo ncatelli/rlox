@@ -32,7 +32,13 @@ pub struct ScopeAnalyzer {
 
 impl ScopeAnalyzer {
     pub fn new() -> ScopeAnalyzer {
-        ScopeAnalyzer {
+        Self::default()
+    }
+}
+
+impl Default for ScopeAnalyzer {
+    fn default() -> Self {
+        Self {
             stack: ScopeStack::new(),
         }
     }
@@ -251,16 +257,11 @@ impl ScopeAnalyzer {
     }
 
     fn declare_or_assign(&mut self, id: Identifier) -> Identifier {
-        match self.has_key(&id) {
-            true => self
-                .stack
-                .get_offset(&id)
-                .map(|id| Identifier::Id(id))
-                .unwrap(),
-            false => {
-                self.stack.push_elem(id);
-                Identifier::Id(self.stack.len() - 1)
-            }
+        if self.has_key(&id) {
+            self.stack.get_offset(&id).map(Identifier::Id).unwrap()
+        } else {
+            self.stack.push_elem(id);
+            Identifier::Id(self.stack.len() - 1)
         }
     }
 

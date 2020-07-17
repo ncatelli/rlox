@@ -1,4 +1,4 @@
-use crate::analyzer::scope_stack::stack::{Scope, ScopeStack};
+use crate::analyzer::scope::stack::{Scope, ScopeStack};
 
 #[test]
 fn push_should_append_to_stack() {
