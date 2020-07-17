@@ -1,12 +1,12 @@
-use crate::analyzer::SemanticAnalyzer;
+use crate::analyzer::SemanticAnalyzerMut;
 use crate::ast::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
 };
 use crate::ast::identifier::Identifier;
-use crate::environment::Environment;
-use std::cell::Cell;
 use std::fmt;
-use std::rc::Rc;
+
+mod stack;
+use stack::{Scope, ScopeStack};
 
 #[cfg(test)]
 mod tests;
@@ -27,32 +27,29 @@ impl fmt::Display for ScopeAnalyzerErr {
 }
 
 pub struct ScopeAnalyzer {
-    pub offset: Cell<usize>,
-    pub env: Rc<Environment<Identifier, usize>>,
+    stack: ScopeStack,
 }
 
 impl ScopeAnalyzer {
     pub fn new() -> ScopeAnalyzer {
-        ScopeAnalyzer {
-            offset: Cell::new(0),
-            env: Environment::new(),
-        }
+        Self::default()
     }
+}
 
-    pub fn from(&self, env: Rc<Environment<Identifier, usize>>) -> ScopeAnalyzer {
-        ScopeAnalyzer {
-            offset: Cell::new(self.offset.get()),
-            env: env,
+impl Default for ScopeAnalyzer {
+    fn default() -> Self {
+        Self {
+            stack: ScopeStack::new(),
         }
     }
 }
 
 type ExprSemanticAnalyzerResult = Result<Expr, ScopeAnalyzerErr>;
 
-impl SemanticAnalyzer<Expr, Expr> for ScopeAnalyzer {
+impl SemanticAnalyzerMut<Expr, Expr> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, expr: Expr) -> ExprSemanticAnalyzerResult {
+    fn analyze(&mut self, expr: Expr) -> ExprSemanticAnalyzerResult {
         match expr {
             Expr::Grouping(e) => Ok(Expr::Grouping(Box::new(self.analyze(e)?))),
             Expr::Lambda(params, body) => self.analyze_lambda(params, *body),
@@ -71,16 +68,20 @@ impl SemanticAnalyzer<Expr, Expr> for ScopeAnalyzer {
 }
 
 impl ScopeAnalyzer {
-    fn analyze_assignment(&self, id: Identifier, expr: Box<Expr>) -> ExprSemanticAnalyzerResult {
+    fn analyze_assignment(
+        &mut self,
+        id: Identifier,
+        expr: Box<Expr>,
+    ) -> ExprSemanticAnalyzerResult {
         let rhv = self.analyze(expr)?;
 
-        match self.env.get(&id) {
+        match self.stack.get_offset(&id) {
             Some(offset) => Ok(Expr::Assignment(Identifier::Id(offset), Box::new(rhv))),
             None => Err(ScopeAnalyzerErr::Undefined),
         }
     }
 
-    fn analyze_logical(&self, expr: LogicalExpr) -> ExprSemanticAnalyzerResult {
+    fn analyze_logical(&mut self, expr: LogicalExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Logical(match expr {
             LogicalExpr::Or(left, right) => LogicalExpr::Or(
                 Box::new(self.analyze(left)?),
@@ -93,7 +94,7 @@ impl ScopeAnalyzer {
         }))
     }
 
-    fn analyze_equality(&self, expr: EqualityExpr) -> ExprSemanticAnalyzerResult {
+    fn analyze_equality(&mut self, expr: EqualityExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Equality(match expr {
             EqualityExpr::Equal(left, right) => EqualityExpr::Equal(
                 Box::new(self.analyze(left)?),
@@ -106,7 +107,7 @@ impl ScopeAnalyzer {
         }))
     }
 
-    fn analyze_comparison(&self, expr: ComparisonExpr) -> ExprSemanticAnalyzerResult {
+    fn analyze_comparison(&mut self, expr: ComparisonExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Comparison(match expr {
             ComparisonExpr::Greater(left, right) => ComparisonExpr::Greater(
                 Box::new(self.analyze(left)?),
@@ -127,7 +128,7 @@ impl ScopeAnalyzer {
         }))
     }
 
-    fn analyze_addition(&self, expr: AdditionExpr) -> ExprSemanticAnalyzerResult {
+    fn analyze_addition(&mut self, expr: AdditionExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Addition(match expr {
             AdditionExpr::Add(left, right) => AdditionExpr::Add(
                 Box::new(self.analyze(left)?),
@@ -140,7 +141,7 @@ impl ScopeAnalyzer {
         }))
     }
 
-    fn analyze_multiplication(&self, expr: MultiplicationExpr) -> ExprSemanticAnalyzerResult {
+    fn analyze_multiplication(&mut self, expr: MultiplicationExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Multiplication(match expr {
             MultiplicationExpr::Multiply(left, right) => MultiplicationExpr::Multiply(
                 Box::new(self.analyze(left)?),
@@ -153,14 +154,14 @@ impl ScopeAnalyzer {
         }))
     }
 
-    fn analyze_unary(&self, expr: UnaryExpr) -> ExprSemanticAnalyzerResult {
+    fn analyze_unary(&mut self, expr: UnaryExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Unary(match expr {
             UnaryExpr::Bang(expr) => UnaryExpr::Bang(Box::new(self.analyze(expr)?)),
             UnaryExpr::Minus(expr) => UnaryExpr::Minus(Box::new(self.analyze(expr)?)),
         }))
     }
 
-    fn analyze_call(&self, callee: Expr, args: Vec<Expr>) -> ExprSemanticAnalyzerResult {
+    fn analyze_call(&mut self, callee: Expr, args: Vec<Expr>) -> ExprSemanticAnalyzerResult {
         let analyzed_callee = self.analyze(callee)?;
         let mut analyzed_args: Vec<Expr> = Vec::new();
 
@@ -171,28 +172,37 @@ impl ScopeAnalyzer {
         Ok(Expr::Call(Box::new(analyzed_callee), analyzed_args))
     }
 
-    fn analyze_lambda(&self, params: Vec<Identifier>, body: Stmt) -> ExprSemanticAnalyzerResult {
-        let body_analyzer = self.from(Environment::from(&self.env));
+    fn analyze_lambda(
+        &mut self,
+        params: Vec<Identifier>,
+        body: Stmt,
+    ) -> ExprSemanticAnalyzerResult {
+        // enter scope
+        self.stack.push(Scope::new());
         let param_ids: Vec<Identifier> = params
             .into_iter()
-            .map(|param| body_analyzer.declare_or_assign(param))
+            .map(|param| self.declare_or_assign(param))
             .collect();
-        let analyzed_body = body_analyzer.analyze(body)?;
+
+        let analyzed_body = self.analyze(body)?;
+
+        // exit scope
+        self.stack.pop();
 
         Ok(Expr::Lambda(param_ids, Box::new(analyzed_body)))
     }
 
-    fn analyze_variable(&self, id: Identifier) -> ExprSemanticAnalyzerResult {
-        match self.env.get(&id) {
+    fn analyze_variable(&mut self, id: Identifier) -> ExprSemanticAnalyzerResult {
+        match self.stack.get_offset(&id) {
             Some(offset) => Ok(Expr::Variable(Identifier::Id(offset))),
             None => Err(ScopeAnalyzerErr::Undefined),
         }
     }
 }
 
-impl SemanticAnalyzer<Box<Expr>, Expr> for ScopeAnalyzer {
+impl SemanticAnalyzerMut<Box<Expr>, Expr> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
-    fn analyze(&self, expr: Box<Expr>) -> ExprSemanticAnalyzerResult {
+    fn analyze(&mut self, expr: Box<Expr>) -> ExprSemanticAnalyzerResult {
         self.analyze(*expr)
     }
 }
@@ -201,25 +211,18 @@ use crate::ast::statement::Stmt;
 
 pub type StmtSemanticAnalyzerResult = Result<Stmt, ScopeAnalyzerErr>;
 
-impl SemanticAnalyzer<Vec<Stmt>, Vec<Stmt>> for ScopeAnalyzer {
+impl SemanticAnalyzerMut<Vec<Stmt>, Vec<Stmt>> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: Vec<Stmt>) -> Result<Vec<Stmt>, ScopeAnalyzerErr> {
-        let mut output: Vec<Stmt> = Vec::new();
-        for stmt in input {
-            match self.analyze(stmt) {
-                Ok(s) => output.push(s),
-                Err(e) => return Err(e),
-            };
-        }
-        Ok(output)
+    fn analyze(&mut self, input: Vec<Stmt>) -> Result<Vec<Stmt>, ScopeAnalyzerErr> {
+        input.into_iter().map(|s| self.analyze(s)).collect()
     }
 }
 
-impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
+impl SemanticAnalyzerMut<Stmt, Stmt> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn analyze(&self, input: Stmt) -> StmtSemanticAnalyzerResult {
+    fn analyze(&mut self, input: Stmt) -> StmtSemanticAnalyzerResult {
         match input {
             Stmt::Expression(e) => Ok(Stmt::Expression(self.analyze(e)?)),
             Stmt::If(cond, tb, eb) => self.analyze_if(cond, tb, eb),
@@ -234,50 +237,68 @@ impl SemanticAnalyzer<Stmt, Stmt> for ScopeAnalyzer {
 }
 
 /// This functions only to unpack an Stmt and dispatch to the upstream SemanticAnalyzer<Stmt, Stmt)> implementation
-impl SemanticAnalyzer<Box<Stmt>, Stmt> for ScopeAnalyzer {
+impl SemanticAnalyzerMut<Box<Stmt>, Stmt> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
-    fn analyze(&self, input: Box<Stmt>) -> StmtSemanticAnalyzerResult {
+    fn analyze(&mut self, input: Box<Stmt>) -> StmtSemanticAnalyzerResult {
         self.analyze(*input)
     }
 }
 
 impl ScopeAnalyzer {
-    fn declare_or_assign(&self, id: Identifier) -> Identifier {
-        if self.env.has_key(&id) {
-            let offset = self.env.get(&id).unwrap();
-            Identifier::Id(offset)
-        } else {
-            let offset = self.offset.get();
-            self.env.define(&id, self.offset.replace(offset + 1));
-            Identifier::Id(offset)
+    pub fn has_key(&mut self, id: &Identifier) -> bool {
+        match self.stack.pop() {
+            Some(s) => {
+                let has_key = s.contains(id);
+                self.stack.push(s);
+                has_key
+            }
+            None => false,
         }
     }
 
-    fn analyze_block(&self, stmts: Vec<Stmt>) -> StmtSemanticAnalyzerResult {
-        let block_analyzer = self.from(Environment::from(&self.env));
-        Ok(Stmt::Block(block_analyzer.analyze(stmts)?))
+    fn declare_or_assign(&mut self, id: Identifier) -> Identifier {
+        if self.has_key(&id) {
+            self.stack.get_offset(&id).map(Identifier::Id).unwrap()
+        } else {
+            self.stack.push_elem(id);
+            Identifier::Id(self.stack.len() - 1)
+        }
+    }
+
+    fn analyze_block(&mut self, stmts: Vec<Stmt>) -> StmtSemanticAnalyzerResult {
+        // enter scope
+        self.stack.push(Scope::new());
+        let analyzed_block = self.analyze(stmts)?;
+        // leave scope
+        self.stack.pop();
+
+        Ok(Stmt::Block(analyzed_block))
     }
 
     fn analyze_function(
-        &self,
+        &mut self,
         fname: Identifier,
         params: Vec<Identifier>,
         body: Box<Stmt>,
     ) -> StmtSemanticAnalyzerResult {
         let fid = self.declare_or_assign(fname);
 
-        let body_analyzer = self.from(Environment::from(&self.env));
+        // enter scope
+        self.stack.push(Scope::new());
+
         let param_ids: Vec<Identifier> = params
             .into_iter()
-            .map(|param| body_analyzer.declare_or_assign(param))
+            .map(|param| self.declare_or_assign(param))
             .collect();
-        let analyzed_body = body_analyzer.analyze(body)?;
+        let analyzed_body = self.analyze(body)?;
+        // leave scope
+        self.stack.pop();
 
         Ok(Stmt::Function(fid, param_ids, Box::new(analyzed_body)))
     }
 
     fn analyze_if(
-        &self,
+        &mut self,
         cond: Expr,
         tb: Box<Stmt>,
         eb: Option<Box<Stmt>>,
@@ -292,7 +313,7 @@ impl ScopeAnalyzer {
         Ok(Stmt::If(c, then_branch, else_branch))
     }
 
-    fn analyze_declaration(&self, id: Identifier, expr: Expr) -> StmtSemanticAnalyzerResult {
+    fn analyze_declaration(&mut self, id: Identifier, expr: Expr) -> StmtSemanticAnalyzerResult {
         match self.analyze(expr) {
             Ok(e) => Ok(Stmt::Declaration(self.declare_or_assign(id), e)),
             Err(e) => Err(e),
