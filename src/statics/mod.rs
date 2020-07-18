@@ -1,4 +1,6 @@
+use crate::ast::expression::Expr;
 use crate::ast::identifier::Identifier;
+use crate::ast::statement::Stmt;
 use crate::environment::Environment;
 use crate::functions;
 use crate::object::Object;
@@ -14,6 +16,15 @@ pub fn define_statics() -> Rc<Environment<Identifier, Object>> {
         ))),
     );
     glbls
+}
+
+pub fn define_statics_ast() -> Vec<Stmt> {
+    vec![Stmt::Declaration(
+        identifier_name!("clock"),
+        Expr::Primary(obj_call!(Box::new(functions::Callable::Static(
+            functions::StaticFunc::new(clock)
+        )))),
+    )]
 }
 
 fn clock(_env: Rc<Environment<Identifier, Object>>, _args: Vec<Object>) -> Object {

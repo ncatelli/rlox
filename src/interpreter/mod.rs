@@ -6,10 +6,9 @@ use crate::environment::Environment;
 use crate::functions;
 use crate::object::{Literal, Object};
 use crate::pass::*;
+use crate::statics;
 use std::fmt;
 use std::rc::Rc;
-
-mod static_methods;
 
 #[cfg(test)]
 mod tests;
@@ -74,7 +73,7 @@ pub struct StatefulInterpreter {
 
 impl StatefulInterpreter {
     pub fn new() -> StatefulInterpreter {
-        let glbls = static_methods::define_statics();
+        let glbls = statics::define_statics();
 
         StatefulInterpreter {
             env: Environment::from(&glbls),
