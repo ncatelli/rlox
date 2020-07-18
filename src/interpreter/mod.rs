@@ -6,7 +6,6 @@ use crate::environment::Environment;
 use crate::functions;
 use crate::object::{Literal, Object};
 use crate::pass::*;
-use crate::statics;
 use std::fmt;
 use std::rc::Rc;
 
@@ -73,10 +72,8 @@ pub struct StatefulInterpreter {
 
 impl StatefulInterpreter {
     pub fn new() -> StatefulInterpreter {
-        let glbls = statics::define_statics();
-
         StatefulInterpreter {
-            env: Environment::from(&glbls),
+            env: Environment::new(),
         }
     }
 }
