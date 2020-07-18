@@ -7,11 +7,13 @@ use std::process;
 extern crate parcel;
 use parcel::prelude::v1::*;
 use rlox::analyzer::scope::ScopeAnalyzer;
+use rlox::ast::statement::Stmt;
 use rlox::ast::token;
 use rlox::interpreter::StatefulInterpreter;
 use rlox::parser::statement_parser::statements;
 use rlox::pass::*;
 use rlox::scanner;
+use rlox::statics;
 
 type RuntimeResult<T> = Result<T, String>;
 
@@ -85,10 +87,18 @@ fn run(
         }
     }?;
 
-    let analyzed_stmts = analyzer.tree_pass(stmts).unwrap();
+    let ast = load_statics(stmts);
+    let analyzed_stmts = analyzer.tree_pass(ast).unwrap();
     interpreter
         .tree_pass(analyzed_stmts)
         .map_err(|e| e.to_string())?;
 
     Ok(token_count)
+}
+
+fn load_statics(ast: Vec<Stmt>) -> Vec<Stmt> {
+    let mut ast = ast;
+    let mut ast_with_statics = statics::define_statics_ast();
+    ast_with_statics.append(&mut ast);
+    ast_with_statics
 }
