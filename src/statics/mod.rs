@@ -7,17 +7,6 @@ use crate::object::Object;
 use std::rc::Rc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub fn define_statics() -> Rc<Environment<Identifier, Object>> {
-    let glbls = Environment::new();
-    glbls.define(
-        &identifier_name!("clock"),
-        obj_call!(Box::new(functions::Callable::Static(
-            functions::StaticFunc::new(clock)
-        ))),
-    );
-    glbls
-}
-
 pub fn define_statics_ast() -> Vec<Stmt> {
     vec![Stmt::Declaration(
         identifier_name!("clock"),
