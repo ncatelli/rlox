@@ -2,15 +2,15 @@ use crate::ast::expression::Expr;
 use crate::ast::identifier::Identifier;
 use crate::ast::statement::Stmt;
 use crate::functions;
-use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
+use crate::pass::*;
 
 #[test]
 fn expression_stmt_should_return_ok() {
     assert_eq!(
         Ok(None),
         StatefulInterpreter::new()
-            .interpret(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))])
+            .tree_pass(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))])
     );
 }
 
@@ -18,7 +18,7 @@ fn expression_stmt_should_return_ok() {
 fn print_stmt_should_return_ok() {
     assert_eq!(
         Ok(None),
-        StatefulInterpreter::new().interpret(vec![Stmt::Print(Expr::Primary(obj_bool!(true)))])
+        StatefulInterpreter::new().tree_pass(vec![Stmt::Print(Expr::Primary(obj_bool!(true)))])
     );
 }
 
@@ -29,7 +29,7 @@ fn declaration_statement_should_set_persistent_global_symbol() {
         Expr::Primary(obj_bool!(true)),
     );
     let interpreter = StatefulInterpreter::new();
-    interpreter.interpret(vec![stmt]).unwrap();
+    interpreter.tree_pass(vec![stmt]).unwrap();
     assert_eq!(
         Some(obj_bool!(true)),
         interpreter.env.get(&Identifier::Name("test".to_string()))
@@ -41,14 +41,14 @@ fn return_statement_should_return_the_evaluated_expression_value() {
     let stmts = Stmt::Return(Expr::Primary(obj_bool!(true)));
     assert_eq!(
         Ok(Some(obj_bool!(true))),
-        StatefulInterpreter::new().interpret(stmts)
+        StatefulInterpreter::new().tree_pass(stmts)
     );
 }
 
 #[test]
 fn block_statement_should_set_persistent_global_symbol() {
     let stmts = Stmt::Block(vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))]);
-    assert_eq!(Ok(None), StatefulInterpreter::new().interpret(stmts));
+    assert_eq!(Ok(None), StatefulInterpreter::new().tree_pass(stmts));
 }
 
 #[test]
@@ -59,7 +59,7 @@ fn block_statement_with_return_should_return_value() {
     ]);
     assert_eq!(
         Ok(Some(obj_number!(5.0))),
-        StatefulInterpreter::new().interpret(stmts)
+        StatefulInterpreter::new().tree_pass(stmts)
     );
 }
 
@@ -80,7 +80,7 @@ fn function_declaration_statement_should_set_persistent_global_symbol() {
     );
     let expected_call = obj_call!(Box::new(functions::Callable::Func(f)));
 
-    interpreter.interpret(vec![stmt]).unwrap();
+    interpreter.tree_pass(vec![stmt]).unwrap();
     assert_eq!(
         Some(expected_call),
         interpreter.env.get(&Identifier::Name("test".to_string()))
@@ -104,7 +104,7 @@ fn function_call_should_return_a_value_when_specified() {
 
     assert_eq!(
         Ok(Some(obj_bool!(true))),
-        StatefulInterpreter::new().interpret(input)
+        StatefulInterpreter::new().tree_pass(input)
     );
 }
 
@@ -123,7 +123,7 @@ fn if_statement_should_eval_to_primary_clause_if_condition_is_true() {
         ))),
     );
 
-    interpreter.interpret(vec![stmt]).unwrap();
+    interpreter.tree_pass(vec![stmt]).unwrap();
     assert_eq!(
         Some(obj_bool!(true)),
         interpreter.env.get(&Identifier::Name("test".to_string()))
@@ -145,7 +145,7 @@ fn if_statement_should_eval_to_else_clause_if_condition_is_false() {
         ))),
     );
 
-    interpreter.interpret(vec![stmt]).unwrap();
+    interpreter.tree_pass(vec![stmt]).unwrap();
     assert_eq!(
         Some(obj_bool!(false)),
         interpreter.env.get(&Identifier::Name("test".to_string()))
@@ -162,5 +162,5 @@ fn while_statement_should_eval_until_false() {
         )),
     );
 
-    assert_eq!(Ok(None), StatefulInterpreter::new().interpret(vec![stmt]));
+    assert_eq!(Ok(None), StatefulInterpreter::new().tree_pass(vec![stmt]));
 }

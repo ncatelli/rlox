@@ -1,6 +1,6 @@
 use crate::ast::expression::{Expr, LogicalExpr};
-use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
+use crate::pass::*;
 
 macro_rules! logical_truth_table {
     ($l:literal, "or", $r: literal) => {
@@ -27,7 +27,7 @@ macro_rules! logical_truth_table {
 
 macro_rules! expr_interpret {
     ($x:expr) => {
-        StatefulInterpreter::new().interpret($x)
+        StatefulInterpreter::new().tree_pass($x)
     };
 }
 

@@ -1,20 +1,20 @@
 use crate::analyzer::scope::ScopeAnalyzer;
-use crate::analyzer::SemanticAnalyzerMut;
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
+use crate::pass::*;
 
 #[test]
 fn expression_stmt_should_return_ok() {
     let stmts = vec![Stmt::Expression(Expr::Primary(obj_bool!(true)))];
 
-    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().analyze(stmts));
+    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().tree_pass(stmts));
 }
 
 #[test]
 fn print_stmt_should_return_self() {
     let stmts = vec![Stmt::Print(Expr::Primary(obj_bool!(true)))];
 
-    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().analyze(stmts));
+    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().tree_pass(stmts));
 }
 
 #[test]
@@ -29,7 +29,7 @@ fn declaration_statement_should_return_id_def() {
         Expr::Primary(obj_bool!(true)),
     )];
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input));
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input));
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn multiple_unique_declaration_statements_should_increment_id() {
         Stmt::Declaration(identifier_id!(1), Expr::Primary(obj_bool!(false))),
     ];
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input));
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input));
 }
 
 #[test]
@@ -62,14 +62,14 @@ fn multiple_matching_declaration_statements_should_increment_id() {
         Stmt::Declaration(identifier_id!(0), Expr::Primary(obj_bool!(false))),
     ];
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input));
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input));
 }
 
 #[test]
 fn return_statement_should_return_self() {
     let stmts = vec![Stmt::Return(Expr::Primary(obj_bool!(true)))];
 
-    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().analyze(stmts));
+    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().tree_pass(stmts));
 }
 
 #[test]
@@ -78,7 +78,7 @@ fn block_statement_should_return_self() {
         obj_bool!(true),
     ))])];
 
-    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().analyze(stmts));
+    assert_eq!(Ok(stmts.clone()), ScopeAnalyzer::new().tree_pass(stmts));
 }
 
 #[test]
@@ -93,7 +93,7 @@ fn block_statement_should_analyze_child_stmts() {
         Expr::Primary(obj_bool!(true)),
     )])];
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input));
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input));
 }
 
 #[test]
@@ -110,7 +110,7 @@ fn function_declaration_statement_should_return_self() {
         Box::new(block.clone()),
     )];
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input));
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input));
 }
 
 #[test]
@@ -139,7 +139,7 @@ fn if_statement_should_return_self() {
         ))),
     )];
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input));
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input));
 }
 
 #[test]
@@ -160,7 +160,7 @@ fn while_statement_should_return_self() {
         )),
     )];
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input))
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input))
 }
 
 #[test]
@@ -221,5 +221,5 @@ fn scope_should_shade_correctly() {
         ]),
     ];
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().analyze(input))
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input))
 }

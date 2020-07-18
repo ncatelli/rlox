@@ -7,11 +7,10 @@ use std::process;
 extern crate parcel;
 use parcel::prelude::v1::*;
 use rlox::analyzer::scope::ScopeAnalyzer;
-use rlox::analyzer::SemanticAnalyzerMut;
 use rlox::ast::token;
-use rlox::interpreter::Interpreter;
 use rlox::interpreter::StatefulInterpreter;
 use rlox::parser::statement_parser::statements;
+use rlox::pass::*;
 use rlox::scanner;
 
 type RuntimeResult<T> = Result<T, String>;
@@ -86,9 +85,9 @@ fn run(
         }
     }?;
 
-    let analyzed_stmts = analyzer.analyze(stmts).unwrap();
+    let analyzed_stmts = analyzer.tree_pass(stmts).unwrap();
     interpreter
-        .interpret(analyzed_stmts)
+        .tree_pass(analyzed_stmts)
         .map_err(|e| e.to_string())?;
 
     Ok(token_count)

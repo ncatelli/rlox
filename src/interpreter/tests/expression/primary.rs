@@ -1,6 +1,6 @@
 use crate::ast::expression::Expr;
-use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
+use crate::pass::*;
 
 #[test]
 fn primary_expr_should_interpret_to_equivalent_primary() {
@@ -8,6 +8,6 @@ fn primary_expr_should_interpret_to_equivalent_primary() {
 
     assert_eq!(
         Ok(obj_number!(5.0)),
-        StatefulInterpreter::new().interpret(expr)
+        StatefulInterpreter::new().tree_pass(expr)
     );
 }

@@ -1,6 +1,6 @@
 use crate::ast::expression::{AdditionExpr, Expr, MultiplicationExpr};
-use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
+use crate::pass::*;
 
 macro_rules! primary_number {
     ($x:literal) => {
@@ -28,7 +28,7 @@ fn grouping_expr_should_interpret_to_equivalent_primary() {
 
     assert_eq!(
         Ok(obj_number!(5.0)),
-        StatefulInterpreter::new().interpret(expr)
+        StatefulInterpreter::new().tree_pass(expr)
     );
 }
 
@@ -44,6 +44,6 @@ fn grouping_expr_should_maintain_operator_precedence() {
 
     assert_eq!(
         Ok(obj_number!(5.0)),
-        StatefulInterpreter::new().interpret(expr)
+        StatefulInterpreter::new().tree_pass(expr)
     );
 }
