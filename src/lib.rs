@@ -11,6 +11,7 @@ pub mod interpreter;
 pub mod parser;
 pub mod pass;
 pub mod scanner;
+pub mod statics;
 
 #[cfg(test)]
 mod tests;
