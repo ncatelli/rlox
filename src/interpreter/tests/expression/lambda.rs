@@ -1,7 +1,7 @@
 use crate::ast::expression::Expr;
 use crate::ast::statement::Stmt;
-use crate::interpreter::Interpreter;
 use crate::interpreter::{ExprInterpreterErr, StatefulInterpreter, StmtInterpreterErr};
+use crate::pass::*;
 
 #[test]
 fn should_return_a_value_when_specified() {
@@ -13,7 +13,7 @@ fn should_return_a_value_when_specified() {
 
     assert_eq!(
         Ok(Some(obj_bool!(true))),
-        StatefulInterpreter::new().interpret(input)
+        StatefulInterpreter::new().tree_pass(input)
     );
 }
 
@@ -29,6 +29,6 @@ fn should_throw_error_on_arity_mismatch() {
         Err(StmtInterpreterErr::Expression(ExprInterpreterErr::CallErr(
             "Arity".to_string()
         ))),
-        StatefulInterpreter::new().interpret(input)
+        StatefulInterpreter::new().tree_pass(input)
     );
 }

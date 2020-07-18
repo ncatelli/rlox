@@ -1,6 +1,6 @@
 use crate::ast::expression::{AdditionExpr, Expr, MultiplicationExpr};
-use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
+use crate::pass::*;
 
 macro_rules! primary_number {
     ($x:literal) => {
@@ -12,7 +12,7 @@ macro_rules! primary_number {
 
 macro_rules! expr_interpret {
     ($x:expr) => {
-        StatefulInterpreter::new().interpret($x)
+        StatefulInterpreter::new().tree_pass($x)
     };
 }
 

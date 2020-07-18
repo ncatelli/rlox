@@ -1,6 +1,6 @@
 use crate::ast::expression::{Expr, UnaryExpr};
-use crate::interpreter::Interpreter;
 use crate::interpreter::StatefulInterpreter;
+use crate::pass::*;
 
 #[test]
 fn unary_expr_should_invert_bool_with_bang_operator() {
@@ -9,11 +9,11 @@ fn unary_expr_should_invert_bool_with_bang_operator() {
 
     assert_eq!(
         Ok(obj_bool!(false)),
-        StatefulInterpreter::new().interpret(true_expr)
+        StatefulInterpreter::new().tree_pass(true_expr)
     );
     assert_eq!(
         Ok(obj_bool!(true)),
-        StatefulInterpreter::new().interpret(false_expr)
+        StatefulInterpreter::new().tree_pass(false_expr)
     );
 }
 
@@ -23,6 +23,6 @@ fn unary_expr_should_negate_number_with_minus_operator() {
 
     assert_eq!(
         Ok(obj_number!(-1.0)),
-        StatefulInterpreter::new().interpret(expr)
+        StatefulInterpreter::new().tree_pass(expr)
     );
 }

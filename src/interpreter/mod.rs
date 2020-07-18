@@ -5,6 +5,7 @@ use crate::ast::identifier::Identifier;
 use crate::environment::Environment;
 use crate::functions;
 use crate::object::{Literal, Object};
+use crate::pass::*;
 use std::fmt;
 use std::rc::Rc;
 
@@ -24,12 +25,6 @@ impl fmt::Display for InterpreterErr {
             Self::TypeErr(e) => write!(f, "invalid type: {}", e),
         }
     }
-}
-
-pub trait Interpreter<A, B> {
-    type Error;
-
-    fn interpret(&self, input: A) -> Result<B, Self::Error>;
 }
 
 macro_rules! type_error {
@@ -103,12 +98,12 @@ impl From<Rc<Environment<Identifier, Object>>> for StatefulInterpreter {
 
 /// Interpreter<Expr, object::Object> begins implemententing the required state
 /// for interpreting Expressions in a stateful way.
-impl Interpreter<Expr, Object> for StatefulInterpreter {
+impl Pass<Expr, Object> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
 
-    fn interpret(&self, expr: Expr) -> ExprInterpreterResult {
+    fn tree_pass(&self, expr: Expr) -> ExprInterpreterResult {
         match expr {
-            Expr::Grouping(expr) => self.interpret(expr),
+            Expr::Grouping(expr) => self.tree_pass(expr),
             Expr::Lambda(params, body) => self.interpret_lambda(params, *body),
             Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(obj) => self.interpret_primary(obj),
@@ -126,17 +121,17 @@ impl Interpreter<Expr, Object> for StatefulInterpreter {
 
 /// This functions only to unpack an Expr and dispatch to the upstream
 /// Interpreter<Expr, object::Object> implementation.
-impl Interpreter<Box<Expr>, Object> for StatefulInterpreter {
+impl Pass<Box<Expr>, Object> for StatefulInterpreter {
     type Error = ExprInterpreterErr;
-    fn interpret(&self, expr: Box<Expr>) -> ExprInterpreterResult {
-        self.interpret(*expr)
+    fn tree_pass(&self, expr: Box<Expr>) -> ExprInterpreterResult {
+        self.tree_pass(*expr)
     }
 }
 
 impl StatefulInterpreter {
     fn interpret_assignment(&self, id: Identifier, expr: Box<Expr>) -> ExprInterpreterResult {
         let lhv = id;
-        let rhv = self.interpret(expr)?;
+        let rhv = self.tree_pass(expr)?;
 
         match self.env.assign(&lhv, rhv) {
             Some(v) => Ok(v),
@@ -147,21 +142,21 @@ impl StatefulInterpreter {
     fn interpret_logical(&self, expr: LogicalExpr) -> ExprInterpreterResult {
         match expr {
             LogicalExpr::Or(left, right) => {
-                let lho: Object = self.interpret(left)?;
+                let lho: Object = self.tree_pass(left)?;
                 let lho_bool: bool = lho.clone().into();
                 if lho_bool {
                     Ok(lho)
                 } else {
-                    self.interpret(right)
+                    self.tree_pass(right)
                 }
             }
             LogicalExpr::And(left, right) => {
-                let lho: Object = self.interpret(left)?;
+                let lho: Object = self.tree_pass(left)?;
                 let lho_bool: bool = lho.clone().into();
                 if !lho_bool {
                     Ok(lho)
                 } else {
-                    self.interpret(right)
+                    self.tree_pass(right)
                 }
             }
         }
@@ -169,7 +164,7 @@ impl StatefulInterpreter {
 
     fn interpret_equality(&self, expr: EqualityExpr) -> ExprInterpreterResult {
         match expr {
-            EqualityExpr::Equal(left, right) => match (self.interpret(left), self.interpret(right))
+            EqualityExpr::Equal(left, right) => match (self.tree_pass(left), self.tree_pass(right))
             {
                 (
                     Ok(Object::Literal(Literal::Number(l_val))),
@@ -183,7 +178,7 @@ impl StatefulInterpreter {
                 _ => type_error!(),
             },
             EqualityExpr::NotEqual(left, right) => {
-                match (self.interpret(left), self.interpret(right)) {
+                match (self.tree_pass(left), self.tree_pass(right)) {
                     (
                         Ok(Object::Literal(Literal::Number(l_val))),
                         Ok(Object::Literal(Literal::Number(r_val))),
@@ -202,7 +197,7 @@ impl StatefulInterpreter {
     fn interpret_comparison(&self, expr: ComparisonExpr) -> ExprInterpreterResult {
         match expr {
             ComparisonExpr::Less(left, right) => {
-                match (self.interpret(left), self.interpret(right)) {
+                match (self.tree_pass(left), self.tree_pass(right)) {
                     (
                         Ok(Object::Literal(Literal::Number(l_val))),
                         Ok(Object::Literal(Literal::Number(r_val))),
@@ -212,7 +207,7 @@ impl StatefulInterpreter {
                 }
             }
             ComparisonExpr::LessEqual(left, right) => {
-                match (self.interpret(left), self.interpret(right)) {
+                match (self.tree_pass(left), self.tree_pass(right)) {
                     (
                         Ok(Object::Literal(Literal::Number(l_val))),
                         Ok(Object::Literal(Literal::Number(r_val))),
@@ -222,7 +217,7 @@ impl StatefulInterpreter {
                 }
             }
             ComparisonExpr::Greater(left, right) => {
-                match (self.interpret(left), self.interpret(right)) {
+                match (self.tree_pass(left), self.tree_pass(right)) {
                     (
                         Ok(Object::Literal(Literal::Number(l_val))),
                         Ok(Object::Literal(Literal::Number(r_val))),
@@ -232,7 +227,7 @@ impl StatefulInterpreter {
                 }
             }
             ComparisonExpr::GreaterEqual(left, right) => {
-                match (self.interpret(left), self.interpret(right)) {
+                match (self.tree_pass(left), self.tree_pass(right)) {
                     (
                         Ok(Object::Literal(Literal::Number(l_val))),
                         Ok(Object::Literal(Literal::Number(r_val))),
@@ -246,7 +241,7 @@ impl StatefulInterpreter {
 
     fn interpret_addition(&self, expr: AdditionExpr) -> ExprInterpreterResult {
         match expr {
-            AdditionExpr::Add(left, right) => match (self.interpret(left), self.interpret(right)) {
+            AdditionExpr::Add(left, right) => match (self.tree_pass(left), self.tree_pass(right)) {
                 (
                     Ok(Object::Literal(Literal::Number(l_val))),
                     Ok(Object::Literal(Literal::Number(r_val))),
@@ -259,7 +254,7 @@ impl StatefulInterpreter {
                 _ => type_error!(),
             },
             AdditionExpr::Subtract(left, right) => {
-                match (self.interpret(left), self.interpret(right)) {
+                match (self.tree_pass(left), self.tree_pass(right)) {
                     (
                         Ok(Object::Literal(Literal::Number(l_val))),
                         Ok(Object::Literal(Literal::Number(r_val))),
@@ -274,7 +269,7 @@ impl StatefulInterpreter {
     fn interpret_multiplication(&self, expr: MultiplicationExpr) -> ExprInterpreterResult {
         match expr {
             MultiplicationExpr::Multiply(left, right) => {
-                match (self.interpret(left), self.interpret(right)) {
+                match (self.tree_pass(left), self.tree_pass(right)) {
                     (
                         Ok(Object::Literal(Literal::Number(l_val))),
                         Ok(Object::Literal(Literal::Number(r_val))),
@@ -284,7 +279,7 @@ impl StatefulInterpreter {
                 }
             }
             MultiplicationExpr::Divide(left, right) => {
-                match (self.interpret(left), self.interpret(right)) {
+                match (self.tree_pass(left), self.tree_pass(right)) {
                     (
                         Ok(Object::Literal(Literal::Number(l_val))),
                         Ok(Object::Literal(Literal::Number(r_val))),
@@ -298,14 +293,14 @@ impl StatefulInterpreter {
 
     fn interpret_unary(&self, expr: UnaryExpr) -> ExprInterpreterResult {
         match expr {
-            UnaryExpr::Bang(ue) => match self.interpret(ue) {
+            UnaryExpr::Bang(ue) => match self.tree_pass(ue) {
                 Ok(obj) => {
                     let ob: bool = obj.into();
                     Ok(obj_bool!(!ob))
                 }
                 e @ Err(_) => e,
             },
-            UnaryExpr::Minus(ue) => match self.interpret(ue) {
+            UnaryExpr::Minus(ue) => match self.tree_pass(ue) {
                 Ok(Object::Literal(Literal::Number(n))) => Ok(obj_number!(n * -1.0)),
                 e @ Err(_) => e,
                 _ => type_error!(),
@@ -314,10 +309,10 @@ impl StatefulInterpreter {
     }
 
     fn interpret_call(&self, callee: Expr, args: Vec<Expr>) -> ExprInterpreterResult {
-        let fun = self.interpret(callee).map(|obj_res| obj_res)?;
+        let fun = self.tree_pass(callee).map(|obj_res| obj_res)?;
         let params: Vec<Object> = args
             .into_iter()
-            .map(|expr| self.interpret(expr).unwrap())
+            .map(|expr| self.tree_pass(expr).unwrap())
             .collect();
 
         let c = match fun {
@@ -376,12 +371,12 @@ impl fmt::Display for StmtInterpreterErr {
 
 pub type StmtInterpreterResult = Result<Option<Object>, StmtInterpreterErr>;
 
-impl Interpreter<Vec<Stmt>, Option<Object>> for StatefulInterpreter {
+impl Pass<Vec<Stmt>, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
 
-    fn interpret(&self, input: Vec<Stmt>) -> StmtInterpreterResult {
+    fn tree_pass(&self, input: Vec<Stmt>) -> StmtInterpreterResult {
         for stmt in input {
-            match self.interpret(stmt) {
+            match self.tree_pass(stmt) {
                 Ok(None) => continue,
                 rv @ Ok(_) => return rv,
                 Err(e) => return Err(e),
@@ -391,10 +386,10 @@ impl Interpreter<Vec<Stmt>, Option<Object>> for StatefulInterpreter {
     }
 }
 
-impl Interpreter<Stmt, Option<Object>> for StatefulInterpreter {
+impl Pass<Stmt, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
 
-    fn interpret(&self, input: Stmt) -> StmtInterpreterResult {
+    fn tree_pass(&self, input: Stmt) -> StmtInterpreterResult {
         match input {
             Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
             Stmt::If(expr, tb, eb) => self.interpret_if_stmt(expr, tb, eb),
@@ -411,23 +406,23 @@ impl Interpreter<Stmt, Option<Object>> for StatefulInterpreter {
 }
 
 /// This functions only to unpack an Stmt and dispatch to the upstream Interpreter<Stmt, Object)> implementation
-impl Interpreter<Box<Stmt>, Option<Object>> for StatefulInterpreter {
+impl Pass<Box<Stmt>, Option<Object>> for StatefulInterpreter {
     type Error = StmtInterpreterErr;
-    fn interpret(&self, input: Box<Stmt>) -> StmtInterpreterResult {
-        self.interpret(*input)
+    fn tree_pass(&self, input: Box<Stmt>) -> StmtInterpreterResult {
+        self.tree_pass(*input)
     }
 }
 
 impl StatefulInterpreter {
     fn interpret_expression_stmt(&self, expr: Expr) -> StmtInterpreterResult {
-        match self.interpret(expr) {
+        match self.tree_pass(expr) {
             Ok(_) => Ok(None),
             Err(err) => Err(StmtInterpreterErr::Expression(err)),
         }
     }
 
     fn interpret_print_stmt(&self, expr: Expr) -> StmtInterpreterResult {
-        match self.interpret(expr) {
+        match self.tree_pass(expr) {
             Ok(expr) => {
                 println!("{}", expr);
                 Ok(None)
@@ -437,7 +432,7 @@ impl StatefulInterpreter {
     }
 
     fn interpret_declaration_stmt(&self, id: Identifier, expr: Expr) -> StmtInterpreterResult {
-        match self.interpret(expr) {
+        match self.tree_pass(expr) {
             Ok(obj) => {
                 self.env.define(&id, obj);
                 Ok(None)
@@ -461,7 +456,7 @@ impl StatefulInterpreter {
     }
 
     fn interpret_return_stmt(&self, expr: Expr) -> StmtInterpreterResult {
-        match self.interpret(expr) {
+        match self.tree_pass(expr) {
             Ok(obj) => Ok(Some(obj)),
             Err(e) => Err(StmtInterpreterErr::Expression(e)),
         }
@@ -469,7 +464,7 @@ impl StatefulInterpreter {
 
     fn interpret_block(&self, stmts: Vec<Stmt>) -> StmtInterpreterResult {
         let block_interpreter = StatefulInterpreter::from(Environment::from(&self.env));
-        block_interpreter.interpret(stmts)
+        block_interpreter.tree_pass(stmts)
     }
 
     #[allow(clippy::redundant_closure)]
@@ -480,23 +475,23 @@ impl StatefulInterpreter {
         eb: Option<Box<Stmt>>,
     ) -> StmtInterpreterResult {
         let condition = self
-            .interpret(cond)
+            .tree_pass(cond)
             .map_err(|e| StmtInterpreterErr::Expression(e))?;
         match (condition.into(), eb) {
-            (true, _) => self.interpret(tb),
+            (true, _) => self.tree_pass(tb),
             (false, None) => Ok(None),
-            (false, Some(stmt)) => self.interpret(stmt),
+            (false, Some(stmt)) => self.tree_pass(stmt),
         }
     }
 
     #[allow(clippy::redundant_closure)]
     fn interpret_while_stmt(&self, cond: Expr, body: Box<Stmt>) -> StmtInterpreterResult {
         while self
-            .interpret(cond.clone())
+            .tree_pass(cond.clone())
             .map_err(|e| StmtInterpreterErr::Expression(e))?
             .into()
         {
-            match self.interpret(body.clone()) {
+            match self.tree_pass(body.clone()) {
                 Ok(None) => continue,
                 rv @ Ok(_) => return rv,
                 Err(e) => return Err(e),

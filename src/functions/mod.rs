@@ -2,8 +2,8 @@ use crate::ast::identifier::Identifier;
 use crate::ast::statement;
 use crate::environment::Environment;
 use crate::interpreter;
-use crate::interpreter::Interpreter;
 use crate::object::Object;
+use crate::pass::*;
 use std::fmt;
 use std::rc::Rc;
 
@@ -96,7 +96,7 @@ impl Function {
         }
 
         let intptr = interpreter::StatefulInterpreter::from(local);
-        match intptr.interpret(self.body.clone()) {
+        match intptr.tree_pass(self.body.clone()) {
             Ok(rv) => Ok(rv.unwrap_or(obj_nil!())),
             Err(_) => Err(CallError::Unknown),
         }
