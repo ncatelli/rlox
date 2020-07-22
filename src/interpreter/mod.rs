@@ -400,6 +400,7 @@ impl Pass<Stmt, Option<Object>> for StatefulInterpreter {
             }
             Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
             Stmt::Return(expr) => self.interpret_return_stmt(expr),
+            Stmt::Class(_id, _stmts) => todo!(),
             Stmt::Block(stmts) => self.interpret_block(stmts),
         }
     }

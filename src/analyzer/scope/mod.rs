@@ -234,6 +234,7 @@ impl PassMut<Stmt, Stmt> for ScopeAnalyzer {
             Stmt::Function(name, params, body) => self.analyze_function(name, params, body),
             Stmt::Declaration(id, expr) => self.analyze_declaration(id, expr),
             Stmt::Return(e) => Ok(Stmt::Return(self.tree_pass(e)?)),
+            Stmt::Class(_id, _stmts) => todo!(),
             Stmt::Block(stmts) => self.analyze_block(stmts),
         }
     }
