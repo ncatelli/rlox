@@ -21,11 +21,12 @@ A rust implementation of https://craftinginterpreters.com/
 ```
 program        = statement* EOF ;
 
-declaration    = funDecl
+declaration    = classDecl
+               | funDecl
                | varDecl
                | statement ;
 
-
+classDecl      = "class" IDENTIFIER "{" function* "}" ;
 funDecl        = "fun" function ;
 function       = IDENTIFIER "(" parameters? ")" block ;
 parameters     = IDENTIFIER ( "," IDENTIFIER )* ;
