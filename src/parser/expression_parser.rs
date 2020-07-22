@@ -321,10 +321,7 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         token_type(TokenType::Str),
     ])
     .map(|token| Expr::Primary(token.object.unwrap()))
-    .or(|| {
-        token_type(TokenType::Identifier)
-            .map(|token| Expr::Variable(Identifier::try_from(token).unwrap()))
-    })
+    .or(|| identifier().map(|id| Expr::Variable(id)))
     .or(|| {
         right(join(
             token_type(TokenType::LeftParen),
@@ -332,4 +329,9 @@ fn primary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         ))
         .map(|expr| Expr::Grouping(Box::new(expr)))
     })
+}
+
+#[allow(clippy::redundant_closure)]
+pub fn identifier<'a>() -> impl parcel::Parser<'a, &'a [Token], Identifier> {
+    token_type(TokenType::Identifier).map(|token| Identifier::try_from(token).unwrap())
 }

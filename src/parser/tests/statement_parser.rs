@@ -250,3 +250,21 @@ fn can_parse_for_stmt() {
         statements().parse(&input)
     );
 }
+
+#[test]
+fn can_parse_empty_class_declaration_stmt() {
+    let input = vec![
+        token_from_tt!(TokenType::Class),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::LeftBrace),
+        token_from_tt!(TokenType::RightBrace),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[4..],
+            vec![Stmt::Class(identifier_name!("test"), vec![])]
+        ))),
+        statements().parse(&input)
+    );
+}
