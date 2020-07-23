@@ -268,3 +268,37 @@ fn can_parse_empty_class_declaration_stmt() {
         statements().parse(&input)
     );
 }
+
+#[test]
+fn can_parse_nonempty_class_declaration_stmt() {
+    let input = vec![
+        token_from_tt!(TokenType::Class),
+        token_from_tt!(TokenType::Identifier, "test"),
+        token_from_tt!(TokenType::LeftBrace),
+        token_from_tt!(TokenType::Identifier, "test_func"),
+        token_from_tt!(TokenType::LeftParen),
+        token_from_tt!(TokenType::RightParen),
+        token_from_tt!(TokenType::LeftBrace),
+        token_from_tt!(TokenType::Number, "5.0", obj_number!(5.0)),
+        token_from_tt!(TokenType::Semicolon),
+        token_from_tt!(TokenType::RightBrace),
+        token_from_tt!(TokenType::RightBrace),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[11..],
+            vec![Stmt::Class(
+                identifier_name!("test"),
+                vec![Stmt::Function(
+                    identifier_name!("test_func"),
+                    vec![],
+                    Box::new(Stmt::Block(vec![Stmt::Expression(Expr::Primary(
+                        obj_number!(5.0)
+                    ))]))
+                )]
+            )]
+        ))),
+        statements().parse(&input)
+    );
+}
