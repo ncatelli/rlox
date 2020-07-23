@@ -165,16 +165,7 @@ fn while_statement_should_return_self() {
 
 #[test]
 fn class_statement_should_return_self() {
-    let input = vec![Stmt::Class(
-        identifier_name!("test"),
-        vec![Stmt::Function(
-            identifier_name!("test_func"),
-            vec![],
-            Box::new(Stmt::Block(vec![Stmt::Print(Expr::Variable(
-                identifier_name!("variable"),
-            ))])),
-        )],
-    )];
+    let input = vec![Stmt::Class(identifier_name!("test"), vec![])];
 
     let output = vec![Stmt::Class(identifier_id!(0), vec![])];
 
