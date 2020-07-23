@@ -282,16 +282,14 @@ impl ScopeAnalyzer {
     fn analyze_class(
         &mut self,
         cname: Identifier,
-        _methods: Vec<Stmt>,
+        methods: Vec<Stmt>,
     ) -> StmtSemanticAnalyzerResult {
         let cid = self.declare_or_assign(cname);
 
         // enter scope
         self.stack.push(Scope::new());
 
-        // TODO: Need to handle method definitions
-        //let method_ids = self.tree_pass(methods)?;
-        let method_ids = vec![]; // kill this when above is implemented.
+        let method_ids = self.tree_pass(methods)?;
 
         // leave scope
         self.stack.pop();
