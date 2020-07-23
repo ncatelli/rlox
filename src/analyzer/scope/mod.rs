@@ -234,7 +234,7 @@ impl PassMut<Stmt, Stmt> for ScopeAnalyzer {
             Stmt::Function(name, params, body) => self.analyze_function(name, params, body),
             Stmt::Declaration(id, expr) => self.analyze_declaration(id, expr),
             Stmt::Return(e) => Ok(Stmt::Return(self.tree_pass(e)?)),
-            Stmt::Class(_id, _stmts) => todo!(),
+            Stmt::Class(id, stmts) => self.analyze_class(id, stmts),
             Stmt::Block(stmts) => self.analyze_block(stmts),
         }
     }
@@ -277,6 +277,26 @@ impl ScopeAnalyzer {
         self.stack.pop();
 
         Ok(Stmt::Block(analyzed_block))
+    }
+
+    fn analyze_class(
+        &mut self,
+        cname: Identifier,
+        _methods: Vec<Stmt>,
+    ) -> StmtSemanticAnalyzerResult {
+        let cid = self.declare_or_assign(cname);
+
+        // enter scope
+        self.stack.push(Scope::new());
+
+        // TODO: Need to handle method definitions
+        //let method_ids = self.tree_pass(methods)?;
+        let method_ids = vec![]; // kill this when above is implemented.
+
+        // leave scope
+        self.stack.pop();
+
+        Ok(Stmt::Class(cid, method_ids))
     }
 
     fn analyze_function(
