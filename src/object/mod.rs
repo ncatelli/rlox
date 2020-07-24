@@ -83,6 +83,13 @@ impl fmt::Display for Literal {
 }
 
 #[allow(unused_macros)]
+macro_rules! obj_class {
+    ($c:expr) => {
+        $crate::object::Object::Class($c)
+    };
+}
+
+#[allow(unused_macros)]
 macro_rules! obj_call {
     ($c:expr) => {
         $crate::object::Object::Call($c)
