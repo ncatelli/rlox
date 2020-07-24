@@ -2,6 +2,7 @@ use crate::ast::expression::{
     AdditionExpr, ComparisonExpr, EqualityExpr, Expr, LogicalExpr, MultiplicationExpr, UnaryExpr,
 };
 use crate::ast::identifier::Identifier;
+use crate::class;
 use crate::environment::Environment;
 use crate::functions;
 use crate::object::{Literal, Object};
@@ -458,9 +459,11 @@ impl StatefulInterpreter {
 
     fn interpret_class_decl_stmt(
         &self,
-        _id: Identifier,
+        id: Identifier,
         _methods: Vec<Stmt>,
     ) -> StmtInterpreterResult {
+        let c = class::Class::new(&id);
+        self.env.define(&id, Object::Class(c));
         Ok(None)
     }
 

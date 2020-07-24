@@ -27,7 +27,7 @@ impl fmt::Display for Object {
         match self {
             Self::Literal(l) => write!(f, "{}", &l),
             Self::Call(c) => write!(f, "{:?}", &c),
-            Self::Class(ref c) => write!(f, "Class {}", c),
+            Self::Class(ref c) => write!(f, "{}", c),
         }
     }
 }

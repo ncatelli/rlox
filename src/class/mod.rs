@@ -7,8 +7,8 @@ pub struct Class {
 }
 
 impl Class {
-    pub fn new(id: Identifier) -> Self {
-        Class { id }
+    pub fn new(id: &Identifier) -> Self {
+        Class { id: id.to_owned() }
     }
 }
 
