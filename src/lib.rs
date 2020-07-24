@@ -5,6 +5,7 @@ pub mod object;
 pub mod ast;
 
 pub mod analyzer;
+pub mod class;
 pub mod environment;
 pub mod functions;
 pub mod interpreter;
