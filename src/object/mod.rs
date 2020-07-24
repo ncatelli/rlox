@@ -1,3 +1,4 @@
+use crate::class::Class;
 use crate::functions::Callable;
 use std::fmt;
 
@@ -8,6 +9,7 @@ mod tests;
 pub enum Object {
     Literal(Literal),
     Call(Box<Callable>),
+    Class(Class),
 }
 
 impl Into<bool> for Object {
@@ -15,6 +17,7 @@ impl Into<bool> for Object {
         match self {
             Self::Literal(l) => l.into(),
             Self::Call(_) => true,
+            Self::Class(_) => true,
         }
     }
 }
@@ -22,8 +25,9 @@ impl Into<bool> for Object {
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Object::Literal(l) => write!(f, "{}", &l),
-            Object::Call(c) => write!(f, "{:?}", &c),
+            Self::Literal(l) => write!(f, "{}", &l),
+            Self::Call(c) => write!(f, "{:?}", &c),
+            Self::Class(ref c) => write!(f, "{}", c),
         }
     }
 }
@@ -76,6 +80,13 @@ impl fmt::Display for Literal {
             Literal::Number(n) => write!(f, "{}", n),
         }
     }
+}
+
+#[allow(unused_macros)]
+macro_rules! obj_class {
+    ($c:expr) => {
+        $crate::object::Object::Class($c)
+    };
 }
 
 #[allow(unused_macros)]

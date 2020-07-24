@@ -1,6 +1,7 @@
 use crate::ast::expression::Expr;
 use crate::ast::identifier::Identifier;
 use crate::ast::statement::Stmt;
+use crate::class;
 use crate::functions;
 use crate::interpreter::StatefulInterpreter;
 use crate::pass::*;
@@ -60,6 +61,17 @@ fn block_statement_with_return_should_return_value() {
     assert_eq!(
         Ok(Some(obj_number!(5.0))),
         StatefulInterpreter::new().tree_pass(stmts)
+    );
+}
+
+#[test]
+fn class_declaration_statement_should_set_persistent_symbol() {
+    let input = Stmt::Class(identifier_name!("test"), vec![]);
+    let interpreter = StatefulInterpreter::new();
+    interpreter.tree_pass(input).unwrap();
+    assert_eq!(
+        Some(obj_class!(class::Class::new(&identifier_name!("test")))),
+        interpreter.env.get(&Identifier::Name("test".to_string()))
     );
 }
 

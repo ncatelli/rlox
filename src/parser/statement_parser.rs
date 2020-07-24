@@ -4,7 +4,7 @@ use crate::ast::expression::Expr;
 use crate::ast::identifier::Identifier;
 use crate::ast::statement::Stmt;
 use crate::ast::token::{Token, TokenType};
-use crate::parser::expression_parser::expression;
+use crate::parser::expression_parser::{expression, identifier};
 use parcel::*;
 use std::convert::TryFrom;
 
@@ -17,6 +17,7 @@ pub fn statements<'a>() -> impl parcel::Parser<'a, &'a [Token], Vec<Stmt>> {
 #[allow(clippy::redundant_closure)]
 fn statement<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     declaration_stmt()
+        .or(|| class_declaration_stmt())
         .or(|| fun_declaration_stmt())
         .or(|| expression_stmt())
         .or(|| while_stmt())
@@ -43,28 +44,48 @@ fn print_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
 
 #[allow(clippy::redundant_closure)]
 fn fun_declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    right(join(token_type(TokenType::Fun), function()))
+}
+
+#[allow(clippy::redundant_closure)]
+fn class_declaration_stmt<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
     right(join(
-        token_type(TokenType::Fun),
+        token_type(TokenType::Class),
         join(
-            token_type(TokenType::Identifier),
-            join(
-                right(join(
-                    token_type(TokenType::LeftParen),
-                    left(join(
-                        optional(join(
-                            token_type(TokenType::Identifier),
-                            zero_or_more(right(join(
-                                token_type(TokenType::Comma),
-                                token_type(TokenType::Identifier),
-                            ))),
-                        )),
-                        token_type(TokenType::RightParen),
-                    )),
+            identifier(),
+            right(join(
+                token_type(TokenType::LeftBrace),
+                left(join(
+                    zero_or_more(function()),
+                    token_type(TokenType::RightBrace),
                 )),
-                block(),
-            ),
+            )),
         ),
     ))
+    .map(|(id, funcs)| Stmt::Class(id, funcs))
+}
+
+#[allow(clippy::redundant_closure)]
+fn function<'a>() -> impl parcel::Parser<'a, &'a [Token], Stmt> {
+    join(
+        token_type(TokenType::Identifier),
+        join(
+            right(join(
+                token_type(TokenType::LeftParen),
+                left(join(
+                    optional(join(
+                        token_type(TokenType::Identifier),
+                        zero_or_more(right(join(
+                            token_type(TokenType::Comma),
+                            token_type(TokenType::Identifier),
+                        ))),
+                    )),
+                    token_type(TokenType::RightParen),
+                )),
+            )),
+            block(),
+        ),
+    )
     .map(|(callee, (opt_args, body))| {
         let ident = Identifier::try_from(callee).unwrap();
         Stmt::Function(

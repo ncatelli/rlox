@@ -164,6 +164,33 @@ fn while_statement_should_return_self() {
 }
 
 #[test]
+fn class_statement_should_return_self() {
+    let input = vec![Stmt::Class(
+        identifier_name!("test"),
+        vec![Stmt::Function(
+            identifier_name!("test_func"),
+            vec![],
+            Box::new(Stmt::Block(vec![Stmt::Print(Expr::Primary(obj_number!(
+                5.0
+            )))])),
+        )],
+    )];
+
+    let output = vec![Stmt::Class(
+        identifier_id!(0),
+        vec![Stmt::Function(
+            identifier_id!(1),
+            vec![],
+            Box::new(Stmt::Block(vec![Stmt::Print(Expr::Primary(obj_number!(
+                5.0
+            )))])),
+        )],
+    )];
+
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input))
+}
+
+#[test]
 fn scope_should_shade_correctly() {
     let input = vec![
         Stmt::Declaration(
