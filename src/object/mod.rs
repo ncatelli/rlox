@@ -1,5 +1,5 @@
-use crate::class::Class;
 use crate::functions::Callable;
+use crate::instance::Instance;
 use std::fmt;
 
 #[cfg(test)]
@@ -9,7 +9,7 @@ mod tests;
 pub enum Object {
     Literal(Literal),
     Call(Box<Callable>),
-    Class(Class),
+    Instance(Instance),
 }
 
 impl Into<bool> for Object {
@@ -17,7 +17,7 @@ impl Into<bool> for Object {
         match self {
             Self::Literal(l) => l.into(),
             Self::Call(_) => true,
-            Self::Class(_) => true,
+            Self::Instance(_) => true,
         }
     }
 }
@@ -27,7 +27,7 @@ impl fmt::Display for Object {
         match self {
             Self::Literal(l) => write!(f, "{}", &l),
             Self::Call(c) => write!(f, "{:?}", &c),
-            Self::Class(ref c) => write!(f, "{}", c),
+            Self::Instance(ref i) => write!(f, "{}", i),
         }
     }
 }
@@ -83,9 +83,9 @@ impl fmt::Display for Literal {
 }
 
 #[allow(unused_macros)]
-macro_rules! obj_class {
+macro_rules! obj_instance {
     ($c:expr) => {
-        $crate::object::Object::Class($c)
+        $crate::object::Object::Instance($c)
     };
 }
 

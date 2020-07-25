@@ -447,7 +447,7 @@ impl StatefulInterpreter {
     ) -> StmtInterpreterResult {
         let func = functions::Function::new(self.env.clone(), params, body);
         let callable = functions::Callable::Func(func);
-        let obj = Object::Call(Box::new(callable));
+        let obj = obj_call!(Box::new(callable));
 
         self.env.define(&id, obj);
         Ok(None)
@@ -459,7 +459,8 @@ impl StatefulInterpreter {
         _methods: Vec<Stmt>,
     ) -> StmtInterpreterResult {
         let c = class::Class::new(&id);
-        self.env.define(&id, Object::Class(c));
+        let callable = functions::Callable::Class(c);
+        self.env.define(&id, obj_call!(Box::new(callable)));
         Ok(None)
     }
 

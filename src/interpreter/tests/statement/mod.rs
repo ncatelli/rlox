@@ -65,12 +65,14 @@ fn block_statement_with_return_should_return_value() {
 }
 
 #[test]
-fn class_declaration_statement_should_set_persistent_symbol() {
+fn class_declaration_statement_should_set_callable_instantiator() {
     let input = Stmt::Class(identifier_name!("test"), vec![]);
     let interpreter = StatefulInterpreter::new();
     interpreter.tree_pass(input).unwrap();
     assert_eq!(
-        Some(obj_class!(class::Class::new(&identifier_name!("test")))),
+        Some(obj_call!(Box::new(functions::Callable::Class(
+            class::Class::new(&identifier_name!("test"))
+        )))),
         interpreter.env.get(&Identifier::Name("test".to_string()))
     );
 }

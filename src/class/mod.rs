@@ -1,6 +1,7 @@
 use crate::ast::identifier::Identifier;
 use crate::environment::Environment;
 use crate::functions::CallResult;
+use crate::instance::Instance;
 use crate::object::Object;
 use std::fmt;
 use std::rc::Rc;
@@ -24,7 +25,7 @@ impl Class {
         _env: Rc<Environment<Identifier, Object>>,
         _args: Vec<Object>,
     ) -> CallResult {
-        Ok(obj_nil!())
+        Ok(obj_instance!(Instance::new(self)))
     }
 }
 
