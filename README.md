@@ -64,7 +64,7 @@ comparison     = addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       = multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication = unary ( ( "/" | "*" ) unary )* ;
 unary          = ( "!" | "-" ) unary | call ;
-call           = primary ( "(" arguments? ")" )* ;
+call           = primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 lambda         = "fun" "(" parameters? ")" block ;
 primary        = NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil"
                | "(" expression ")" ;
