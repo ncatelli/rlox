@@ -105,6 +105,7 @@ impl Pass<Expr, Object> for StatefulInterpreter {
             Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(obj) => self.interpret_primary(obj),
             Expr::Call(callee, args) => self.interpret_call(*callee, args),
+            Expr::Get(_callee, _id) => todo!(),
             Expr::Unary(expr) => self.interpret_unary(expr),
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
             Expr::Addition(expr) => self.interpret_addition(expr),
@@ -447,7 +448,7 @@ impl StatefulInterpreter {
     ) -> StmtInterpreterResult {
         let func = functions::Function::new(self.env.clone(), params, body);
         let callable = functions::Callable::Func(func);
-        let obj = Object::Call(Box::new(callable));
+        let obj = obj_call!(Box::new(callable));
 
         self.env.define(&id, obj);
         Ok(None)
@@ -459,7 +460,8 @@ impl StatefulInterpreter {
         _methods: Vec<Stmt>,
     ) -> StmtInterpreterResult {
         let c = class::Class::new(&id);
-        self.env.define(&id, Object::Class(c));
+        let callable = functions::Callable::Class(c);
+        self.env.define(&id, obj_call!(Box::new(callable)));
         Ok(None)
     }
 

@@ -1,5 +1,6 @@
 use crate::ast::identifier::Identifier;
 use crate::ast::statement;
+use crate::class::Class;
 use crate::environment::Environment;
 use crate::interpreter;
 use crate::object::Object;
@@ -28,7 +29,7 @@ impl fmt::Display for CallError {
 }
 
 /// CallResult wraps an object or error return value on a call.
-type CallResult = Result<Object, CallError>;
+pub type CallResult = Result<Object, CallError>;
 
 /// Callable represents a callable function, whether static or runtime,
 /// providing methods for invoking and checking the arity of the method.
@@ -36,6 +37,7 @@ type CallResult = Result<Object, CallError>;
 pub enum Callable {
     Func(Function),
     Static(StaticFunc),
+    Class(Class),
 }
 
 impl Callable {
@@ -49,6 +51,7 @@ impl Callable {
         match self {
             Self::Func(f) => f.arity(),
             Self::Static(sf) => sf.arity(),
+            Self::Class(c) => c.arity(),
         }
     }
 
@@ -59,6 +62,7 @@ impl Callable {
         match (arity_match, self) {
             (true, Self::Func(f)) => f.call(env, args),
             (true, Self::Static(sf)) => sf.call(env, args),
+            (true, Self::Class(c)) => c.call(env, args),
             (false, _) => Err(CallError::Arity),
         }
     }
