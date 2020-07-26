@@ -15,6 +15,7 @@ pub enum Expr {
     Multiplication(MultiplicationExpr),
     Unary(UnaryExpr),
     Call(Box<Expr>, Vec<Expr>),
+    Get(Box<Expr>, Identifier),
     Primary(object::Object),
     Grouping(Box<Expr>),
     Lambda(Vec<Identifier>, Box<statement::Stmt>),
@@ -53,6 +54,7 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(",")
             ),
+            Self::Get(callee, prop) => write!(f, "GET ({}.{})", callee, prop),
         }
     }
 }
