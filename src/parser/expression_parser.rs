@@ -270,6 +270,16 @@ fn call<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
             },
         )
     })
+    .or(|| get())
+}
+
+#[allow(clippy::redundant_closure)]
+fn get<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
+    join(
+        primary(),
+        right(join(token_type(TokenType::Dot), identifier())),
+    )
+    .map(|(callee, param)| Expr::Get(Box::new(callee), param))
     .or(|| lambda())
 }
 
