@@ -384,8 +384,33 @@ fn should_parse_get_expression() {
         Ok(MatchStatus::Match((
             &input[3..],
             Expr::Get(
+                Box::new(Expr::Variable(identifier_name!("test_class"))),
+                Box::new(Expr::Variable(identifier_name!("test_param"))),
+            )
+        ))),
+        expression().parse(&input)
+    );
+}
+
+#[test]
+fn should_parse_nested_get_expression() {
+    let input = vec![
+        token_from_tt!(TokenType::Identifier, "test_class"),
+        token_from_tt!(TokenType::Dot),
+        token_from_tt!(TokenType::Identifier, "test_param"),
+        token_from_tt!(TokenType::Dot),
+        token_from_tt!(TokenType::Identifier, "test_nested_param"),
+    ];
+
+    assert_eq!(
+        Ok(MatchStatus::Match((
+            &input[5..],
+            Expr::Get(
                 Box::new(Expr::Variable(identifier_name!("test_class"),)),
-                identifier_name!("test_param"),
+                Box::new(Expr::Get(
+                    Box::new(Expr::Variable(identifier_name!("test_param"))),
+                    Box::new(Expr::Variable(identifier_name!("test_nested_param"))),
+                ))
             )
         ))),
         expression().parse(&input)
