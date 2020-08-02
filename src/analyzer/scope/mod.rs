@@ -56,7 +56,7 @@ impl PassMut<Expr, Expr> for ScopeAnalyzer {
             Expr::Variable(id) => self.analyze_variable(id),
             e @ Expr::Primary(_) => Ok(e),
             Expr::Call(callee, args) => self.analyze_call(*callee, args),
-            Expr::Get(_callee, _id) => todo!(),
+            Expr::Get(instance, param) => self.analyze_get(*instance, *param),
             Expr::Unary(expr) => self.analyze_unary(expr),
             Expr::Multiplication(me) => self.analyze_multiplication(me),
             Expr::Addition(ae) => self.analyze_addition(ae),
@@ -171,6 +171,16 @@ impl ScopeAnalyzer {
         }
 
         Ok(Expr::Call(Box::new(analyzed_callee), analyzed_args))
+    }
+
+    fn analyze_get(&mut self, instance: Expr, param: Expr) -> ExprSemanticAnalyzerResult {
+        let analyzed_callee = self.tree_pass(instance)?;
+        let analyzed_param = param;
+
+        Ok(Expr::Get(
+            Box::new(analyzed_callee),
+            Box::new(analyzed_param),
+        ))
     }
 
     fn analyze_lambda(
