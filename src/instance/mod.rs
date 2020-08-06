@@ -10,8 +10,8 @@ mod tests;
 
 #[derive(Debug, Clone)]
 pub struct Instance {
-    class: Class,
-    scope: Rc<Environment<Identifier, Object>>,
+    pub class: Class,
+    pub scope: Rc<Environment<Identifier, Object>>,
 }
 
 impl Instance {
