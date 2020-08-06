@@ -15,7 +15,7 @@ pub enum Expr {
     Multiplication(MultiplicationExpr),
     Unary(UnaryExpr),
     Call(Box<Expr>, Vec<Expr>),
-    Get(Box<Expr>, Identifier),
+    Get(Box<Expr>, Box<Expr>),
     Primary(object::Object),
     Grouping(Box<Expr>),
     Lambda(Vec<Identifier>, Box<statement::Stmt>),

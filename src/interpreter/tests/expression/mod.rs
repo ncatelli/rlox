@@ -2,6 +2,7 @@ mod addition;
 mod call;
 mod comparison;
 mod equality;
+mod get_set;
 mod grouping;
 mod lambda;
 mod logical;

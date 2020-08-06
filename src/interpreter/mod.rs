@@ -105,7 +105,7 @@ impl Pass<Expr, Object> for StatefulInterpreter {
             Expr::Variable(id) => self.interpret_variable(id),
             Expr::Primary(obj) => self.interpret_primary(obj),
             Expr::Call(callee, args) => self.interpret_call(*callee, args),
-            Expr::Get(_callee, _id) => todo!(),
+            Expr::Get(instance, param) => self.interpret_get(*instance, *param),
             Expr::Unary(expr) => self.interpret_unary(expr),
             Expr::Multiplication(expr) => self.interpret_multiplication(expr),
             Expr::Addition(expr) => self.interpret_addition(expr),
@@ -325,6 +325,29 @@ impl StatefulInterpreter {
             Ok(r) => Ok(r),
             Err(e) => Err(ExprInterpreterErr::CallErr(format!("{:?}", e))),
         }
+    }
+
+    fn interpret_get(&self, instance: Expr, param: Expr) -> ExprInterpreterResult {
+        let i = self.tree_pass(instance).map(|obj_res| match obj_res {
+            Object::Instance(i) => Ok(i),
+            _ => Err(ExprInterpreterErr::CallErr(format!(
+                "object {} is not callable",
+                obj_res
+            ))),
+        })??;
+
+        let param_id = if let Expr::Variable(id) = param {
+            Ok(id)
+        } else {
+            Err(ExprInterpreterErr::Type(
+                "Expected identifier for parameter",
+            ))
+        }?;
+
+        i.get(&param_id).map_or(
+            Err(ExprInterpreterErr::UndefinedVariable(param_id.to_string())),
+            |obj| Ok(obj),
+        )
     }
 
     fn interpret_lambda(&self, params: Vec<Identifier>, body: Stmt) -> ExprInterpreterResult {
