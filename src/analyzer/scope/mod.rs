@@ -175,7 +175,7 @@ impl ScopeAnalyzer {
 
     fn analyze_get(&mut self, instance: Expr, param: Expr) -> ExprSemanticAnalyzerResult {
         let analyzed_callee = self.tree_pass(instance)?;
-        let analyzed_param = param;
+        let analyzed_param = self.tree_pass(param)?;
 
         Ok(Expr::Get(
             Box::new(analyzed_callee),

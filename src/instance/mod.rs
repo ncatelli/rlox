@@ -5,6 +5,9 @@ use crate::object::Object;
 use std::fmt;
 use std::rc::Rc;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug, Clone)]
 pub struct Instance {
     class: Class,
@@ -17,6 +20,10 @@ impl Instance {
             class: cls.clone(),
             scope: Environment::new(),
         }
+    }
+
+    pub fn get(&self, id: &Identifier) -> Option<Object> {
+        self.scope.clone().get(id)
     }
 }
 
