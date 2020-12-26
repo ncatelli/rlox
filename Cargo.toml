@@ -17,4 +17,4 @@ name = "rlox_bench"
 harness = false
 
 [dependencies]
-parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.5.0" }
+parcel = { git = "https://github.com/ncatelli/parcel", tag = "v1.9.0" }
