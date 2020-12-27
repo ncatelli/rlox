@@ -1,3 +1,4 @@
+pub mod combinatorial_scanner;
 pub mod source_scanner;
 
 pub use source_scanner::{LexResult, Scanner};
