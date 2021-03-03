@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
 
+mod flat_env;
 #[cfg(test)]
 mod tests;
 
