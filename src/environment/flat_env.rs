@@ -55,4 +55,24 @@ where
     pub fn parent(&self, scope: ScopeId) -> Option<ScopeId> {
         self.parents.get(scope).and_then(|&scope| scope)
     }
+
+    /// Returns the child scope ids for a given scope, or an empty vector.
+    pub fn children(&self, scope: ScopeId) -> Vec<ScopeId> {
+        self.children
+            .get(scope)
+            .map_or(vec![], |scope| scope.iter().copied().collect())
+    }
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_scopes_should_be_linked_to_their_parent() {
+        let parent_scope_id = 0;
+        let (env, child_scope_id) = Environment::<usize>::new().add_scope(0);
+        assert_eq!(None, env.parent(parent_scope_id));
+        assert_eq!(Some(parent_scope_id), env.parent(child_scope_id));
+        assert_eq!(vec![1], env.children(parent_scope_id));
+    }
 }
