@@ -49,9 +49,9 @@ type ExprSemanticAnalyzerResult = Result<Expr, ScopeAnalyzerErr>;
 impl PassMut<Expr, Expr> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn tree_pass(&mut self, expr: Expr) -> ExprSemanticAnalyzerResult {
+    fn tree_pass_mut(&mut self, expr: Expr) -> ExprSemanticAnalyzerResult {
         match expr {
-            Expr::Grouping(e) => Ok(Expr::Grouping(Box::new(self.tree_pass(e)?))),
+            Expr::Grouping(e) => Ok(Expr::Grouping(Box::new(self.tree_pass_mut(e)?))),
             Expr::Lambda(params, body) => self.analyze_lambda(params, *body),
             Expr::Variable(id) => self.analyze_variable(id),
             e @ Expr::Primary(_) => Ok(e),
@@ -74,7 +74,7 @@ impl ScopeAnalyzer {
         id: Identifier,
         expr: Box<Expr>,
     ) -> ExprSemanticAnalyzerResult {
-        let rhv = self.tree_pass(expr)?;
+        let rhv = self.tree_pass_mut(expr)?;
 
         match self.stack.get_offset(&id) {
             Some(offset) => Ok(Expr::Assignment(Identifier::Id(offset), Box::new(rhv))),
@@ -85,12 +85,12 @@ impl ScopeAnalyzer {
     fn analyze_logical(&mut self, expr: LogicalExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Logical(match expr {
             LogicalExpr::Or(left, right) => LogicalExpr::Or(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
             LogicalExpr::And(left, right) => LogicalExpr::And(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
         }))
     }
@@ -98,12 +98,12 @@ impl ScopeAnalyzer {
     fn analyze_equality(&mut self, expr: EqualityExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Equality(match expr {
             EqualityExpr::Equal(left, right) => EqualityExpr::Equal(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
             EqualityExpr::NotEqual(left, right) => EqualityExpr::NotEqual(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
         }))
     }
@@ -111,20 +111,20 @@ impl ScopeAnalyzer {
     fn analyze_comparison(&mut self, expr: ComparisonExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Comparison(match expr {
             ComparisonExpr::Greater(left, right) => ComparisonExpr::Greater(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
             ComparisonExpr::GreaterEqual(left, right) => ComparisonExpr::GreaterEqual(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
             ComparisonExpr::Less(left, right) => ComparisonExpr::Less(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
             ComparisonExpr::LessEqual(left, right) => ComparisonExpr::LessEqual(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
         }))
     }
@@ -132,12 +132,12 @@ impl ScopeAnalyzer {
     fn analyze_addition(&mut self, expr: AdditionExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Addition(match expr {
             AdditionExpr::Add(left, right) => AdditionExpr::Add(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
             AdditionExpr::Subtract(left, right) => AdditionExpr::Subtract(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
         }))
     }
@@ -145,37 +145,37 @@ impl ScopeAnalyzer {
     fn analyze_multiplication(&mut self, expr: MultiplicationExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Multiplication(match expr {
             MultiplicationExpr::Multiply(left, right) => MultiplicationExpr::Multiply(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
             MultiplicationExpr::Divide(left, right) => MultiplicationExpr::Divide(
-                Box::new(self.tree_pass(left)?),
-                Box::new(self.tree_pass(right)?),
+                Box::new(self.tree_pass_mut(left)?),
+                Box::new(self.tree_pass_mut(right)?),
             ),
         }))
     }
 
     fn analyze_unary(&mut self, expr: UnaryExpr) -> ExprSemanticAnalyzerResult {
         Ok(Expr::Unary(match expr {
-            UnaryExpr::Bang(expr) => UnaryExpr::Bang(Box::new(self.tree_pass(expr)?)),
-            UnaryExpr::Minus(expr) => UnaryExpr::Minus(Box::new(self.tree_pass(expr)?)),
+            UnaryExpr::Bang(expr) => UnaryExpr::Bang(Box::new(self.tree_pass_mut(expr)?)),
+            UnaryExpr::Minus(expr) => UnaryExpr::Minus(Box::new(self.tree_pass_mut(expr)?)),
         }))
     }
 
     fn analyze_call(&mut self, callee: Expr, args: Vec<Expr>) -> ExprSemanticAnalyzerResult {
-        let analyzed_callee = self.tree_pass(callee)?;
+        let analyzed_callee = self.tree_pass_mut(callee)?;
         let mut analyzed_args: Vec<Expr> = Vec::new();
 
         for arg in args {
-            analyzed_args.push(self.tree_pass(arg)?);
+            analyzed_args.push(self.tree_pass_mut(arg)?);
         }
 
         Ok(Expr::Call(Box::new(analyzed_callee), analyzed_args))
     }
 
     fn analyze_get(&mut self, instance: Expr, param: Expr) -> ExprSemanticAnalyzerResult {
-        let analyzed_callee = self.tree_pass(instance)?;
-        let analyzed_param = self.tree_pass(param)?;
+        let analyzed_callee = self.tree_pass_mut(instance)?;
+        let analyzed_param = self.tree_pass_mut(param)?;
 
         Ok(Expr::Get(
             Box::new(analyzed_callee),
@@ -195,7 +195,7 @@ impl ScopeAnalyzer {
             .map(|param| self.declare_or_assign(param))
             .collect();
 
-        let analyzed_body = self.tree_pass(body)?;
+        let analyzed_body = self.tree_pass_mut(body)?;
 
         // exit scope
         self.stack.pop();
@@ -213,8 +213,8 @@ impl ScopeAnalyzer {
 
 impl PassMut<Box<Expr>, Expr> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
-    fn tree_pass(&mut self, expr: Box<Expr>) -> ExprSemanticAnalyzerResult {
-        self.tree_pass(*expr)
+    fn tree_pass_mut(&mut self, expr: Box<Expr>) -> ExprSemanticAnalyzerResult {
+        self.tree_pass_mut(*expr)
     }
 }
 
@@ -225,26 +225,26 @@ pub type StmtSemanticAnalyzerResult = Result<Stmt, ScopeAnalyzerErr>;
 impl PassMut<Vec<Stmt>, Vec<Stmt>> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn tree_pass(&mut self, input: Vec<Stmt>) -> Result<Vec<Stmt>, ScopeAnalyzerErr> {
-        input.into_iter().map(|s| self.tree_pass(s)).collect()
+    fn tree_pass_mut(&mut self, input: Vec<Stmt>) -> Result<Vec<Stmt>, ScopeAnalyzerErr> {
+        input.into_iter().map(|s| self.tree_pass_mut(s)).collect()
     }
 }
 
 impl PassMut<Stmt, Stmt> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
 
-    fn tree_pass(&mut self, input: Stmt) -> StmtSemanticAnalyzerResult {
+    fn tree_pass_mut(&mut self, input: Stmt) -> StmtSemanticAnalyzerResult {
         match input {
-            Stmt::Expression(e) => Ok(Stmt::Expression(self.tree_pass(e)?)),
+            Stmt::Expression(e) => Ok(Stmt::Expression(self.tree_pass_mut(e)?)),
             Stmt::If(cond, tb, eb) => self.analyze_if(cond, tb, eb),
             Stmt::While(e, b) => Ok(Stmt::While(
-                self.tree_pass(e)?,
-                Box::new(self.tree_pass(b)?),
+                self.tree_pass_mut(e)?,
+                Box::new(self.tree_pass_mut(b)?),
             )),
-            Stmt::Print(e) => Ok(Stmt::Print(self.tree_pass(e)?)),
+            Stmt::Print(e) => Ok(Stmt::Print(self.tree_pass_mut(e)?)),
             Stmt::Function(name, params, body) => self.analyze_function(name, params, body),
             Stmt::Declaration(id, expr) => self.analyze_declaration(id, expr),
-            Stmt::Return(e) => Ok(Stmt::Return(self.tree_pass(e)?)),
+            Stmt::Return(e) => Ok(Stmt::Return(self.tree_pass_mut(e)?)),
             Stmt::Class(id, stmts) => self.analyze_class(id, stmts),
             Stmt::Block(stmts) => self.analyze_block(stmts),
         }
@@ -254,8 +254,8 @@ impl PassMut<Stmt, Stmt> for ScopeAnalyzer {
 /// This functions only to unpack an Stmt and dispatch to the upstream SemanticAnalyzer<Stmt, Stmt)> implementation
 impl PassMut<Box<Stmt>, Stmt> for ScopeAnalyzer {
     type Error = ScopeAnalyzerErr;
-    fn tree_pass(&mut self, input: Box<Stmt>) -> StmtSemanticAnalyzerResult {
-        self.tree_pass(*input)
+    fn tree_pass_mut(&mut self, input: Box<Stmt>) -> StmtSemanticAnalyzerResult {
+        self.tree_pass_mut(*input)
     }
 }
 
@@ -283,7 +283,7 @@ impl ScopeAnalyzer {
     fn analyze_block(&mut self, stmts: Vec<Stmt>) -> StmtSemanticAnalyzerResult {
         // enter scope
         self.stack.push(Scope::new());
-        let analyzed_block = self.tree_pass(stmts)?;
+        let analyzed_block = self.tree_pass_mut(stmts)?;
         // leave scope
         self.stack.pop();
 
@@ -300,7 +300,7 @@ impl ScopeAnalyzer {
         // enter scope
         self.stack.push(Scope::new());
 
-        let method_ids = self.tree_pass(methods)?;
+        let method_ids = self.tree_pass_mut(methods)?;
 
         // leave scope
         self.stack.pop();
@@ -323,7 +323,7 @@ impl ScopeAnalyzer {
             .into_iter()
             .map(|param| self.declare_or_assign(param))
             .collect();
-        let analyzed_body = self.tree_pass(body)?;
+        let analyzed_body = self.tree_pass_mut(body)?;
         // leave scope
         self.stack.pop();
 
@@ -336,10 +336,10 @@ impl ScopeAnalyzer {
         tb: Box<Stmt>,
         eb: Option<Box<Stmt>>,
     ) -> StmtSemanticAnalyzerResult {
-        let c = self.tree_pass(cond)?;
-        let then_branch = Box::new(self.tree_pass(tb)?);
+        let c = self.tree_pass_mut(cond)?;
+        let then_branch = Box::new(self.tree_pass_mut(tb)?);
         let else_branch = match eb {
-            Some(branch) => Some(Box::new(self.tree_pass(branch)?)),
+            Some(branch) => Some(Box::new(self.tree_pass_mut(branch)?)),
             None => None,
         };
 
@@ -347,7 +347,7 @@ impl ScopeAnalyzer {
     }
 
     fn analyze_declaration(&mut self, id: Identifier, expr: Expr) -> StmtSemanticAnalyzerResult {
-        match self.tree_pass(expr) {
+        match self.tree_pass_mut(expr) {
             Ok(e) => Ok(Stmt::Declaration(self.declare_or_assign(id), e)),
             Err(e) => Err(e),
         }

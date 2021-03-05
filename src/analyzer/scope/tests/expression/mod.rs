@@ -8,7 +8,7 @@ fn primary_expression_should_return_ok() {
     let input = Expr::Primary(obj_bool!(true));
     let output = input.clone();
 
-    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass(input));
+    assert_eq!(Ok(output), ScopeAnalyzer::new().tree_pass_mut(input));
 }
 
 #[test]
@@ -23,7 +23,7 @@ fn assignment_expression_should_match_predefined_value() {
     // Pre-declare a test variable for the above assignment to assign to
     sa.declare_or_assign(identifier_name!("test"));
 
-    assert_eq!(Ok(output), sa.tree_pass(input));
+    assert_eq!(Ok(output), sa.tree_pass_mut(input));
 }
 
 #[test]
@@ -33,7 +33,7 @@ fn assignment_expression_should_err_if_variable_is_undeclared() {
         Box::new(Expr::Primary(obj_bool!(true))),
     );
 
-    assert!(ScopeAnalyzer::new().tree_pass(input).is_err());
+    assert!(ScopeAnalyzer::new().tree_pass_mut(input).is_err());
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn variable_analyze_should_resolve_offset() {
     let input = Expr::Variable(identifier_name!("a"));
     let output = Expr::Variable(identifier_id!(0));
 
-    assert_eq!(Ok(output), sa.tree_pass(input));
+    assert_eq!(Ok(output), sa.tree_pass_mut(input));
 }
 
 #[test]
@@ -59,7 +59,7 @@ fn call_expression_should_match_predefined_value() {
     // Pre-declare a test variable for the above assignment to assign to
     sa.declare_or_assign(identifier_name!("test"));
 
-    assert_eq!(Ok(output), sa.tree_pass(input));
+    assert_eq!(Ok(output), sa.tree_pass_mut(input));
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn call_analyze_should_resolve_identifiers_to_ids() {
         vec![Expr::Variable(identifier_id!(1))],
     );
 
-    assert_eq!(Ok(output), sa.tree_pass(input));
+    assert_eq!(Ok(output), sa.tree_pass_mut(input));
 }
 
 #[test]
@@ -99,5 +99,5 @@ fn lambda_expression_should_match_predefined_value() {
     // Pre-declare a test variable for the above assignment to assign to
     sa.declare_or_assign(identifier_name!("hello"));
 
-    assert_eq!(Ok(output), sa.tree_pass(input));
+    assert_eq!(Ok(output), sa.tree_pass_mut(input));
 }

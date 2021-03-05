@@ -25,5 +25,5 @@ pub trait Pass<A, B> {
 pub trait PassMut<A, B> {
     type Error;
 
-    fn tree_pass(&mut self, input: A) -> Result<B, Self::Error>;
+    fn tree_pass_mut(&mut self, input: A) -> Result<B, Self::Error>;
 }

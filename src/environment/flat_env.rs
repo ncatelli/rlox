@@ -154,7 +154,7 @@ pub struct Environment<V> {
 
 impl<V> Environment<V>
 where
-    V: Default + Clone,
+    V: Clone,
 {
     /// instantiates a new environment with a single global scope. By default,
     /// this scope's Id is 0.
