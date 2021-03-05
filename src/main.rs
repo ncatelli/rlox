@@ -90,7 +90,7 @@ fn run(
     let ast = load_statics(stmts);
     let analyzed_stmts = analyzer.tree_pass_mut(ast).unwrap();
     interpreter
-        .tree_pass(analyzed_stmts)
+        .tree_pass_mut(analyzed_stmts)
         .map_err(|e| e.to_string())?;
 
     Ok(token_count)
