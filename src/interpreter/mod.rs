@@ -546,18 +546,18 @@ impl PassMut<Expr, Object> for StatefulInterpreter {
     fn tree_pass_mut(&mut self, expr: Expr) -> ExprInterpreterResult {
         match expr {
             Expr::Grouping(expr) => self.tree_pass_mut(expr),
-            Expr::Lambda(params, body) => self.interpret_lambda(params, *body),
-            Expr::Variable(id) => self.interpret_variable(id),
-            Expr::Primary(obj) => self.interpret_primary(obj),
-            Expr::Call(callee, args) => self.interpret_call(*callee, args),
-            Expr::Get(instance, param) => self.interpret_get(*instance, *param),
-            Expr::Unary(expr) => self.interpret_unary(expr),
-            Expr::Multiplication(expr) => self.interpret_multiplication(expr),
-            Expr::Addition(expr) => self.interpret_addition(expr),
-            Expr::Comparison(expr) => self.interpret_comparison(expr),
-            Expr::Equality(expr) => self.interpret_equality(expr),
-            Expr::Logical(expr) => self.interpret_logical(expr),
-            Expr::Assignment(id, expr) => self.interpret_assignment(id, expr),
+            Expr::Lambda(params, body) => self.interpret_lambda_mut(params, *body),
+            Expr::Variable(id) => self.interpret_variable_mut(id),
+            Expr::Primary(obj) => self.interpret_primary_mut(obj),
+            Expr::Call(callee, args) => self.interpret_call_mut(*callee, args),
+            Expr::Get(instance, param) => self.interpret_get_mut(*instance, *param),
+            Expr::Unary(expr) => self.interpret_unary_mut(expr),
+            Expr::Multiplication(expr) => self.interpret_multiplication_mut(expr),
+            Expr::Addition(expr) => self.interpret_addition_mut(expr),
+            Expr::Comparison(expr) => self.interpret_comparison_mut(expr),
+            Expr::Equality(expr) => self.interpret_equality_mut(expr),
+            Expr::Logical(expr) => self.interpret_logical_mut(expr),
+            Expr::Assignment(id, expr) => self.interpret_assignment_mut(id, expr),
         }
     }
 }
@@ -849,17 +849,17 @@ impl PassMut<Stmt, Option<Object>> for StatefulInterpreter {
 
     fn tree_pass_mut(&mut self, input: Stmt) -> StmtInterpreterResult {
         match input {
-            Stmt::Expression(expr) => self.interpret_expression_stmt(expr),
-            Stmt::If(expr, tb, eb) => self.interpret_if_stmt(expr, tb, eb),
-            Stmt::While(cond, body) => self.interpret_while_stmt(cond, body),
-            Stmt::Print(expr) => self.interpret_print_stmt(expr),
+            Stmt::Expression(expr) => self.interpret_expression_stmt_mut(expr),
+            Stmt::If(expr, tb, eb) => self.interpret_if_stmt_mut(expr, tb, eb),
+            Stmt::While(cond, body) => self.interpret_while_stmt_mut(cond, body),
+            Stmt::Print(expr) => self.interpret_print_stmt_mut(expr),
             Stmt::Function(name, params, body) => {
-                self.interpret_function_decl_stmt(name, params, *body)
+                self.interpret_function_decl_stmt_mut(name, params, *body)
             }
-            Stmt::Declaration(name, expr) => self.interpret_declaration_stmt(name, expr),
-            Stmt::Return(expr) => self.interpret_return_stmt(expr),
-            Stmt::Class(id, stmts) => self.interpret_class_decl_stmt(id, stmts),
-            Stmt::Block(stmts) => self.interpret_block(stmts),
+            Stmt::Declaration(name, expr) => self.interpret_declaration_stmt_mut(name, expr),
+            Stmt::Return(expr) => self.interpret_return_stmt_mut(expr),
+            Stmt::Class(id, stmts) => self.interpret_class_decl_stmt_mut(id, stmts),
+            Stmt::Block(stmts) => self.interpret_block_mut(stmts),
         }
     }
 }
