@@ -87,36 +87,35 @@ fn logical_and<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     .or(|| equality())
 }
 
+enum EqualityOp {
+    EqualEqual,
+    BangEqual,
+}
+
 #[allow(clippy::redundant_closure)]
 fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         comparison(),
         parcel::zero_or_more(join(
-            token_type(TokenType::EqualEqual).or(|| token_type(TokenType::BangEqual)),
+            token_type(TokenType::EqualEqual)
+                .map(|_| EqualityOp::EqualEqual)
+                .or(|| token_type(TokenType::BangEqual).map(|_| EqualityOp::BangEqual)),
             comparison(),
         ))
         .map(unzip),
     )
-    .map(|(lhe, (operators, mut operands))| {
-        operands.insert(0, lhe);
-        (operands, operators)
-    })
-    .map(|(operands, operators)| {
-        let mut operands_iter = operands.into_iter().rev();
-        let operators_iter = operators.into_iter().rev();
-        let mut last: Expr = operands_iter.next().unwrap();
-
-        for op in operators_iter {
-            // this is fairly safe due to the parser guaranteeing enough args.
-            let left = operands_iter.next().unwrap();
-            last = Expr::Equality(match op.token_type {
-                TokenType::EqualEqual => EqualityExpr::Equal(Box::new(left), Box::new(last)),
-                TokenType::BangEqual => EqualityExpr::NotEqual(Box::new(left), Box::new(last)),
-                _ => panic!(format!("unexpected token: {}", op.token_type)),
+    .map(|(first_expr, (operators, operands))| {
+        operators
+            .into_iter()
+            .zip(operands.into_iter())
+            .fold(first_expr, |lhs, (operator, rhs)| match operator {
+                EqualityOp::EqualEqual => {
+                    Expr::Equality(EqualityExpr::Equal(Box::new(lhs), Box::new(rhs)))
+                }
+                EqualityOp::BangEqual => {
+                    Expr::Equality(EqualityExpr::NotEqual(Box::new(lhs), Box::new(rhs)))
+                }
             })
-        }
-
-        last
     })
     .or(|| comparison())
 }
