@@ -121,42 +121,45 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     .or(|| comparison())
 }
 
+enum ComparisonOp {
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+}
+
 #[allow(clippy::redundant_closure)]
 fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         addition(),
         parcel::zero_or_more(join(
             token_type(TokenType::Greater)
-                .or(|| token_type(TokenType::GreaterEqual))
-                .or(|| token_type(TokenType::Less))
-                .or(|| token_type(TokenType::LessEqual)),
+                .map(|_| ComparisonOp::Greater)
+                .or(|| token_type(TokenType::GreaterEqual).map(|_| ComparisonOp::GreaterEqual))
+                .or(|| token_type(TokenType::Less).map(|_| ComparisonOp::Less))
+                .or(|| token_type(TokenType::LessEqual).map(|_| ComparisonOp::LessEqual)),
             addition(),
         ))
         .map(unzip),
     )
-    .map(|(lhe, (operators, mut operands))| {
-        operands.insert(0, lhe);
-        (operands, operators)
-    })
-    .map(|(operands, operators)| {
-        let mut operands_iter = operands.into_iter().rev();
-        let operators_iter = operators.into_iter().rev();
-        let mut last: Expr = operands_iter.next().unwrap();
-
-        for op in operators_iter {
-            // this is fairly safe due to the parser guaranteeing enough args.
-            let left = operands_iter.next().unwrap();
-            last = Expr::Comparison(match op.token_type {
-                TokenType::Less => ComparisonExpr::Less(Box::new(left), Box::new(last)),
-                TokenType::LessEqual => ComparisonExpr::LessEqual(Box::new(left), Box::new(last)),
-                TokenType::Greater => ComparisonExpr::Greater(Box::new(left), Box::new(last)),
-                TokenType::GreaterEqual => {
-                    ComparisonExpr::GreaterEqual(Box::new(left), Box::new(last))
+    .map(|(first_expr, (operators, operands))| {
+        operators
+            .into_iter()
+            .zip(operands.into_iter())
+            .fold(first_expr, |lhs, (operator, rhs)| match operator {
+                ComparisonOp::Greater => {
+                    Expr::Comparison(ComparisonExpr::Greater(Box::new(lhs), Box::new(rhs)))
                 }
-                _ => panic!(format!("unexpected token: {}", op.token_type)),
+                ComparisonOp::GreaterEqual => {
+                    Expr::Comparison(ComparisonExpr::GreaterEqual(Box::new(lhs), Box::new(rhs)))
+                }
+                ComparisonOp::Less => {
+                    Expr::Comparison(ComparisonExpr::Less(Box::new(lhs), Box::new(rhs)))
+                }
+                ComparisonOp::LessEqual => {
+                    Expr::Comparison(ComparisonExpr::LessEqual(Box::new(lhs), Box::new(rhs)))
+                }
             })
-        }
-        last
     })
     .or(|| addition())
 }
@@ -225,17 +228,23 @@ fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     .or(|| unary())
 }
 
+enum UnaryOp {
+    Minus,
+    Bang,
+}
+
 #[allow(clippy::redundant_closure)]
 fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
-        token_type(TokenType::Bang).or(|| token_type(TokenType::Minus)),
+        token_type(TokenType::Bang)
+            .map(|_| UnaryOp::Bang)
+            .or(|| token_type(TokenType::Minus).map(|_| UnaryOp::Minus)),
         primary(),
     )
-    .map(|(token, lit)| {
-        Expr::Unary(match token.token_type {
-            TokenType::Minus => UnaryExpr::Minus(Box::new(lit)),
-            TokenType::Bang => UnaryExpr::Bang(Box::new(lit)),
-            _ => panic!(format!("unexpected token: {}", token.token_type)),
+    .map(|(op, lit)| {
+        Expr::Unary(match op {
+            UnaryOp::Minus => UnaryExpr::Minus(Box::new(lit)),
+            UnaryOp::Bang => UnaryExpr::Bang(Box::new(lit)),
         })
     })
     .or(|| call())

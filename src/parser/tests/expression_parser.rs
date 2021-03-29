@@ -208,11 +208,11 @@ fn should_parse_many_comparison_expression() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Comparison(ComparisonExpr::GreaterEqual(
-                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Comparison(ComparisonExpr::GreaterEqual(
                     Box::new(Expr::Primary(obj_number!(1.0))),
                     Box::new(Expr::Primary(obj_number!(1.0)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_number!(1.0))),
             ))
         ))),
         expression().parse(&input)
