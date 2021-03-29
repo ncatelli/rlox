@@ -58,13 +58,9 @@ fn logical_or<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         one_or_more(right(join(token_type(TokenType::Or), logical_and()))),
     )
     .map(|(lhe, rhe)| {
-        let mut postfix = rhe.into_iter().rev();
-        let mut last: Expr = postfix.next().unwrap();
-
-        for left in postfix {
-            last = Expr::Logical(LogicalExpr::Or(Box::new(left), Box::new(last)))
-        }
-        Expr::Logical(LogicalExpr::Or(Box::new(lhe), Box::new(last)))
+        rhe.into_iter().fold(lhe, |lhs, rhs| {
+            Expr::Logical(LogicalExpr::Or(Box::new(lhs), Box::new(rhs)))
+        })
     })
     .or(|| logical_and())
 }
@@ -76,15 +72,16 @@ fn logical_and<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         one_or_more(right(join(token_type(TokenType::And), equality()))),
     )
     .map(|(lhe, rhe)| {
-        let mut postfix = rhe.into_iter().rev();
-        let mut last: Expr = postfix.next().unwrap();
-
-        for left in postfix {
-            last = Expr::Logical(LogicalExpr::And(Box::new(left), Box::new(last)))
-        }
-        Expr::Logical(LogicalExpr::And(Box::new(lhe), Box::new(last)))
+        rhe.into_iter().fold(lhe, |lhs, rhs| {
+            Expr::Logical(LogicalExpr::And(Box::new(lhs), Box::new(rhs)))
+        })
     })
     .or(|| equality())
+}
+
+enum EqualityOp {
+    EqualEqual,
+    BangEqual,
 }
 
 #[allow(clippy::redundant_closure)]
@@ -92,32 +89,34 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         comparison(),
         parcel::zero_or_more(join(
-            token_type(TokenType::EqualEqual).or(|| token_type(TokenType::BangEqual)),
+            token_type(TokenType::EqualEqual)
+                .map(|_| EqualityOp::EqualEqual)
+                .or(|| token_type(TokenType::BangEqual).map(|_| EqualityOp::BangEqual)),
             comparison(),
         ))
         .map(unzip),
     )
-    .map(|(lhe, (operators, mut operands))| {
-        operands.insert(0, lhe);
-        (operands, operators)
-    })
-    .map(|(operands, operators)| {
-        let mut operands_iter = operands.into_iter().rev();
-        let operators_iter = operators.into_iter().rev();
-        let mut last: Expr = operands_iter.next().unwrap();
-
-        for op in operators_iter {
-            // this is fairly safe due to the parser guaranteeing enough args.
-            let left = operands_iter.next().unwrap();
-            last = Expr::Equality(match op.token_type {
-                TokenType::EqualEqual => EqualityExpr::Equal(Box::new(left), Box::new(last)),
-                TokenType::BangEqual => EqualityExpr::NotEqual(Box::new(left), Box::new(last)),
-                _ => panic!(format!("unexpected token: {}", op.token_type)),
+    .map(|(first_expr, (operators, operands))| {
+        operators
+            .into_iter()
+            .zip(operands.into_iter())
+            .fold(first_expr, |lhs, (operator, rhs)| match operator {
+                EqualityOp::EqualEqual => {
+                    Expr::Equality(EqualityExpr::Equal(Box::new(lhs), Box::new(rhs)))
+                }
+                EqualityOp::BangEqual => {
+                    Expr::Equality(EqualityExpr::NotEqual(Box::new(lhs), Box::new(rhs)))
+                }
             })
-        }
-        last
     })
     .or(|| comparison())
+}
+
+enum ComparisonOp {
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
 }
 
 #[allow(clippy::redundant_closure)]
@@ -126,38 +125,39 @@ fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         addition(),
         parcel::zero_or_more(join(
             token_type(TokenType::Greater)
-                .or(|| token_type(TokenType::GreaterEqual))
-                .or(|| token_type(TokenType::Less))
-                .or(|| token_type(TokenType::LessEqual)),
+                .map(|_| ComparisonOp::Greater)
+                .or(|| token_type(TokenType::GreaterEqual).map(|_| ComparisonOp::GreaterEqual))
+                .or(|| token_type(TokenType::Less).map(|_| ComparisonOp::Less))
+                .or(|| token_type(TokenType::LessEqual).map(|_| ComparisonOp::LessEqual)),
             addition(),
         ))
         .map(unzip),
     )
-    .map(|(lhe, (operators, mut operands))| {
-        operands.insert(0, lhe);
-        (operands, operators)
-    })
-    .map(|(operands, operators)| {
-        let mut operands_iter = operands.into_iter().rev();
-        let operators_iter = operators.into_iter().rev();
-        let mut last: Expr = operands_iter.next().unwrap();
-
-        for op in operators_iter {
-            // this is fairly safe due to the parser guaranteeing enough args.
-            let left = operands_iter.next().unwrap();
-            last = Expr::Comparison(match op.token_type {
-                TokenType::Less => ComparisonExpr::Less(Box::new(left), Box::new(last)),
-                TokenType::LessEqual => ComparisonExpr::LessEqual(Box::new(left), Box::new(last)),
-                TokenType::Greater => ComparisonExpr::Greater(Box::new(left), Box::new(last)),
-                TokenType::GreaterEqual => {
-                    ComparisonExpr::GreaterEqual(Box::new(left), Box::new(last))
+    .map(|(first_expr, (operators, operands))| {
+        operators
+            .into_iter()
+            .zip(operands.into_iter())
+            .fold(first_expr, |lhs, (operator, rhs)| match operator {
+                ComparisonOp::Greater => {
+                    Expr::Comparison(ComparisonExpr::Greater(Box::new(lhs), Box::new(rhs)))
                 }
-                _ => panic!(format!("unexpected token: {}", op.token_type)),
+                ComparisonOp::GreaterEqual => {
+                    Expr::Comparison(ComparisonExpr::GreaterEqual(Box::new(lhs), Box::new(rhs)))
+                }
+                ComparisonOp::Less => {
+                    Expr::Comparison(ComparisonExpr::Less(Box::new(lhs), Box::new(rhs)))
+                }
+                ComparisonOp::LessEqual => {
+                    Expr::Comparison(ComparisonExpr::LessEqual(Box::new(lhs), Box::new(rhs)))
+                }
             })
-        }
-        last
     })
     .or(|| addition())
+}
+
+enum AdditionOp {
+    Plus,
+    Minus,
 }
 
 #[allow(clippy::redundant_closure)]
@@ -165,32 +165,30 @@ fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         multiplication(),
         parcel::zero_or_more(join(
-            token_type(TokenType::Plus).or(|| token_type(TokenType::Minus)),
+            token_type(TokenType::Plus)
+                .map(|_| AdditionOp::Plus)
+                .or(|| token_type(TokenType::Minus).map(|_| AdditionOp::Minus)),
             multiplication(),
         ))
         .map(unzip),
     )
-    .map(|(lhe, (operators, mut operands))| {
-        operands.insert(0, lhe);
-        (operands, operators)
-    })
-    .map(|(operands, operators)| {
-        let mut operands_iter = operands.into_iter().rev();
-        let operators_iter = operators.into_iter().rev();
-        let mut last: Expr = operands_iter.next().unwrap();
-
-        for op in operators_iter {
-            // this is fairly safe due to the parser guaranteeing enough args.
-            let left = operands_iter.next().unwrap();
-            last = Expr::Addition(match op.token_type {
-                TokenType::Plus => AdditionExpr::Add(Box::new(left), Box::new(last)),
-                TokenType::Minus => AdditionExpr::Subtract(Box::new(left), Box::new(last)),
-                _ => panic!(format!("unexpected token: {}", op.token_type)),
+    .map(|(first_expr, (operators, operands))| {
+        operators
+            .into_iter()
+            .zip(operands.into_iter())
+            .fold(first_expr, |lhs, (operator, rhs)| match operator {
+                AdditionOp::Plus => Expr::Addition(AdditionExpr::Add(Box::new(lhs), Box::new(rhs))),
+                AdditionOp::Minus => {
+                    Expr::Addition(AdditionExpr::Subtract(Box::new(lhs), Box::new(rhs)))
+                }
             })
-        }
-        last
     })
     .or(|| multiplication())
+}
+
+enum MultipliactionOp {
+    Star,
+    Slash,
 }
 
 #[allow(clippy::redundant_closure)]
@@ -198,45 +196,46 @@ fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         unary(),
         parcel::zero_or_more(join(
-            token_type(TokenType::Star).or(|| token_type(TokenType::Slash)),
+            token_type(TokenType::Star)
+                .map(|_| MultipliactionOp::Star)
+                .or(|| token_type(TokenType::Slash).map(|_| MultipliactionOp::Slash)),
             unary(),
         ))
         .map(unzip),
     )
-    .map(|(lhe, (operators, mut operands))| {
-        operands.insert(0, lhe);
-        (operands, operators)
-    })
-    .map(|(operands, operators)| {
-        let mut operands_iter = operands.into_iter().rev();
-        let operators_iter = operators.into_iter().rev();
-        let mut last: Expr = operands_iter.next().unwrap();
-
-        for op in operators_iter {
-            // this is fairly safe due to the parser guaranteeing enough args.
-            let left = operands_iter.next().unwrap();
-            last = Expr::Multiplication(match op.token_type {
-                TokenType::Star => MultiplicationExpr::Multiply(Box::new(left), Box::new(last)),
-                TokenType::Slash => MultiplicationExpr::Divide(Box::new(left), Box::new(last)),
-                _ => panic!(format!("unexpected token: {}", op.token_type)),
+    .map(|(first_expr, (operators, operands))| {
+        operators
+            .into_iter()
+            .zip(operands.into_iter())
+            .fold(first_expr, |lhs, (operator, rhs)| match operator {
+                MultipliactionOp::Star => {
+                    Expr::Multiplication(MultiplicationExpr::Multiply(Box::new(lhs), Box::new(rhs)))
+                }
+                MultipliactionOp::Slash => {
+                    Expr::Multiplication(MultiplicationExpr::Divide(Box::new(lhs), Box::new(rhs)))
+                }
             })
-        }
-        last
     })
     .or(|| unary())
+}
+
+enum UnaryOp {
+    Minus,
+    Bang,
 }
 
 #[allow(clippy::redundant_closure)]
 fn unary<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
-        token_type(TokenType::Bang).or(|| token_type(TokenType::Minus)),
+        token_type(TokenType::Bang)
+            .map(|_| UnaryOp::Bang)
+            .or(|| token_type(TokenType::Minus).map(|_| UnaryOp::Minus)),
         primary(),
     )
-    .map(|(token, lit)| {
-        Expr::Unary(match token.token_type {
-            TokenType::Minus => UnaryExpr::Minus(Box::new(lit)),
-            TokenType::Bang => UnaryExpr::Bang(Box::new(lit)),
-            _ => panic!(format!("unexpected token: {}", token.token_type)),
+    .map(|(op, lit)| {
+        Expr::Unary(match op {
+            UnaryOp::Minus => UnaryExpr::Minus(Box::new(lit)),
+            UnaryOp::Bang => UnaryExpr::Bang(Box::new(lit)),
         })
     })
     .or(|| call())

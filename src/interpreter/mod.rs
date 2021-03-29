@@ -307,7 +307,7 @@ impl StatefulInterpreter {
     }
 
     fn interpret_call(&self, callee: Expr, args: Vec<Expr>) -> ExprInterpreterResult {
-        let fun = self.tree_pass(callee).map(|obj_res| obj_res)?;
+        let fun = self.tree_pass(callee)?;
         let params: Vec<Object> = args
             .into_iter()
             .map(|expr| self.tree_pass(expr).unwrap())
@@ -346,7 +346,7 @@ impl StatefulInterpreter {
 
         i.get(&param_id).map_or(
             Err(ExprInterpreterErr::UndefinedVariable(param_id.to_string())),
-            |obj| Ok(obj),
+            Ok,
         )
     }
 

@@ -73,11 +73,11 @@ fn should_parse_multiple_logical_or() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Logical(LogicalExpr::Or(
-                Box::new(Expr::Primary(obj_bool!(false))),
                 Box::new(Expr::Logical(LogicalExpr::Or(
-                    Box::new(Expr::Primary(obj_bool!(true))),
+                    Box::new(Expr::Primary(obj_bool!(false))),
                     Box::new(Expr::Primary(obj_bool!(true)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_bool!(true))),
             ))
         ))),
         expression().parse(&input)
@@ -118,11 +118,11 @@ fn should_parse_multiple_logical_and() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Logical(LogicalExpr::And(
-                Box::new(Expr::Primary(obj_bool!(false))),
                 Box::new(Expr::Logical(LogicalExpr::And(
-                    Box::new(Expr::Primary(obj_bool!(true))),
+                    Box::new(Expr::Primary(obj_bool!(false))),
                     Box::new(Expr::Primary(obj_bool!(true)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_bool!(true))),
             ))
         ))),
         expression().parse(&input)
@@ -163,11 +163,11 @@ fn should_parse_many_equality_expression() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Equality(EqualityExpr::Equal(
-                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Equality(EqualityExpr::Equal(
                     Box::new(Expr::Primary(obj_number!(1.0))),
                     Box::new(Expr::Primary(obj_number!(1.0)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_number!(1.0))),
             ))
         ))),
         expression().parse(&input)
@@ -208,11 +208,11 @@ fn should_parse_many_comparison_expression() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Comparison(ComparisonExpr::GreaterEqual(
-                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Comparison(ComparisonExpr::GreaterEqual(
                     Box::new(Expr::Primary(obj_number!(1.0))),
                     Box::new(Expr::Primary(obj_number!(1.0)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_number!(1.0))),
             ))
         ))),
         expression().parse(&input)
@@ -253,11 +253,11 @@ fn should_parse_many_addition_expression() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Addition(AdditionExpr::Add(
-                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Addition(AdditionExpr::Add(
                     Box::new(Expr::Primary(obj_number!(1.0))),
                     Box::new(Expr::Primary(obj_number!(1.0)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_number!(1.0))),
             ))
         ))),
         expression().parse(&input)
@@ -298,11 +298,11 @@ fn should_parse_many_multiplication_expression() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Multiplication(MultiplicationExpr::Multiply(
-                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Multiplication(MultiplicationExpr::Multiply(
                     Box::new(Expr::Primary(obj_number!(1.0))),
                     Box::new(Expr::Primary(obj_number!(1.0)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_number!(1.0))),
             ))
         ))),
         expression().parse(&input)
