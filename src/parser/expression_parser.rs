@@ -76,13 +76,9 @@ fn logical_and<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
         one_or_more(right(join(token_type(TokenType::And), equality()))),
     )
     .map(|(lhe, rhe)| {
-        let mut postfix = rhe.into_iter().rev();
-        let mut last: Expr = postfix.next().unwrap();
-
-        for left in postfix {
-            last = Expr::Logical(LogicalExpr::And(Box::new(left), Box::new(last)))
-        }
-        Expr::Logical(LogicalExpr::And(Box::new(lhe), Box::new(last)))
+        rhe.into_iter().fold(lhe, |lhs, rhs| {
+            Expr::Logical(LogicalExpr::And(Box::new(lhs), Box::new(rhs)))
+        })
     })
     .or(|| equality())
 }

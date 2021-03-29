@@ -118,11 +118,11 @@ fn should_parse_multiple_logical_and() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Logical(LogicalExpr::And(
-                Box::new(Expr::Primary(obj_bool!(false))),
                 Box::new(Expr::Logical(LogicalExpr::And(
-                    Box::new(Expr::Primary(obj_bool!(true))),
+                    Box::new(Expr::Primary(obj_bool!(false))),
                     Box::new(Expr::Primary(obj_bool!(true)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_bool!(true))),
             ))
         ))),
         expression().parse(&input)
