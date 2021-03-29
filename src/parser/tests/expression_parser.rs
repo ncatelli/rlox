@@ -73,11 +73,11 @@ fn should_parse_multiple_logical_or() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Logical(LogicalExpr::Or(
-                Box::new(Expr::Primary(obj_bool!(false))),
                 Box::new(Expr::Logical(LogicalExpr::Or(
-                    Box::new(Expr::Primary(obj_bool!(true))),
+                    Box::new(Expr::Primary(obj_bool!(false))),
                     Box::new(Expr::Primary(obj_bool!(true)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_bool!(true))),
             ))
         ))),
         expression().parse(&input)
