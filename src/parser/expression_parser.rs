@@ -192,35 +192,35 @@ fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     .or(|| multiplication())
 }
 
+enum MultipliactionOp {
+    Star,
+    Slash,
+}
+
 #[allow(clippy::redundant_closure)]
 fn multiplication<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         unary(),
         parcel::zero_or_more(join(
-            token_type(TokenType::Star).or(|| token_type(TokenType::Slash)),
+            token_type(TokenType::Star)
+                .map(|_| MultipliactionOp::Star)
+                .or(|| token_type(TokenType::Slash).map(|_| MultipliactionOp::Slash)),
             unary(),
         ))
         .map(unzip),
     )
-    .map(|(lhe, (operators, mut operands))| {
-        operands.insert(0, lhe);
-        (operands, operators)
-    })
-    .map(|(operands, operators)| {
-        let mut operands_iter = operands.into_iter().rev();
-        let operators_iter = operators.into_iter().rev();
-        let mut last: Expr = operands_iter.next().unwrap();
-
-        for op in operators_iter {
-            // this is fairly safe due to the parser guaranteeing enough args.
-            let left = operands_iter.next().unwrap();
-            last = Expr::Multiplication(match op.token_type {
-                TokenType::Star => MultiplicationExpr::Multiply(Box::new(left), Box::new(last)),
-                TokenType::Slash => MultiplicationExpr::Divide(Box::new(left), Box::new(last)),
-                _ => panic!(format!("unexpected token: {}", op.token_type)),
+    .map(|(first_expr, (operators, operands))| {
+        operators
+            .into_iter()
+            .zip(operands.into_iter())
+            .fold(first_expr, |lhs, (operator, rhs)| match operator {
+                MultipliactionOp::Star => {
+                    Expr::Multiplication(MultiplicationExpr::Multiply(Box::new(lhs), Box::new(rhs)))
+                }
+                MultipliactionOp::Slash => {
+                    Expr::Multiplication(MultiplicationExpr::Divide(Box::new(lhs), Box::new(rhs)))
+                }
             })
-        }
-        last
     })
     .or(|| unary())
 }

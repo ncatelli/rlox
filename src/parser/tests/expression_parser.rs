@@ -298,11 +298,11 @@ fn should_parse_many_multiplication_expression() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Multiplication(MultiplicationExpr::Multiply(
-                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Multiplication(MultiplicationExpr::Multiply(
                     Box::new(Expr::Primary(obj_number!(1.0))),
                     Box::new(Expr::Primary(obj_number!(1.0)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_number!(1.0))),
             ))
         ))),
         expression().parse(&input)
