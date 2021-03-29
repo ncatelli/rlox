@@ -115,6 +115,7 @@ fn equality<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
                 _ => panic!(format!("unexpected token: {}", op.token_type)),
             })
         }
+
         last
     })
     .or(|| comparison())
@@ -160,35 +161,33 @@ fn comparison<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     .or(|| addition())
 }
 
+enum AdditionOp {
+    Plus,
+    Minus,
+}
+
 #[allow(clippy::redundant_closure)]
 fn addition<'a>() -> impl parcel::Parser<'a, &'a [Token], Expr> {
     join(
         multiplication(),
         parcel::zero_or_more(join(
-            token_type(TokenType::Plus).or(|| token_type(TokenType::Minus)),
+            token_type(TokenType::Plus)
+                .map(|_| AdditionOp::Plus)
+                .or(|| token_type(TokenType::Minus).map(|_| AdditionOp::Minus)),
             multiplication(),
         ))
         .map(unzip),
     )
-    .map(|(lhe, (operators, mut operands))| {
-        operands.insert(0, lhe);
-        (operands, operators)
-    })
-    .map(|(operands, operators)| {
-        let mut operands_iter = operands.into_iter().rev();
-        let operators_iter = operators.into_iter().rev();
-        let mut last: Expr = operands_iter.next().unwrap();
-
-        for op in operators_iter {
-            // this is fairly safe due to the parser guaranteeing enough args.
-            let left = operands_iter.next().unwrap();
-            last = Expr::Addition(match op.token_type {
-                TokenType::Plus => AdditionExpr::Add(Box::new(left), Box::new(last)),
-                TokenType::Minus => AdditionExpr::Subtract(Box::new(left), Box::new(last)),
-                _ => panic!(format!("unexpected token: {}", op.token_type)),
+    .map(|(first_expr, (operators, operands))| {
+        operators
+            .into_iter()
+            .zip(operands.into_iter())
+            .fold(first_expr, |lhs, (operator, rhs)| match operator {
+                AdditionOp::Plus => Expr::Addition(AdditionExpr::Add(Box::new(lhs), Box::new(rhs))),
+                AdditionOp::Minus => {
+                    Expr::Addition(AdditionExpr::Subtract(Box::new(lhs), Box::new(rhs)))
+                }
             })
-        }
-        last
     })
     .or(|| multiplication())
 }

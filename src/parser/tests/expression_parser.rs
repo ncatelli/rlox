@@ -253,11 +253,11 @@ fn should_parse_many_addition_expression() {
         Ok(MatchStatus::Match((
             &input[5..],
             Expr::Addition(AdditionExpr::Add(
-                Box::new(Expr::Primary(obj_number!(1.0))),
                 Box::new(Expr::Addition(AdditionExpr::Add(
                     Box::new(Expr::Primary(obj_number!(1.0))),
                     Box::new(Expr::Primary(obj_number!(1.0)))
-                )))
+                ))),
+                Box::new(Expr::Primary(obj_number!(1.0))),
             ))
         ))),
         expression().parse(&input)
