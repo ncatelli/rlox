@@ -35,10 +35,6 @@ impl fmt::Display for Instance {
 
 impl PartialEq for Instance {
     fn eq(&self, other: &Instance) -> bool {
-        if self.class == other.class {
-            true
-        } else {
-            false
-        }
+        self.class == other.class
     }
 }
